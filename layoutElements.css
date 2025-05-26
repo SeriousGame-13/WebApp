@@ -1,0 +1,127 @@
+/* 
+.hex:nth-child(even) => hex 클래스 중에서 짝수 순서인 것들만 선택
+:nth-child(odd) = 홀수번째
+:nth-child(3) = 정확히 3번째
+:nth-child(3n) = 3의 배수번째 (3, 6, 9...)
+:first-child = 첫번째
+:last-child = 마지막
+:hover = 마우스 올렸을 때
+*/
+
+/*
+부모 요소의 크기에 맞춰서 자식요소의 크기가 자동으로 조절되도록 만들고싶다면 Flexbox나 Grid를 사용할것.
+Flexbox의 경우 부모요소에서 display: flex를, 자식요소에서 flex:1 (자식 요소들을 동일한 비율로 분활) 사용.
+flex-direction을 같이 쓰면 배치 방향도 조절 가능
+aspect-ratio: 1/1 를 사용하면 각 그리드 아이템을 정사각형으로 고정 가능능
+*/
+
+/*
+css에선 Dynamic Viewport Height, dvh라는게 있어서, 주소창이 보이거나 숨겨지는 것에 따라 실시간으로 변하는 뷰포트 높이를 설정가능.
+vh대신 쓰는 길이 단위.
+너비에는 dvw를 사용하면됨.
+svh 단위를 쓰면 주소창을 뺀 높이만 가져오는것도 가능함.
+*/
+
+/* 요소를 원형으로 배치하고싶으면 css transform이랑 삼각함수를 쓰는게 일반적. */
+/* 헥사곤은  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); 이걸로 만들수있음*/
+
+/*
+그림자
+box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            x y blur  색상(투명도포함)
+그림자를 넣고싶은 방향으로 x랑 y 오프셋을 px값으로 조절하면됨. 0이면 그 방향으로는 그림자 안생김.
+*/
+
+:root {
+    --background-gradient: linear-gradient(45deg,#363a2a 0%,#22241c 20%,#1f211a 40%,#1d1f18 60%,#22241c 80%,#272920 100%);
+    --header-height: 56px;
+    --footer-height: 80px; 
+    --line-height: 2px;
+    --gaps: 4px; /* line 총합 */
+    --main-color: #96E36C;
+    --light-color: #bcbcbcf3;
+    --background-default: #1f211a;
+}
+
+body, html {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    background: var(--background-gradient);
+}
+
+.Main-container {
+    /* 컨텐츠 영역의 높이를 주소창이 있는 시점으로 고정시켜서, 주소창이 사라지면 여백을 늘리는걸로 컨텐츠 영역의 크기가 주소창 여부에 상관없이 유지되도록록 */
+    display: grid;
+    grid-template-rows: 
+    var(--header-height)
+    var(--line-height)
+    /* 중앙의 컨텐츠 영역의 크기를 계산 */
+    /* 주소창을 제외한 화면높이 - 헤더높이 - 푸터높이 - 여백 */
+    calc(100svh - var(--header-height) - var(--footer-height) - var(--gaps)) 
+    var(--line-height)
+    var(--footer-height);
+    height: 100dvh;
+    align-content: center; /* 세로 가운데 정렬 */
+}
+
+.Line {
+    background-color: var(--light-color);
+}
+
+.App-header {
+    height: var(--header-height);
+    min-height: var(--header-height); /* 최소 높이 보장 */
+    overflow: hidden; /* 넘치는 내용 숨김 */
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    padding-left: 20px;
+    padding-right: 20px;
+    background-color: var(--background-default);
+}
+
+.App-footer {
+    display: flex;
+    height: var(--footer-height);
+    min-height: var(--footer-height); /* 최소 높이 보장 */
+    overflow: hidden; /* 넘치는 내용 숨김 */
+    flex-direction: row;
+    justify-content: space-between;
+    padding-left: 20px;
+    padding-right: 20px;
+    background-color: var(--background-default);
+}
+
+.App-contents {
+    position: relative;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+.Header-Iconcontainer {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+}
+
+.Header-Iconbox {
+    margin: 10px;
+    display: flex;
+    justify-content: center; /* 가로 중앙 */
+    align-items: center;     /* 세로 중앙 */
+}
+
+.Footer-Iconbox {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 80px;
+    justify-content: center; /* 가로 중앙 */
+    align-items: center;     /* 세로 중앙 */
+}

@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { initializeApp } from 'firebase/app';
 import { 
+    signOut,
     getAuth, 
     createUserWithEmailAndPassword, 
     signInWithEmailAndPassword,
-    updateProfile 
+    updateProfile,
+    onAuthStateChanged
 } from 'firebase/auth';
 import { 
     getFirestore, 
@@ -18,15 +20,14 @@ import LayoutElements from './layoutElemets';
 
 import './firebaseAuth.css';
 
-// Firebase 설정
 const firebaseConfig = {
-    apiKey: "AIzaSyBN7pKRv-6gVMjjckg1-14pCmESd4BcTuw",
-    authDomain: "game-96ec9.firebaseapp.com",
-    projectId: "game-96ec9",
-    storageBucket: "game-96ec9.firebasestorage.app",
-    messagingSenderId: "929032385889",
-    appId: "1:929032385889:web:a3d91844051f2c033e4120",
-    measurementId: "G-GC921MNQWR"
+    apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+    authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+    storageBucket: process.env.REACT_APP_FIREBASE_STORAGEBUCKET,
+    messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGINGSENDERID,
+    appId: process.env.REACT_APP_FIREBASE_APPID,
+    measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENTID
 };
 
 const app = initializeApp(firebaseConfig);
@@ -52,6 +53,19 @@ const getUserData = async (uid) => {
         return null;
     }
 };
+
+// 로그아웃
+const logoutUser = async () => {
+    const auth = getAuth();
+    try {
+        await signOut(auth);
+        // console.log('로그아웃 성공');
+        // 자동으로 onAuthStateChanged가 호출되어 user가 null이 됨
+    } catch (error) {
+        console.error('Logout failed:', error);
+        alert('로그아웃 중 오류가 발생했습니다.');
+    }
+}
 
 // 회원가입 함수
 const signupUser = async (nickname, id, password) => {
@@ -95,7 +109,7 @@ function AppLogin() {
             // 사용자 데이터 가져오기
             const userInfo = await getUserData(user.uid);
             
-            setUserData(userInfo); // 이 줄이 누락되어 있었어요!
+            setUserData(userInfo);
             setIsLoggingIn(false);
             setShowLoginPopup(false);
             setIsLoggedIn(true);
@@ -250,7 +264,7 @@ function SignupPopup({ onSignup, onCancel, isLoading }) {
         return (
             <div className='PopupBackground'>
                 <div className='PopupContainer'>
-                    <h2>...Registrating...</h2>
+                    <h2>...Registering...</h2>
                 </div>
             </div>
         );
@@ -296,8 +310,45 @@ function SignupPopup({ onSignup, onCancel, isLoading }) {
   );
 }
 
+export const useAuth = () => {
+    const [currentUser, setCurrentUser] = useState(null);
+    const [userData, setUserData] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const auth = getAuth();
+        const db = getFirestore();
+        
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                setCurrentUser(user);
+                
+                // Firestore에서 사용자 상세 정보 가져오기
+                try {
+                    const userDoc = await getDoc(doc(db, 'users', user.uid));
+                    if (userDoc.exists()) {
+                        setUserData(userDoc.data());
+                    }
+                } catch (error) {
+                    console.error('사용자 데이터 가져오기 실패:', error);
+                }
+            } else {
+                setCurrentUser(null);
+                setUserData(null);
+            }
+            setLoading(false);
+        });
+        
+        return () => unsubscribe(); // 메모리 누수 방지
+    }, []);
+
+    return { currentUser, userData, loading };
+};
+
 const AuthElements = {
-    AppLogin
+    AppLogin,
+    logoutUser,
+    useAuth
 }
 
 export default AuthElements;

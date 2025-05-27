@@ -1,7 +1,10 @@
+import React, { useState, useEffect } from 'react';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getFirestore, doc, getDoc } from 'firebase/firestore';
+
 import ExpElements from './exp';
 import IconElements from './iconElements';
 import AuthElements from './firebaseAuth';
-import React, { useEffect, useState, useRef } from 'react';
 
 import './layoutElements.css'
 
@@ -59,6 +62,24 @@ function Footer() {
     );
 }
 
+function UserInfoHeaderContainer ({ user }) {
+    const name = user.displayName;
+
+    return (
+        <div className='SeyHelloContainer'>
+            <div className='SeyHello'>
+                <div> Nice to meet you, </div>
+                <div className='UserName'>{name}</div>
+            </div>
+            <button className='Logout-button'
+                onClick={AuthElements.logoutUser}>
+                Logout
+            </button>
+        </div>
+
+    )
+}
+
 function IconContainer () {
     return (
         <div className='Header-Iconcontainer'>
@@ -72,15 +93,39 @@ function IconContainer () {
     );
 }
 
-function HomePage () {
+function HomePage() {
+    const { currentUser, userData, loading } = AuthElements.useAuth();
+    
+    if (loading) {
+        return (
+            <div className='PopupBackground'>
+                <div className='PopupContainer'>
+                    <h2>...Loading...</h2>
+                </div>
+            </div>
+        )
+    }
+
+    if (!userData) {
+        return <AuthElements.AppLogin/>;
+    }
+    
     return (
         <div className='Main-container'>
             <header className="App-header">
-                <div>User</div>
+
+                <UserInfoHeaderContainer user={userData}/>
                 <IconContainer />
             </header>
             <div className='Line'/>
             <div className="App-contents">
+                <div>
+                    <p>Halle, {userData.displayName}!</p>
+                    <p>E-mail: {userData.email}</p>
+                    <p>Level: {userData.level}</p>
+                    <p>currentStrak: {userData.currentStreak}</p>
+                    <p>MaxStrak: {userData.longestStreak}</p>
+                </div>
             </div>
             <div className='Line'/>
             <Footer />

@@ -127,3 +127,31 @@ body, html {
     justify-content: center; /* 가로 중앙 */
     align-items: center;     /* 세로 중앙 */
 }
+
+.UserName {
+    color: var(--main-color);
+    font-size: medium;
+    font-weight: bold;
+}
+
+.SeyHelloContainer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    color: var(--light-color);
+}
+
+.SeyHello {
+    display: flex;
+    flex-direction: row; 
+    margin-right: 20px;
+}
+
+.Logout-button {
+    padding: 5px 10px;
+    border: 0px;
+    border-radius: 5px;
+    background-color: var(--light-color);
+    color: var(--background-default);
+}

@@ -115,8 +115,8 @@ function TestExpContainer () {
 
     return (
         <div>
-            <NewLinearExpContainer level={levelnow} expnow={expnow} expmax={expmax} />
             <NewCircleExpContainer level={levelnow} expnow={expnow} expmax={expmax} />
+            <NewLinearExpContainer level={levelnow} expnow={expnow} expmax={expmax} />
         </div>
     )
 }

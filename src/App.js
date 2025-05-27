@@ -1,4 +1,5 @@
 import LayoutElements from './layoutElemets';
+import AuthElements from './firebaseAuth';
 
 import './App.css';
 import './exp.css';
@@ -6,7 +7,7 @@ import './exp.css';
 function App() {
   return (
     <div className="App">
-      <LayoutElements.HomePage/>
+      <AuthElements.AppLogin />
     </div>
   );
 }

@@ -35,8 +35,11 @@ text-align: center;
 
 /* 원형 경험치바 */
 .circular-exp-container {
-    text-align: center;
     position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 .circular-exp-bar {

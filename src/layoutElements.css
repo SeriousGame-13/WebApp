@@ -34,9 +34,13 @@ box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
 
 :root {
     --background-gradient: linear-gradient(45deg,#363a2a 0%,#22241c 20%,#1f211a 40%,#1d1f18 60%,#22241c 80%,#272920 100%);
-    --header-height: 60px;
-    --footer-height: 40px; 
-    --gaps: 40px; /* gap 총합 */
+    --header-height: 56px;
+    --footer-height: 80px; 
+    --line-height: 2px;
+    --gaps: 4px; /* line 총합 */
+    --main-color: #96E36C;
+    --light-color: #bcbcbcf3;
+    --background-default: #3a3c32;
 }
 
 body, html {
@@ -44,6 +48,7 @@ body, html {
     padding: 0;
     box-sizing: border-box;
     background: var(--background-gradient);
+    font-family: Arial, Helvetica, sans-serif;
 }
 
 .Main-container {
@@ -51,21 +56,30 @@ body, html {
     display: grid;
     grid-template-rows: 
     var(--header-height)
+    var(--line-height)
     /* 중앙의 컨텐츠 영역의 크기를 계산 */
     /* 주소창을 제외한 화면높이 - 헤더높이 - 푸터높이 - 여백 */
     calc(100svh - var(--header-height) - var(--footer-height) - var(--gaps)) 
+    var(--line-height)
     var(--footer-height);
     height: 100dvh;
     align-content: center; /* 세로 가운데 정렬 */
-    gap: 20px; /* 고정 여백 */
-    padding-left: 20px;
-    padding-right: 20px;
+}
+
+.Line {
+    background-color: var(--light-color);
 }
 
 .App-header {
     height: var(--header-height);
     min-height: var(--header-height); /* 최소 높이 보장 */
     overflow: hidden; /* 넘치는 내용 숨김 */
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    padding-left: 20px;
+    padding-right: 20px;
+    background-color: var(--background-default);
 }
 
 .App-footer {
@@ -75,19 +89,41 @@ body, html {
     overflow: hidden; /* 넘치는 내용 숨김 */
     flex-direction: row;
     justify-content: space-between;
-
+    align-items: center;
+    padding-left: 20px;
+    padding-right: 20px;
+    background-color: var(--background-default);
 }
 
 .App-contents {
     position: relative;
     height: 100%;
-    width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
+    padding-left: 20px;
+    padding-right: 20px;
 }
 
-.Footer-Icon {
-
+.Header-Iconcontainer {
+    position: relative;
+    display: flex;
+    flex-direction: row;
 }
 
+.Header-Iconbox {
+    margin: 10px;
+    display: flex;
+    justify-content: center; /* 가로 중앙 */
+    align-items: center;     /* 세로 중앙 */
+}
+
+.Footer-Iconbox {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 80px;
+    justify-content: center; /* 가로 중앙 */
+    align-items: center;     /* 세로 중앙 */
+}

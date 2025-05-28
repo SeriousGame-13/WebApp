@@ -41,6 +41,18 @@ box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
     --main-color: #96E36C;
     --light-color: #bcbcbcf3;
     --background-default: #3a3c32;
+    --background-dark: #1e1e1c;
+    --background-red: #9f3434;
+}
+
+/* 모든 스크롤바 숨기기 */
+* {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+*::-webkit-scrollbar {
+    display: none;
 }
 
 body, html {
@@ -103,6 +115,7 @@ body, html {
     align-items: center;
     padding-left: 20px;
     padding-right: 20px;
+    flex-direction: column;
 }
 
 .Header-Iconcontainer {
@@ -154,4 +167,128 @@ body, html {
     border-radius: 5px;
     background-color: var(--light-color);
     color: var(--background-default);
+}
+
+.Upload-button {
+    padding: 5px 10px;
+    border: 0px;
+    border-radius: 5px;
+    background-color: var(--main-color);
+    color: var(--background-default);
+}
+
+.ProfileImage, .ProfileImageAlt {
+    height: 100px;
+    width: 100px;
+    border-radius: 50%;
+    padding: 20px;
+}
+
+.ProfileImageAlt {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--light-color);
+    color: var(--background-default);
+}
+
+.EditImageContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.ProfileImageForHeader {
+    height: 38px;
+    width: 38px;
+    border-radius: 50%;
+    padding: 0%;
+    margin-right: 10px;
+    border: 2px solid var(--main-color);
+}
+
+.HomeInfoContainer {
+    display: flex;
+    position: relative;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 3/1;
+    margin-top: 20px;
+    justify-content: space-between;
+}
+
+.HomeInfo {
+    position: relative;
+    height: 90%;
+    aspect-ratio: 1/1;
+    border-radius: 10px;
+    background-color: var(--background-default);
+    box-shadow:  0 2px 5px rgba(0,0,0,0.5);
+    padding: 20px;
+    box-sizing: border-box
+}
+
+.ExerciseContainer {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    overflow: scroll;
+    max-height: 50%;
+}
+
+.GuideText {
+    position: relative;
+    display: flex;
+    font-size: large;
+    font-weight: bold;
+    color: var(--light-color);
+    margin-bottom: 10px;
+    margin-top: 20px;
+}
+
+.GroupExerciseContainer {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: auto;
+    background-color: var(--background-default);
+    justify-content: center;
+    text-align: left;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    box-shadow:  0 2px 5px rgba(0,0,0,0.5);
+}
+
+.GroupExerciseHeader {
+    font-size: large;
+    color: var(--main-color);
+    margin: 20px;
+    max-height: 25px;
+}
+
+.GroupExerciseContents {
+    color: var(--light-color);
+    margin: 0px 20px;
+    max-height: 35px;
+    overflow: scroll;
+}
+
+.GroupExpContainer {
+    margin: 20px 0px;
+    width: 100%;
+}
+
+.ExpContainer {
+    margin: 20px;
+    width: 100%;
+}
+
+.HomeInfo-name {
+    color: var(--main-color);
+    font-size: 20px;
+    font-weight: bold;
+    margin-top: 5px;
 }

@@ -16,23 +16,11 @@ import {
     serverTimestamp 
 } from 'firebase/firestore';
 
+import { auth, db } from './config/firebase';
+
 import LayoutElements from './layoutElemets';
 
 import './firebaseAuth.css';
-
-const firebaseConfig = {
-    apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
-    authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
-    storageBucket: process.env.REACT_APP_FIREBASE_STORAGEBUCKET,
-    messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGINGSENDERID,
-    appId: process.env.REACT_APP_FIREBASE_APPID,
-    measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENTID
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
 
 // 로그인 함수
 const loginUser = async (id, password) => {
@@ -85,7 +73,7 @@ const signupUser = async (nickname, id, password) => {
         createdAt: serverTimestamp(),
         isActive: true,
         level: 1,
-        currentStreak: 0,
+        points: 0,
         longestStreak: 0
     });
 
@@ -310,45 +298,9 @@ function SignupPopup({ onSignup, onCancel, isLoading }) {
   );
 }
 
-export const useAuth = () => {
-    const [currentUser, setCurrentUser] = useState(null);
-    const [userData, setUserData] = useState(null);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        const auth = getAuth();
-        const db = getFirestore();
-        
-        const unsubscribe = onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                setCurrentUser(user);
-                
-                // Firestore에서 사용자 상세 정보 가져오기
-                try {
-                    const userDoc = await getDoc(doc(db, 'users', user.uid));
-                    if (userDoc.exists()) {
-                        setUserData(userDoc.data());
-                    }
-                } catch (error) {
-                    console.error('사용자 데이터 가져오기 실패:', error);
-                }
-            } else {
-                setCurrentUser(null);
-                setUserData(null);
-            }
-            setLoading(false);
-        });
-        
-        return () => unsubscribe(); // 메모리 누수 방지
-    }, []);
-
-    return { currentUser, userData, loading };
-};
-
 const AuthElements = {
     AppLogin,
-    logoutUser,
-    useAuth
+    logoutUser
 }
 
 export default AuthElements;

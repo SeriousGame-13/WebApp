@@ -16,6 +16,21 @@ function NewLinearExpContainer({ level, expnow, expmax }) {
     );
 }
 
+function NewLinearExpContainerSimple({ expnow, expmax }) {
+    const progress = Math.min((expnow / expmax) * 100, 100);
+    
+    return (
+        <div className="linear-exp-container-simple">
+            <div className="linear-exp-bar-simple">
+                <div 
+                    className="linear-exp-fill-simple" 
+                    style={{ width: `${progress}%` }}
+                ></div>
+            </div>
+        </div>
+    );
+}
+
 function NewLinearExpContainerWithProgress ({ level, expnow, expmax }) {
     const progress = Math.min((expnow / expmax) * 100, 100);
     
@@ -55,6 +70,7 @@ function NewCircleExpContainer({ level, expnow, expmax }) {
                     ></circle>
                 </svg>
                 <div className="circular-exp-text">
+                    <div className='leveltitle'>Lv</div>
                     <div className="level">{level}</div>
                 </div>
             </div>
@@ -123,6 +139,7 @@ function TestExpContainer () {
 
 const ExpElements = {
     NewLinearExpContainer,
+    NewLinearExpContainerSimple,
     NewLinearExpContainerWithProgress,
     NewCircleExpContainer,
     NewCircleExpContainerWithProgress,

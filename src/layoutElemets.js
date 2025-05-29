@@ -16,48 +16,48 @@ import './layoutElements.css'
 function Footer({ selectedIcon, onIconSelect }) {
     
     return (
-        <footer className="App-footer">
-            <div className='Footer-Iconbox' 
+        <footer className="AppFooter">
+            <div className='FooterIconbox' 
                 style={{ color: selectedIcon === 'home' ? 'var(--main-color)' : 'var(--light-color)' }}
                 onClick={() => onIconSelect('home')}>
                 <IconElements.HomeIcon/>
-                <div className='Icon-name' style={{ color: selectedIcon === 'home' ? 'var(--main-color)' : 'var(--light-color)' }}>
+                <div className='IconName' style={{ color: selectedIcon === 'home' ? 'var(--main-color)' : 'var(--light-color)' }}>
                     HOME
                 </div>
             </div>
             
-            <div className='Footer-Iconbox'
+            <div className='FooterIconbox'
                 style={{ color: selectedIcon === 'ranking' ? 'var(--main-color)' : 'var(--light-color)' }}
                 onClick={() => onIconSelect('ranking')}>
                 <IconElements.RankingIcon/>
-                <div className='Icon-name' style={{ color: selectedIcon === 'ranking' ? 'var(--main-color)' : 'var(--light-color)' }}>
+                <div className='IconName' style={{ color: selectedIcon === 'ranking' ? 'var(--main-color)' : 'var(--light-color)' }}>
                     RANKING
                 </div>
             </div>
             
-            <div className='Footer-Iconbox' 
+            <div className='FooterIconbox' 
                 style={{ color: selectedIcon === 'challenge' ? 'var(--main-color)' : 'var(--light-color)' }}
                 onClick={() => onIconSelect('challenge')}>
                 <IconElements.ChallengeIcon/>
-                <div className='Icon-name' style={{ color: selectedIcon === 'challenge' ? 'var(--main-color)' : 'var(--light-color)' }}>
+                <div className='IconName' style={{ color: selectedIcon === 'challenge' ? 'var(--main-color)' : 'var(--light-color)' }}>
                     CHALLENGE
                 </div>
             </div>
             
-            <div className='Footer-Iconbox'
+            <div className='FooterIconbox'
                 style={{ color: selectedIcon === 'group' ? 'var(--main-color)' : 'var(--light-color)' }}
                 onClick={() => onIconSelect('group')}>
                 <IconElements.GroupIcon/>
-                <div className='Icon-name' style={{ color: selectedIcon === 'group' ? 'var(--main-color)' : 'var(--light-color)' }}>
+                <div className='IconName' style={{ color: selectedIcon === 'group' ? 'var(--main-color)' : 'var(--light-color)' }}>
                     GROUP
                 </div>
             </div>
             
-            <div className='Footer-Iconbox' 
+            <div className='FooterIconbox' 
                 style={{ color: selectedIcon === 'user' ? 'var(--main-color)' : 'var(--light-color)' }}
                 onClick={() => onIconSelect('user')}>
                 <IconElements.UserIcon/>
-                <div className='Icon-name' style={{ color: selectedIcon === 'user' ? 'var(--main-color)' : 'var(--light-color)' }}>
+                <div className='IconName' style={{ color: selectedIcon === 'user' ? 'var(--main-color)' : 'var(--light-color)' }}>
                     USER
                 </div>
             </div>
@@ -74,7 +74,7 @@ function UserInfoHeaderContainer ({ user }) {
             <div className='SeyHello'>
                 <div className='UserName'>{name}</div>
             </div>
-            <button className='Logout-button'
+            <button className='LogoutButton'
                 onClick={AuthElements.logoutUser}>
                 Logout
             </button>
@@ -84,11 +84,11 @@ function UserInfoHeaderContainer ({ user }) {
 
 function IconContainer () {
     return (
-        <div className='Header-Iconcontainer'>
-            <div className='Header-Iconbox'>
+        <div className='HeaderIconcontainer'>
+            <div className='HeaderIconbox'>
                 <IconElements.NotificationIcon />
             </div>
-            <div className='Header-Iconbox'>
+            <div className='HeaderIconbox'>
                 <IconElements.SettingsIcon />
             </div>
         </div>
@@ -99,33 +99,39 @@ const Home = ({Data}) => {
     const userData = Data;
 
     return (
-        <div className="App-contents">
+        <div className="AppContents">
             <div className='ExpContainer'>
                 <ExpElements.NewCircleExpContainer level={userData.level} expnow={userData.points} expmax={1000} />
                 <div className='HomeInfoContainer'>
-                    <div className='HomeInfo'
-                        style={{ color: 'var(--main-color)'}}>
-                        <IconElements.RankingIcon/>
-                        <div className='HomeInfo-name'>
-                            11
+                    <div className='HomeInfo'>
+                        <div className='HomeInfoItemContainer'
+                            style={{ color: 'var(--main-color)'}}>
+                            <IconElements.RankingIcon/>
+                            <div className='HomeInfoName'>
+                                11
+                            </div>
+                            <p style={{ textAlign: 'center'}}>Place</p>
                         </div>
-                        <p style={{ textAlign: 'center'}}>Plase</p>
                     </div>
-                    <div className='HomeInfo'
-                        style={{ color: 'var(--main-color)'}}>
-                        <IconElements.TimeIcon/>
-                        <div className='HomeInfo-name'>
-                            45 min
+                    <div className='HomeInfo'>
+                        <div className='HomeInfoItemContainer'
+                            style={{ color: 'var(--main-color)'}}>
+                            <IconElements.TimeIcon/>
+                            <div className='HomeInfoName'>
+                                45 min
+                            </div>
+                            <p style={{ textAlign: 'center'}}>Training</p>
                         </div>
-                        <p style={{ textAlign: 'center'}}>Training</p>
                     </div>
-                    <div className='HomeInfo'
-                        style={{ color: 'var(--main-color)'}}>
-                        <IconElements.FitnessIcon/>
-                        <div className='HomeInfo-name'>
-                            3/7
+                    <div className='HomeInfo'>
+                        <div className='HomeInfoItemContainer'
+                            style={{ color: 'var(--main-color)'}}>
+                            <IconElements.FitnessIcon/>
+                            <div className='HomeInfoName'>
+                                3/7
+                            </div>
+                            <p style={{ textAlign: 'center'}}>Goal</p>
                         </div>
-                        <p style={{ textAlign: 'center'}}>Goal</p>
                     </div>
                 </div>
             </div>
@@ -180,7 +186,7 @@ const Ranking = ({Data}) => {
     const userData = Data;
 
     return (
-        <div className="App-contents">
+        <div className="AppContents">
             This is Rankingpage !!!
         </div>
     )
@@ -190,7 +196,7 @@ const Challenge = ({Data}) => {
     const userData = Data;
 
     return (
-        <div className="App-contents">
+        <div className="AppContents">
             This is Challengepage !!!
         </div>
     )
@@ -200,7 +206,7 @@ const Group = ({Data}) => {
     const userData = Data;
 
     return (
-        <div className="App-contents">
+        <div className="AppContents">
             This is Grouppage !!!
         </div>
     )
@@ -210,7 +216,7 @@ const User = ({Data}) => {
     const userData = Data;
 
     return (
-        <div className="App-contents">
+        <div className="AppContents">
             <ProfileImageElements.ProfileImageUploader userId={userData.uid}/>
             <div>
                 <p>Halle, {userData.displayName}!</p>
@@ -263,8 +269,8 @@ function HomePage() {
     }
     
     return (
-        <div className='Main-container'>
-            <header className="App-header">
+        <div className='MainContainer'>
+            <header className="AppHeader">
 
                 <UserInfoHeaderContainer user={userData}/>
                 <IconContainer />

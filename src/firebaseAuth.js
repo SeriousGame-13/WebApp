@@ -19,6 +19,7 @@ import {
 import { auth, db } from './config/firebase';
 
 import LayoutElements from './layoutElemets';
+import IconElements from './iconElements';
 
 import './firebaseAuth.css';
 
@@ -134,21 +135,23 @@ function AppLogin() {
     }
 
     return (
-        <div className='Main-container'>
+        <div className='MainContainer'>
             <header/>
             <div/>
-            <div className="First-container">
-                <div className="Loginpage-logo">
-                    <img src="./Skadi.gif" alt="Logo" />
+            <div className="FirstContainer">
+                <div className="LoginpageLogo">
+                    <div style={ {height: '80%', width: '80%'} }>
+                        <IconElements.FrontIcon />
+                    </div>
                 </div>
                 <div className='Title'>
                     This is demo-app
                 </div>
-                <button className='Login-button'
+                <button className='LoginButton'
                 onClick={() => setShowLoginPopup(true)}>
                     Login
                 </button>
-                <button className='Register-button'
+                <button className='RegisterButton'
                 onClick={() => setShowSignupPopup(true)}>
                     Register
                 </button>
@@ -172,7 +175,7 @@ function AppLogin() {
                 )}
             </div>
             <div className='Line'/>
-            <div className='App-footer'>
+            <div className='AppFooter'>
                 <div className='Author'>
                     <p>Made by. Serious Games Gruppe 13</p>
                     <p>Hyunu Park</p>

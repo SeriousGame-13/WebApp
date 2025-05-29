@@ -11,7 +11,7 @@
     --background-red: #9f3434;
 }
 
-.First-container {
+.FirstContainer {
     position: relative;
     height: 100%;
     display: flex;
@@ -22,14 +22,18 @@
     flex-direction: column;
 }
 
-.Loginpage-logo {
+.LoginpageLogo {
     position: relative;
     height: 40%;
     aspect-ratio: 1/1;
     border: 2px solid var(--main-color);
-    margin-bottom: 20px;
+    margin-bottom: 40px;
     border-radius: 50%;
     overflow: hidden;
+    color: var(--main-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 img {
@@ -57,7 +61,7 @@ p {
     color: var(--light-color);
 }
 
-.Login-button, .Register-button {
+.LoginButton, .RegisterButton {
     padding: 10px 20px;
     margin: 5px;
     background-color: var(--background-default);
@@ -66,12 +70,12 @@ p {
     font-weight: bold;
 }
 
-.Login-button {
+.LoginButton {
     color: var(--main-color);
     border: 2px solid var(--main-color);
 }
 
-.Register-button {
+.RegisterButton {
     color: var(--light-color);
     border: 0px;
 }

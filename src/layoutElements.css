@@ -63,7 +63,7 @@ body, html {
     font-family: Arial, Helvetica, sans-serif;
 }
 
-.Main-container {
+.MainContainer {
     /* 컨텐츠 영역의 높이를 주소창이 있는 시점으로 고정시켜서, 주소창이 사라지면 여백을 늘리는걸로 컨텐츠 영역의 크기가 주소창 여부에 상관없이 유지되도록록 */
     display: grid;
     grid-template-rows: 
@@ -75,17 +75,17 @@ body, html {
     var(--line-height)
     var(--footer-height);
     height: 100dvh;
-    align-content: center; /* 세로 가운데 정렬 */
+    align-content: center;
 }
 
 .Line {
     background-color: var(--light-color);
 }
 
-.App-header {
+.AppHeader {
     height: var(--header-height);
-    min-height: var(--header-height); /* 최소 높이 보장 */
-    overflow: hidden; /* 넘치는 내용 숨김 */
+    min-height: var(--header-height);
+    overflow: hidden;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
@@ -94,11 +94,11 @@ body, html {
     background-color: var(--background-default);
 }
 
-.App-footer {
+.AppFooter {
     display: flex;
     height: var(--footer-height);
-    min-height: var(--footer-height); /* 최소 높이 보장 */
-    overflow: hidden; /* 넘치는 내용 숨김 */
+    min-height: var(--footer-height);
+    overflow: hidden;
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
@@ -107,38 +107,38 @@ body, html {
     background-color: var(--background-default);
 }
 
-.App-contents {
+.AppContents {
     position: relative;
     height: 100%;
     display: flex;
-    justify-content: center;
     align-items: center;
     padding-left: 20px;
     padding-right: 20px;
     flex-direction: column;
+    overflow: hidden;
 }
 
-.Header-Iconcontainer {
+.HeaderIconcontainer {
     position: relative;
     display: flex;
     flex-direction: row;
 }
 
-.Header-Iconbox {
+.HeaderIconbox {
     margin: 10px;
     display: flex;
-    justify-content: center; /* 가로 중앙 */
-    align-items: center;     /* 세로 중앙 */
+    justify-content: center;
+    align-items: center;
 }
 
-.Footer-Iconbox {
+.FooterIconbox {
     position: relative;
     display: flex;
     flex-direction: column;
     height: 100%;
     width: 80px;
-    justify-content: center; /* 가로 중앙 */
-    align-items: center;     /* 세로 중앙 */
+    justify-content: center;
+    align-items: center; 
 }
 
 .UserName {
@@ -161,7 +161,7 @@ body, html {
     margin-right: 20px;
 }
 
-.Logout-button {
+.LogoutButton {
     padding: 5px 10px;
     border: 0px;
     border-radius: 5px;
@@ -169,7 +169,7 @@ body, html {
     color: var(--background-default);
 }
 
-.Upload-button {
+.UploadButton {
     padding: 5px 10px;
     border: 0px;
     border-radius: 5px;
@@ -226,7 +226,11 @@ body, html {
     background-color: var(--background-default);
     box-shadow:  0 2px 5px rgba(0,0,0,0.5);
     padding: 20px;
-    box-sizing: border-box
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 .ExerciseContainer {
@@ -266,7 +270,7 @@ body, html {
     font-size: large;
     color: var(--main-color);
     margin: 20px;
-    max-height: 25px;
+    max-height: 30px;
 }
 
 .GroupExerciseContents {
@@ -284,11 +288,19 @@ body, html {
 .ExpContainer {
     margin: 20px;
     width: 100%;
+    height: 50%;
+    margin-bottom: 60px;
+    box-sizing: border-box;
 }
 
-.HomeInfo-name {
+.HomeInfoName {
     color: var(--main-color);
-    font-size: 20px;
+    font-size: 25px;
     font-weight: bold;
-    margin-top: 5px;
+    margin-top: 10px;
+}
+
+.HomeInfoItemContainer {
+    height: auto;
+    width: auto;
 }

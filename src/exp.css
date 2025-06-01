@@ -1,6 +1,6 @@
-/* 직선형 경험치바 */
+/* Linear Experience Bar */
 .LinearExpContainer {
-text-align: center;
+    text-align: center;
 }
 
 .LinearExpBar {
@@ -22,7 +22,7 @@ text-align: center;
     box-shadow: 0 2px 8px rgba(0,0,0,0.5);
 }
 
-/* 직선형 경험치바 2 */
+/* Linear Experience Bar 2 */
 .LinearExpContainerSimple {
     text-align: center;
     padding: 0px 20px;
@@ -56,7 +56,7 @@ text-align: center;
     z-index: 1;
 }
 
-/* 원형 경험치바 */
+/* Circular Experience Bar */
 .LevelTitle {
     font-size: 30px;
     color: var(--light-color);
@@ -125,7 +125,7 @@ text-align: center;
     margin-top: 5px;
 }
 
-/* 애니메이션 */
+/* Animation */
 @keyframes shine {
     0% { transform: translateX(-100%); }
     100% { transform: translateX(100%); }

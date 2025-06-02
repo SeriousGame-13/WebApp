@@ -8,10 +8,19 @@ import {
     collection,
     getDocs,
     serverTimestamp,
+    getFirestore, 
 } from 'firebase/firestore';
-import { db } from './firebaseConfig';
 
-// Read a document by ID from a specific collection
+import { firebaseApp } from './FirebaseAppConfiguration';
+
+const db = getFirestore(firebaseApp);
+
+/**
+ * Retrieves a document by ID from a specific collection
+ * @param {string} collectionName - Name of the Firestore collection
+ * @param {string} docId - Document ID to retrieve
+ * @returns {Promise<object|null>} Document data object or null if not found
+ */
 const readDocument = async (collectionName, docId) => {
     try {
         const docSnap = await getDoc(getDocumentReference(collectionName, docId));
@@ -27,7 +36,14 @@ const readDocument = async (collectionName, docId) => {
     }
 }
 
-// Create a new document with auto-generated ID
+/**
+ * Creates a new document with the specified ID
+ * @param {string} collectionName - Name of the Firestore collection
+ * @param {string} docId - Document ID to create
+ * @param {object} data - Data to store in the document
+ * @param {boolean} [addTimestamp=true] - Whether to add creation and update timestamps
+ * @returns {Promise<DocumentReference|null>} Document reference or null on error
+ */
 const createDocument = async (collectionName, docId, data, addTimestamp = true) => {
     try {
         const documentReference = getDocumentReference(collectionName, docId);
@@ -44,18 +60,31 @@ const createDocument = async (collectionName, docId, data, addTimestamp = true) 
     }
 }
 
-// Create or replace a document with specific ID
+/**
+ * Creates or replaces a document with specific reference
+ * @param {DocumentReference} documentReference - Firestore document reference
+ * @param {object} documentData - Data to store in the document
+ * @param {boolean} [merge=true] - Whether to merge with existing document data
+ * @returns {Promise<DocumentReference|null>} Document reference or null on error
+ */
 const setDocument = async (documentReference, documentData, merge = true) => {
     try {
         await setDoc(documentReference, documentData, { merge });
         return documentReference;
     } catch (error) {
-        console.error(`Error setting document in ${collectionName}:`, error);
+        console.error(`Error setting document:`, error);
         return null;
     }
 }
 
-// Update parts of an existing document
+/**
+ * Updates parts of an existing document
+ * @param {string} collectionName - Name of the Firestore collection
+ * @param {string} docId - Document ID to update
+ * @param {object} data - Data fields to update
+ * @param {boolean} [addTimestamp=true] - Whether to add an update timestamp
+ * @returns {Promise<DocumentReference|null>} Document reference or null on error
+ */
 const updateDocument = async (collectionName, docId, data, addTimestamp = true) => {
     try {
         const docRef = getDocumentReference(collectionName, docId);
@@ -73,7 +102,12 @@ const updateDocument = async (collectionName, docId, data, addTimestamp = true) 
     }
 }
 
-// Delete a document
+/**
+ * Deletes a document from a collection
+ * @param {string} collectionName - Name of the Firestore collection
+ * @param {string} docId - Document ID to delete
+ * @returns {Promise<DocumentReference|null>} Document reference or null on error
+ */
 const deleteDocument = async (collectionName, docId) => {
     try {
         const docRef = getDocumentReference(collectionName, docId);
@@ -85,7 +119,13 @@ const deleteDocument = async (collectionName, docId) => {
     }
 }
 
-// Query documents by field value
+/**
+ * Queries documents where field equals a specific value
+ * @param {string} collectionName - Name of the Firestore collection
+ * @param {string} field - Field name to query on
+ * @param {any} value - Value to match against the field
+ * @returns {Promise<QuerySnapshot|Array>} QuerySnapshot containing matching documents or empty array on error
+ */
 const queryDocumentsByFieldValue = async (collectionName, field, value) => {
     try {
         const q = query(collection(db, collectionName), where(field, '==', value));
@@ -97,7 +137,11 @@ const queryDocumentsByFieldValue = async (collectionName, field, value) => {
     }
 }
 
-// Get all documents from a collection
+/**
+ * Retrieves all documents from a collection
+ * @param {string} collectionName - Name of the Firestore collection
+ * @returns {Promise<QuerySnapshot|Array>} QuerySnapshot containing all documents or empty array on error
+ */
 const getAllDocuments = async (collectionName) => {
     try {
         const q = query(collection(db, collectionName));
@@ -109,7 +153,12 @@ const getAllDocuments = async (collectionName) => {
     }
 }
 
-// Get document reference
+/**
+ * Creates a reference to a document in a collection
+ * @param {string} collectionName - Name of the Firestore collection
+ * @param {string} docId - Document ID to reference
+ * @returns {DocumentReference|null} Firestore document reference or null on error
+ */
 const getDocumentReference = (collectionName, docId) => {
     try {
         return doc(db, collectionName, docId);

@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, doc, getDoc } from 'firebase/firestore';
 
 import ExpElements from '../components/ui/ExpBar';
 import IconElements from '../components/ui/IconElements';
@@ -8,8 +6,6 @@ import LoginPage from '../pages/LoginPage';
 import UserManagement from '../services/firebase/UserManagementSystem';  
 import DatamanagerElements from '../utils/dataManager';
 import ProfileImageElements from '../utils/profileImageManager';
-
-import { auth, db } from '../services/firebase/firebaseConfig';
 
 import './LayoutElements.css'
 

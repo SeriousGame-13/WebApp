@@ -18,7 +18,7 @@ function AppLogin() {
     const handleLogin = async (id, password) => {
         setIsLoggingIn(true);
         try {
-            const user = await UserManagement.logoutUser(id, password);
+            const user = await UserManagement.loginUser(id, password);
             const userInfo = await UserManagement.getUserData(user.uid);
             setUserData(userInfo);
             setIsLoggingIn(false);
@@ -83,7 +83,7 @@ function AppLogin() {
 
                 {showSignupPopup && (
                     <SignupPopup
-                        onSignup={UserManagement.signupUser}
+                        onSignup={handleSignup}
                         onCancel={() => setShowSignupPopup(false)}
                         isLoading={isSigningUp}
                     />

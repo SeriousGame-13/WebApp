@@ -1,6 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { db } from '../services/firebase/firebaseConfig';
-import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 
 import DatamanagerElements from './dataManager';
 import '../pages/LoginPage.css';

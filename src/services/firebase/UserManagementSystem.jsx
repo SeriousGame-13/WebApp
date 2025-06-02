@@ -1,15 +1,5 @@
-import { 
-    signOut,
-    getAuth, 
-    createUserWithEmailAndPassword, 
-    signInWithEmailAndPassword,
-    updateProfile,
-    updateEmail,
-} from 'firebase/auth';
-// #TODO REMOVE FirebaseAuth to use only FirebaseAuthenticationManager to avoid Spaghetti
-
-import { auth, db } from './firebaseConfig';
 import FirebaseManager from './FirestoreManager';
+import FireAuthManager from './FirebaseAuthenticationManager';
 
 const USERS_COLLECTION = 'users';
 const FRIENDS_COLLECTION = 'user_friends';
@@ -17,13 +7,13 @@ const BLOCKS_COLLECTION = 'user_blocks';
 
 /**
  * Authenticates a user with email and password
- * @param {string} id - User's email address
+ * @param {string} email - User's email address
  * @param {string} password - User's password
  * @returns {Promise<object>} Firebase user object
  * @throws {Error} If authentication fails
  */
-const loginUser = async (id, password) => {
-    const userCredential = await signInWithEmailAndPassword(auth, id, password);
+const loginUser = async (email, password) => {
+    const userCredential = await FireAuthManager.signInUser(email, password);
     return userCredential.user;
 };
 
@@ -44,11 +34,11 @@ const getUserData = async (uid) => {
 /**
  * Signs out the currently authenticated user
  * @returns {Promise<void>}
+ * @throws {Error} If logout fails
  */
 const logoutUser = async () => {
-    const auth = getAuth();
     try {
-        await signOut(auth);
+        await FireAuthManager.signOutUser();
     } catch (error) {
         console.error('Logout failed:', error);
         alert('An error occurred during logout.');
@@ -64,13 +54,11 @@ const logoutUser = async () => {
  * @throws {Error} If account creation fails
  */
 const signupUser = async (nickname, email, password) => {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const userCredential = await FireAuthManager.createUser(email, password);
     const user = userCredential.user;
-
-    await updateProfile(userCredential.user, {
-        displayName: nickname
-    });
-
+    
+    await FireAuthManager.updateUserProfile(user, { displayName: nickname });
+  
     const userData = {
         uid: user.uid,
         email: email,
@@ -80,7 +68,8 @@ const signupUser = async (nickname, email, password) => {
         points: 0,
         longestStreak: 0
     }   
-    await FirebaseManager.createDocument(USERS_COLLECTION, user.uid, userData, addTimestamp = true);
+
+    await FirebaseManager.createDocument(USERS_COLLECTION, user.uid, userData, true);
 
     return user;
 };
@@ -90,6 +79,7 @@ const signupUser = async (nickname, email, password) => {
  * @param {string} uid - User ID to update
  * @param {object} userData - Object containing (sub-)set of fields to update (displayName, email, level, points, etc.)
  * @returns {Promise<object>} Updated user data
+ * @throws {Error} If user is not authenticated or update fails
  */
 const updateUser = async (uid, userData) => {
     try {
@@ -97,15 +87,13 @@ const updateUser = async (uid, userData) => {
 
         // Update Authentication profile if needed
         if (userData.displayName) {
-            await updateProfile(user, { displayName: userData.displayName });
+            await FireAuthManager.updateUserProfile(user, { displayName: userData.displayName });
         }
         if (userData.email) {
-            await updateEmail(user, userData.email);
+            await FireAuthManager.updateEmail(user, userData.email);
         }
-        
-        
-        // Execute update with merge: true to only update specified fields
-        await FirebaseManager.updateDocument(USERS_COLLECTION, uid, updatedData, addTimestamp = true);
+                
+        await FirebaseManager.updateDocument(USERS_COLLECTION, uid, userData, true);
         
         // Re-Get and return the updated user data
         return getUserData(uid);
@@ -115,10 +103,14 @@ const updateUser = async (uid, userData) => {
     }
 };
 
-
+/**
+ * Gets and validates the current authenticated user
+ * @param {string} uid - User ID to verify against current auth user
+ * @returns {object} Firebase Auth user object
+ * @throws {Error} If no user is logged in or user ID doesn't match
+ */
 function getCurrentAuthUser(uid) {
-    const user = auth.currentUser;
-
+    const user = FireAuthManager.getCurrentUser();
     if (!user) {
         throw new Error('No user is currently logged in');
     }
@@ -129,20 +121,19 @@ function getCurrentAuthUser(uid) {
     return user;
 }
 
-
 /**
  * Deletes a user authentication account and deactivate associated data
  * @param {string} uid - User ID to delete
  * @returns {Promise<void>}
+ * @throws {Error} If user is not authenticated or deletion fails
  */
 const deleteUser = async (uid) => {
     try {
         const user = getCurrentAuthUser(uid);
         
         // Deactivate user document from Firestore, but keep it for historical/restoring purposes
-        await FirebaseManager.updateDocument(USERS_COLLECTION, uid, { isActive: false }, addTimestamp = true);
+        await FirebaseManager.updateDocument(USERS_COLLECTION, uid, { isActive: false }, true);
 
-        // Delete user authentication account
         await user.delete();        
     } catch (error) {
         console.error('Failed to delete user:', error);
@@ -167,7 +158,6 @@ const addFriend = async (requesterId, recipientId) => {
             throw new Error('Friendship already exists');
         }
 
-        // Create friendship document
         const friendshipData = {
             friendshipId,
             user1Id: requesterId, // Requester
@@ -175,7 +165,7 @@ const addFriend = async (requesterId, recipientId) => {
             status: 'PENDING',
         };
         
-        await FirebaseManager.createDocument(FRIENDS_COLLECTION, friendshipId, friendshipData, addTimestamp = true);        
+        await FirebaseManager.createDocument(FRIENDS_COLLECTION, friendshipId, friendshipData, true);        
         
         return getFriendshipData(friendshipId);
     } catch (error) {
@@ -184,6 +174,12 @@ const addFriend = async (requesterId, recipientId) => {
     }
 };
 
+/**
+ * Validates that both users exist in the database
+ * @param {string} user1Id - First user ID to validate
+ * @param {string} user2Id - Second user ID to validate
+ * @throws {Error} If either user does not exist
+ */
 function validateUsersExist(user1Id, user2Id) {
     const user = getUserData(user1Id);
     const user2 = getUserData(user2Id);
@@ -196,11 +192,18 @@ function validateUsersExist(user1Id, user2Id) {
     }
 }
 
+/**
+ * Creates a unique friendship ID from two user IDs
+ * @param {string} requesterId - ID of the user sending the request
+ * @param {string} recipientId - ID of the user receiving the request
+ * @returns {string} Unique friendship ID (alphabetically sorted user IDs joined with underscore)
+ */
 function resolveFriendshipId(requesterId, recipientId) {
     // friendship ID => Combination of both user IDs, alphabetically sorted
     const userIds = [requesterId, recipientId].sort();
     return `${userIds[0]}_${userIds[1]}`;
 }
+
 /**
  * Accepts a pending friendship request
  * @param {string} userId - ID of user accepting the request
@@ -225,8 +228,7 @@ const acceptFriendRequest = async (userId, friendId) => {
             throw new Error('Only the recipient can accept a friend request');
         }
         
-        // Update friendship status
-        await FirebaseManager.updateDocument(FRIENDS_COLLECTION, friendshipId, {status: 'ACCEPTED'}, addTimestamp = true);    
+        await FirebaseManager.updateDocument(FRIENDS_COLLECTION, friendshipId, {status: 'ACCEPTED'}, true);    
         
         // Re-Get updated friendship
         return await getFriendshipData(friendshipId);
@@ -257,7 +259,6 @@ const removeFriend = async (userId, friendId) => {
             throw new Error('You are not part of this friendship');
         }
         
-        // Delete the friendship document
         await FirebaseManager.deleteDocument(FRIENDS_COLLECTION, friendshipId);
     } catch (error) {
         console.error('Failed to remove friend:', error);
@@ -289,11 +290,9 @@ const getUserFriendships = async (userId, status = null) => {
     try {
         const friendships = [];
         
-        // Query where user is either user1 or user2
         const snapshot1 = await FirebaseManager.queryDocumentsByFieldValue(FRIENDS_COLLECTION, 'user1Id', userId);
         const snapshot2 = await FirebaseManager.queryDocumentsByFieldValue(FRIENDS_COLLECTION, 'user2Id', userId);
 
-        // Process results
         snapshot1.forEach(doc => {
             const friendship = doc.data();
             if (!status || friendship.status === status) {
@@ -326,29 +325,25 @@ const blockUser = async (userId, blockedUserId) => {
     try {
         validateUsersExist(userId, blockedUserId);
         
-        // Check if block already exists
         const blockId = resolveBlockId(userId, blockedUserId);
         const existingBlock = await getBlockData(blockId);
         if (existingBlock) {
             throw new Error('User is already blocked');
         }
                 
-        // Create block document
         const blockData = {
             blockId,
             userId,
             blockedUserId,
         };
         
-        // Remove as Friends
         try {
             await removeFriend(userId, blockedUserId);
         } catch (error) {
             // Ignore errors if no friendship exists
-            console.log('No friendship to remove when blocking user');
         }
         
-        await FirebaseManager.createDocument(BLOCKS_COLLECTION, blockId, blockData, addTimestamp = true);
+        await FirebaseManager.createDocument(BLOCKS_COLLECTION, blockId, blockData, true);
         
         // Re-Get the block data
         return getBlockData(blockId);
@@ -358,7 +353,12 @@ const blockUser = async (userId, blockedUserId) => {
     }
 };
 
-
+/**
+ * Creates a unique block ID from user IDs
+ * @param {string} userId - ID of user creating the block
+ * @param {string} blockedUserId - ID of user being blocked
+ * @returns {string} Unique block ID in format "userId_blocks_blockedUserId"
+ */
 function resolveBlockId(userId, blockedUserId) {
     return `${userId}_blocks_${blockedUserId}`;
 }
@@ -372,7 +372,6 @@ function resolveBlockId(userId, blockedUserId) {
  */
 const unblockUser = async (userId, blockedUserId) => {
     try {
-        // Get the block record
         const blockId = resolveBlockId(userId, blockedUserId);
         const block = await getBlockData(blockId);
         
@@ -385,7 +384,6 @@ const unblockUser = async (userId, blockedUserId) => {
             throw new Error('Permission denied: Only the blocker can unblock');
         }
         
-        // Delete the block document
         await FirebaseManager.deleteDocument(BLOCKS_COLLECTION, blockId);
 
     } catch (error) {
@@ -396,8 +394,7 @@ const unblockUser = async (userId, blockedUserId) => {
 
 /**
  * Helper function to find a block between users
- * @param {string} userId - ID of user who created the block
- * @param {string} blockId - ID of user who was blocked
+ * @param {string} blockId - The block ID to look up
  * @returns {Promise<object|null>} Block object or null if not found
  */
 const getBlockData = async (blockId) => {
@@ -430,11 +427,8 @@ const getUserBlocks = async (userId) => {
     try {
         const blocks = [];
         
-        // Query where user is the blocker
-
         const snapshot = await FirebaseManager.queryDocumentsByFieldValue(BLOCKS_COLLECTION, 'userId', userId);
-        
-        // Process results
+
         snapshot.forEach(doc => {
             blocks.push(doc.data());
         });
@@ -466,4 +460,3 @@ const UserManagement = {
 }
 
 export default UserManagement;
-

@@ -1,13 +1,6 @@
-// Add functions here to request and return values from the DB.
-
 import React, { useState, useEffect } from 'react';
-import { initializeApp } from 'firebase/app';
 import { 
-    signOut,
     getAuth, 
-    createUserWithEmailAndPassword, 
-    signInWithEmailAndPassword,
-    updateProfile,
     onAuthStateChanged
 } from 'firebase/auth';
 import { 
@@ -18,7 +11,11 @@ import {
     serverTimestamp 
 } from 'firebase/firestore';
 
-import { auth, db } from '../services/firebase/firebaseConfig';
+import { firebaseApp } from '../services/firebase/FirebaseAppConfiguration';
+
+const db = getFirestore(firebaseApp);
+
+//#TODO clean this class up and imports. Please do not add to the mess
 
 const useAuth = (tableName) => {
     const [currentUser, setCurrentUser] = useState(null);

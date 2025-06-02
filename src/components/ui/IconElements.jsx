@@ -1,4 +1,4 @@
-import './iconElements.css'
+import './IconElements.css'
 
 function HomeIcon() {
     return (

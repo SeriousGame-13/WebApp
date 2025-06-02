@@ -1,4 +1,4 @@
-import './exp.css';
+import './ExpBar.css';
 import React, { useState, useEffect } from 'react';
 
 function NewLinearExpContainer({ level, expnow, expmax }) {

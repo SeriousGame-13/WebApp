@@ -18,7 +18,7 @@ import {
     serverTimestamp 
 } from 'firebase/firestore';
 
-import { auth, db } from './config/firebase';
+import { auth, db } from '../services/firebase/firebaseConfig';
 
 const useAuth = (tableName) => {
     const [currentUser, setCurrentUser] = useState(null);

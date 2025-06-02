@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { db } from './config/firebase';
+import { db } from '../services/firebase/firebaseConfig';
 import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 
 import DatamanagerElements from './dataManager';
-import './firebaseAuth.css';
+import '../pages/LoginPage.css';
 
 // Image resizing function
 const resizeImage = (file, width = 100, height = 100, quality = 0.8) => {

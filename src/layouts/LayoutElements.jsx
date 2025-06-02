@@ -2,15 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
 
-import ExpElements from './exp';
-import IconElements from './iconElements';
-import AuthElements from './firebaseAuth';
-import DatamanagerElements from './dataManager';
-import ProfileImageElements from './profileImageManager';
+import ExpElements from '../components/ui/ExpBar';
+import IconElements from '../components/ui/IconElements';
+import LoginPage from '../pages/LoginPage';
+import UserManagement from '../services/firebase/UserManagementSystem';  
+import DatamanagerElements from '../utils/dataManager';
+import ProfileImageElements from '../utils/profileImageManager';
 
-import { auth, db } from './config/firebase';
+import { auth, db } from '../services/firebase/firebaseConfig';
 
-import './layoutElements.css'
+import './LayoutElements.css'
 
 
 function Footer({ selectedIcon, onIconSelect }) {
@@ -75,7 +76,7 @@ function UserInfoHeaderContainer ({ user }) {
                 <div className='UserName'>{name}</div>
             </div>
             <button className='LogoutButton'
-                onClick={AuthElements.logoutUser}>
+                onClick={UserManagement.logoutUser}>
                 Logout
             </button>
         </div>
@@ -265,7 +266,7 @@ function HomePage() {
     }
 
     if (!userData) {
-        return <AuthElements.AppLogin/>;
+        return <LoginPage.AppLogin/>;
     }
     
     return (

@@ -1,14 +1,11 @@
-import React from 'react';
-
-import AuthElements from './firebaseAuth';
+import LoginPage from './pages/LoginPage';
 import './App.css';
-import './exp.css';
 
 function App() {
   return (
     <>
       <div className="App">
-        <AuthElements.AppLogin />
+        <LoginPage.AppLogin />
       </div> 
     </>
   );

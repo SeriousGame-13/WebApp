@@ -1,77 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { initializeApp } from 'firebase/app';
-import { 
-    signOut,
-    getAuth, 
-    createUserWithEmailAndPassword, 
-    signInWithEmailAndPassword,
-    updateProfile,
-    onAuthStateChanged
-} from 'firebase/auth';
-import { 
-    getFirestore, 
-    doc, 
-    setDoc, 
-    getDoc,
-    serverTimestamp 
-} from 'firebase/firestore';
 
-import { auth, db } from './config/firebase';
+import UserManagement from '../services/firebase/UserManagementSystem';
+import IconElements from '../components/ui/IconElements';
+import LayoutElements from '../layouts/LayoutElements';
 
-import LayoutElements from './layoutElements';
-import IconElements from './iconElements';
+import './LoginPage.css';
 
-import './firebaseAuth.css';
-
-const loginUser = async (id, password) => {
-    const userCredential = await signInWithEmailAndPassword(auth, id, password);
-    return userCredential.user;
-};
-
-const getUserData = async (uid) => {
-    try {
-        const userDoc = await getDoc(doc(db, 'users', uid));
-        if (userDoc.exists()) {
-            return userDoc.data();
-        }
-        return null;
-    } catch (error) {
-        console.error('Failed to get user data:', error);
-        return null;
-    }
-};
-
-const logoutUser = async () => {
-    const auth = getAuth();
-    try {
-        await signOut(auth);
-    } catch (error) {
-        console.error('Logout failed:', error);
-        alert('An error occurred during logout.');
-    }
-};
-
-const signupUser = async (nickname, id, password) => {
-    const userCredential = await createUserWithEmailAndPassword(auth, id, password);
-    const user = userCredential.user;
-
-    await updateProfile(userCredential.user, {
-        displayName: nickname
-    });
-
-    await setDoc(doc(db, 'users', user.uid), {
-        uid: user.uid,
-        email: id,
-        displayName: nickname,
-        createdAt: serverTimestamp(),
-        isActive: true,
-        level: 1,
-        points: 0,
-        longestStreak: 0
-    });
-
-    return user;
-};
 
 function AppLogin() {
     const [showLoginPopup, setShowLoginPopup] = useState(false);
@@ -84,8 +18,8 @@ function AppLogin() {
     const handleLogin = async (id, password) => {
         setIsLoggingIn(true);
         try {
-            const user = await loginUser(id, password);
-            const userInfo = await getUserData(user.uid);
+            const user = await UserManagement.logoutUser(id, password);
+            const userInfo = await UserManagement.getUserData(user.uid);
             setUserData(userInfo);
             setIsLoggingIn(false);
             setShowLoginPopup(false);
@@ -99,8 +33,8 @@ function AppLogin() {
     const handleSignup = async (nickname, id, password) => {
         setIsSigningUp(true);
         try {
-            const user = await signupUser(nickname, id, password);
-            const userInfo = await getUserData(user.uid);
+            const user = await UserManagement.signupUser(nickname, id, password);
+            const userInfo = await UserManagement.getUserData(user.uid);
             setUserData(userInfo);
             setIsSigningUp(false);
             setShowSignupPopup(false);
@@ -149,7 +83,7 @@ function AppLogin() {
 
                 {showSignupPopup && (
                     <SignupPopup
-                        onSignup={handleSignup}
+                        onSignup={UserManagement.signupUser}
                         onCancel={() => setShowSignupPopup(false)}
                         isLoading={isSigningUp}
                     />
@@ -277,9 +211,8 @@ function SignupPopup({ onSignup, onCancel, isLoading }) {
     );
 }
 
-const AuthElements = {
+const LoginPage = {
     AppLogin,
-    logoutUser
 }
 
-export default AuthElements;
+export default LoginPage;

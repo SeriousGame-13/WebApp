@@ -216,7 +216,7 @@ const User = ({Data}) => {
         <div className="AppContents">
             <ProfileImageElements.ProfileImageUploader userId={userData.uid}/>
             <div>
-                <p>Halle, {userData.displayName}!</p>
+                <p>Hallo, {userData.displayName}!</p>
                 <p>E-mail: {userData.email}</p>
                 <p>Level: {userData.level}</p>
                 <p>Active: {userData.isActive}</p>

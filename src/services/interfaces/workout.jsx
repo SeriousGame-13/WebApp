@@ -7,7 +7,6 @@ export class Workout extends BaseModel {
       userId: '',
       startTime: Date.now(),
       endTime: 0,
-      createdAt: Date.now(),
       exercises: [],
       ...data
     });

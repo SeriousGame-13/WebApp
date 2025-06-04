@@ -9,7 +9,6 @@ export class Group extends BaseModel {
       name: '',
       description: '',
       maxMembers: 50,
-      createdAt: Date.now(),
       members: [],
       creator: null,
       ...data

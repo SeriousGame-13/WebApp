@@ -1,6 +1,8 @@
 // Base Model Klasse
 export default class BaseModel {
   constructor(data = {}) {
+    this.createdAt = data.createdAt || Date.now();
+    this.updatedAt = data.updatedAt || Date.now();
     Object.assign(this, data);
   }
 
@@ -27,5 +29,11 @@ export default class BaseModel {
   update(data) {
     Object.assign(this, data);
     return this;
+  }
+
+  // 
+  getCreateAt(){
+    const createdAtDate = this.createdAt?.toDate?.() ?? new Date(this.createdAt);
+    return createdAtDate.toLocaleString();
   }
 }

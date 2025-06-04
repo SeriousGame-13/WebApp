@@ -27,7 +27,6 @@ export class ExerciseDefinition extends BaseModel {
       muscleGroups: '',
       unit: EXERCISE_UNIT.REPS,
       isActive: true,
-      createdAt: Date.now(),
       pointsFormula: '',
       category: null,
       ...data
@@ -70,7 +69,6 @@ export class UserGoal extends BaseModel {
       goalId: '',
       userId: '',
       exerciseDefId: '',
-      createdAt: Date.now(),
       deadline: 0,
       exercise: null,
       ...data

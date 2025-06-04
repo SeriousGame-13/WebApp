@@ -8,7 +8,6 @@ export default class Friendship extends BaseModel {
       user1Id: '',
       user2Id: '',
       status: FRIENDSHIP_STATUS.PENDING,
-      createdAt: Date.now(),
       acceptedAt: null,
       friend: null,
       ...data
@@ -61,7 +60,6 @@ export class Block extends BaseModel {
       blockId: '',
       userId: '',
       blockedUserId: '',
-      createdAt: Date.now(),
       blockedUser: null,
       ...data
     });

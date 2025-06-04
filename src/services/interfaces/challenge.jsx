@@ -14,7 +14,6 @@ export class Challenge extends BaseModel {
       challengeType: CHALLENGE_TYPE.TARGET,
       targetExerciseId: null,
       targetValue: null,
-      createdAt: Date.now(),
       participants: [],
       creator: null,
       targetExercise: null,

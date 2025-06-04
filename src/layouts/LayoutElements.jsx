@@ -6,6 +6,7 @@ import LoginPage from '../pages/LoginPage';
 import UserManagement from '../services/firebase/UserManagementSystem';  
 import DatamanagerElements from '../utils/dataManager';
 import ProfileImageElements from '../utils/profileImageManager';
+import UserModel from '../services/interfaces/user.jsx';
 
 import './LayoutElements.css'
 
@@ -209,23 +210,26 @@ const Group = ({Data}) => {
     )
 }
 
-const User = ({Data}) => {
-    const userData = Data;
+const User = ({ Data }) => {
+    const userData = UserModel.fromJSON(Data);
+    
+
 
     return (
         <div className="AppContents">
-            <ProfileImageElements.ProfileImageUploader userId={userData.uid}/>
+            <ProfileImageElements.ProfileImageUploader userId={userData.uid} />
             <div>
                 <p>Hallo, {userData.displayName}!</p>
                 <p>E-mail: {userData.email}</p>
                 <p>Level: {userData.level}</p>
-                <p>Active: {userData.isActive}</p>
+                <p>Active: {userData.isActive ? 'Yes' : 'No'}</p>
                 <p>Points: {userData.points}</p>
                 <p>MaxRecord: {userData.longestStreak}</p>
+                <p>Created At: {userData.getCreateAt()}</p>
             </div>
         </div>
-    )
-}
+    );
+};
 
 
 

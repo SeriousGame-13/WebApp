@@ -6,7 +6,6 @@ export default class User extends BaseModel {
       uid: '',
       email: '',
       displayName: '',
-      createdAt: Date.now(),
       isActive: true,
       level: 1,
       points: 0,
@@ -66,5 +65,9 @@ export default class User extends BaseModel {
   getLevelProgress() {
     const currentLevelPoints = this.level * 1000;
     return (this.points / currentLevelPoints) * 100;
+  }
+
+  getCreatedAtDate(){
+    return this.createdAt?.toDate?.() ?? new Date(this.createdAt).toLocaleString();
   }
 }

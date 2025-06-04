@@ -1,4 +1,4 @@
-import BaseModel from './BaseModel.js';
+import BaseModel from './base.jsx';
 import { FRIENDSHIP_STATUS } from './constants.jsx';
 
 export default class Friendship extends BaseModel {

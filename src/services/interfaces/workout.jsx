@@ -1,4 +1,4 @@
-import BaseModel from './BaseModel.js';
+import BaseModel from './base.jsx';
 
 export class Workout extends BaseModel {
   constructor(data = {}) {

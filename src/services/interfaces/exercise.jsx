@@ -1,4 +1,4 @@
-import BaseModel from './BaseModel.jsx';
+import BaseModel from './base.jsx';
 import { EXERCISE_UNIT } from './constants.jsx';
 
 export class Category extends BaseModel {

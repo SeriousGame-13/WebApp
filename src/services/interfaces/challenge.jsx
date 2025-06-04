@@ -1,4 +1,4 @@
-import BaseModel from './BaseModel.js';
+import BaseModel from './base.jsx';
 import { CHALLENGE_TYPE } from './constants.jsx';
 
 export class Challenge extends BaseModel {

@@ -1,4 +1,4 @@
-import BaseModel from './BaseModel.js';
+import BaseModel from './base.jsx';
 
 export default class User extends BaseModel {
   constructor(data = {}) {

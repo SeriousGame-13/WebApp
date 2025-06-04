@@ -1,4 +1,4 @@
-import BaseModel from './BaseModel.js';
+import BaseModel from './base.jsx';
 import { BADGE_RARITY } from './constants.jsx';
 
 export class Badge extends BaseModel {

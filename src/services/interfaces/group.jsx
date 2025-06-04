@@ -1,4 +1,4 @@
-import BaseModel from './BaseModel.js';
+import BaseModel from './base.jsx';
 import { GROUP_ROLE } from './constants.jsx';
 
 export class Group extends BaseModel {

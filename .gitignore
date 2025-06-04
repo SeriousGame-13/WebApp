@@ -33,6 +33,8 @@ dist-ssr
 
 # Production
 /build
+/dist
+/static
 
 # Misc
 .DS_Store

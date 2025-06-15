@@ -23,7 +23,7 @@ const loginUser = async (email, password) => {
  * @param {string} uid - User ID to retrieve data for
  * @returns {User} User data object or null if not found
  */
-const getUserData = async (uid) => {
+const getUser = async (uid) => {
     try {
         const data = await FirebaseManager.readDocument(USERS_COLLECTION, uid);
         if (!data) return null;
@@ -107,20 +107,15 @@ const updateUser = async (uid, userData) => {
 
 /**
  * Gets and validates the current authenticated user
- * @param {string} uid - User ID to verify against current auth user
  * @returns {object} Firebase Auth user object
  * @throws {Error} If no user is logged in or user ID doesn't match
  */
-function getCurrentAuthUser(uid) {
-    const user = FireAuthManager.getCurrentUser();
-    if (!user) {
+const getCurrentUser = async () => {
+    const currentUser = FireAuthManager.getCurrentUser();
+    if (!currentUser) {
         throw new Error('No user is currently logged in');
     }
-    // Check if this is the current user
-    if (!user || user.uid !== uid) {
-        throw new Error('Permission denied: Can only manage your own account');
-    }
-    return user;
+    return getUser(currentUser.uid);
 }
 
 /**
@@ -444,9 +439,10 @@ const getUserBlocks = async (userId) => {
 
 const UserManagement = {
     loginUser,
-    getUser: getUserData,
+    getUser,
     logoutUser,
     signupUser,
+    getCurrentUser,
     updateUser,
     deleteUser,
     addFriend,

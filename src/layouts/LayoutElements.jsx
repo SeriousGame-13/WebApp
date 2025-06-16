@@ -4,6 +4,7 @@ import ExpElements from '../components/ui/ExpBar';
 import IconElements from '../components/ui/IconElements';
 import LoginPage from '../pages/LoginPage';
 import UserManagement from '../services/firebase/UserManagementSystem';
+import WorkoutManager from './../services/firebase/WorkoutManagement.jsx';
 import GroupManagement from '../services/firebase/GroupManagementSystem';
 import DatamanagerElements from '../utils/dataManager';
 import ProfileImageElements from '../utils/profileImageManager';
@@ -277,6 +278,10 @@ const User = ({ Data }) => {
         setStations(newData);
     };
 
+    const handleSave = () => {
+        WorkoutManager.saveWorkout(workout);
+    }
+
     return (
         <div className="AppContents">
             <ProfileImageElements.ProfileImageUploader userId={userData.uid} />
@@ -336,6 +341,23 @@ const User = ({ Data }) => {
                     </div>
                 ))}
             </div>
+
+            <button
+                onClick={handleSave}
+                style={{
+                    backgroundColor: '#a0ff78',
+                    color: '#2e2f29',
+                    border: 'none',
+                    padding: '0.75rem 1.5rem',
+                    borderRadius: '8px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    margin: '0 auto 1rem',
+                    display: 'block'
+                }}
+            >
+                Trainings-Daten speichern
+            </button>
         </div>
 
 

@@ -3,7 +3,6 @@ import BaseModel from './base.jsx';
 export class Workout extends BaseModel {
   constructor(data = {}) {
     super({
-      workoutId: '',
       userId: '',
       startTime: Date.now(),
       endTime: null,
@@ -28,7 +27,6 @@ export class Workout extends BaseModel {
   }
 
   addStation(station) {
-    station.workoutId = this.workoutId;
     this.stations.push(station);
   }
 
@@ -51,8 +49,6 @@ export class Workout extends BaseModel {
 export class Station extends BaseModel {
   constructor(data = {}) {
     super({
-      stationId: '',
-      workoutId: '',
       points: 0,
       startTime: null,
       endTime: null,

@@ -1,6 +1,6 @@
 // src/services/api/dummyDataGenerator.js
 
-import {Workout, Station} from '../interfaces/workout.jsx';
+import { Workout, Station } from '../interfaces/workout.jsx';
 
 
 function getRandomInt(min, max) {
@@ -30,15 +30,13 @@ function generateTrainingSession() {
   const startTime = getRandomDateTimeIn2025();
   const durationMinutes = getRandomInt(30, 90);
   const endTime = new Date(startTime.getTime() + durationMinutes * 60000);
-
-  return {
-    workoutId: '',
-    start: startTime.toISOString(),
-    end: endTime.toISOString(),
-    points: getRandomInt(500, 2000),
-    heartRateAvg: getRandomInt(110, 160),
-    calories: getRandomInt(300, 800),
-  };
+  const station = new Station();
+  station.startTime = startTime.toISOString();
+  station.endTime = endTime.toISOString();
+  station.points = getRandomInt(500, 2000);
+  station.heartRateAvg = getRandomInt(110, 220);
+  station.calories = getRandomInt(200, 1200);
+  return station;
 }
 
 export function generateDummyData(uid, numberOfSessions = 20) {

@@ -1,6 +1,9 @@
 // Base Model Klasse
+import {v4 as uuidv4} from 'uuid';
+
 export default class BaseModel {
   constructor(data = {}) {
+    this.uid = data.uid || uuidv4();
     this.createdAt = data.createdAt || Date.now();
     this.updatedAt = data.updatedAt || Date.now();
     Object.assign(this, data);

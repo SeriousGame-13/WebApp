@@ -12,7 +12,6 @@ import {
 } from 'firebase/firestore';
 
 import { firebaseApp } from './FirebaseAppConfiguration';
-import firebase from 'firebase/compat/app';
 
 const db = getFirestore(firebaseApp);
 

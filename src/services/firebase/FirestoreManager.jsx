@@ -12,6 +12,7 @@ import {
 } from 'firebase/firestore';
 
 import { firebaseApp } from './FirebaseAppConfiguration';
+import firebase from 'firebase/compat/app';
 
 const db = getFirestore(firebaseApp);
 
@@ -168,6 +169,15 @@ const getDocumentReference = (collectionName, docId) => {
     }
 }
 
+const getServerTimestamp = () => {
+    try {
+        return serverTimestamp()
+    } catch (error) {
+        console.error(`Error getting server Timestamp:`, error);
+        return null;
+    }
+}
+
 const FirestoreManager = {
     getDocumentReference,
     createDocument,
@@ -175,7 +185,8 @@ const FirestoreManager = {
     updateDocument,
     deleteDocument,
     queryDocumentsByFieldValue,
-    getAllDocuments
+    getAllDocuments,
+    getServerTimestamp,
 };
 
 export default FirestoreManager;

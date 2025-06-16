@@ -33,26 +33,51 @@ Adjust x and y offsets in px to control the direction of the shadow. If set to 0
 */
 
 :root {
-    --background-gradient: linear-gradient(45deg,#363a2a 0%,#22241c 20%,#1f211a 40%,#1d1f18 60%,#22241c 80%,#272920 100%);
+    /* MODERN UI TRENDS: Updated color palette with deeper contrasts and modern gradients */
+    --background-gradient: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 25%, #0d0d0d 50%, #111111 75%, #0a0a0a 100%);
+    --glass-gradient: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
     --header-height: 56px;
     --footer-height: 80px; 
     --line-height: 2px;
     --gaps: 4px; /* Total line spacing */
-    --main-color: #96E36C;
-    --light-color: #bcbcbcf3;
-    --background-default: #3a3c32;
-    --background-dark: #1e1e1c;
-    --background-red: #9f3434;
+    /* MODERN UI TRENDS: Vibrant accent color with better contrast */
+    --main-color: #00FF94;
+    --main-color-hover: #00E085;
+    --light-color: #E5E5E5;
+    --text-secondary: #A0A0A0;
+    /* MODERN UI TRENDS: Glassmorphism backgrounds */
+    --background-default: rgba(30, 30, 30, 0.85);
+    --background-glass: rgba(255, 255, 255, 0.1);
+    --background-dark: #0a0a0a;
+    --background-card: rgba(20, 20, 20, 0.9);
+    --background-red: #FF4757;
+    /* MODERN UI TRENDS: Subtle borders and shadows */
+    --border-glass: rgba(255, 255, 255, 0.2);
+    --shadow-modern: 0 8px 32px rgba(0, 0, 0, 0.3);
+    --shadow-hover: 0 12px 40px rgba(0, 255, 148, 0.2);
 }
 
-/* Hide all scrollbars */
+/* Hide scrollbars but keep functionality */
 * {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+    scrollbar-width: thin;
+    scrollbar-color: var(--main-color) transparent;
 }
 
 *::-webkit-scrollbar {
-    display: none;
+    width: 4px;
+}
+
+*::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+    background: var(--main-color);
+    border-radius: 2px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background: var(--main-color-hover);
 }
 
 body, html {
@@ -61,21 +86,21 @@ body, html {
     box-sizing: border-box;
     background: var(--background-gradient);
     font-family: Arial, Helvetica, sans-serif;
+    height: 100%;
+    overflow: hidden;
 }
 
 .MainContainer {
-    /* Fix the height of the content area based on the presence of the address bar, and adjust the padding to maintain the content area size regardless of the address bar visibility */
     display: grid;
     grid-template-rows: 
-    var(--header-height)
-    var(--line-height)
-    /* Calculate the size of the central content area */
-    /* Screen height excluding the address bar - header height - footer height - spacing */
-    calc(100svh - var(--header-height) - var(--footer-height) - var(--gaps)) 
-    var(--line-height)
-    var(--footer-height);
+        var(--header-height)
+        var(--line-height)
+        1fr
+        var(--line-height)
+        var(--footer-height);
     height: 100dvh;
-    align-content: center;
+    max-height: 100dvh;
+    overflow: hidden;
 }
 
 .Line {
@@ -91,7 +116,10 @@ body, html {
     justify-content: space-between;
     padding-left: 20px;
     padding-right: 20px;
-    background-color: var(--background-default);
+    /* MODERN UI TRENDS: Glassmorphism effect with backdrop blur */
+    background: var(--background-glass);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border-glass);
 }
 
 .AppFooter {
@@ -104,18 +132,46 @@ body, html {
     align-items: center;
     padding-left: 20px;
     padding-right: 20px;
-    background-color: var(--background-default);
+    /* MODERN UI TRENDS: Glassmorphism footer with subtle border */
+    background: var(--background-glass);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border-glass);
+}
+
+.LevelDisplayContainer {
+  margin-bottom: 10px;
+}
+
+.FixedGridLayout {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
 }
 
 .AppContents {
     position: relative;
     height: 100%;
     display: flex;
-    align-items: center;
-    padding-left: 20px;
-    padding-right: 20px;
     flex-direction: column;
-    overflow: hidden;
+    padding: 20px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.HomeInfoItemContainer {
+  color: var(--main-color);
+  text-align: center;
+}
+.HomeInfoLabel {
+  text-align: center;
+  color: var(--text-secondary);
+  margin: 0;
+}
+@media (max-width: 768px) {
+  .FixedGridLayout {
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  }
 }
 
 .HeaderIconcontainer {
@@ -164,17 +220,34 @@ body, html {
 .LogoutButton {
     padding: 5px 10px;
     border: 0px;
-    border-radius: 5px;
+    /* MODERN UI TRENDS: Modern button styling */
+    border-radius: 12px;
     background-color: var(--light-color);
     color: var(--background-default);
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.LogoutButton:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(229, 229, 229, 0.3);
 }
 
 .UploadButton {
     padding: 5px 10px;
     border: 0px;
-    border-radius: 5px;
-    background-color: var(--main-color);
-    color: var(--background-default);
+    /* MODERN UI TRENDS: Modern button with gradient and glow */
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--main-color) 0%, var(--main-color-hover) 100%);
+    color: var(--background-dark);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.UploadButton:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(0, 255, 148, 0.4);
 }
 
 .ProfileImage, .ProfileImageAlt {
@@ -209,28 +282,52 @@ body, html {
 }
 
 .HomeInfoContainer {
-    display: flex;
-    position: relative;
+    display: grid;
     width: 100%;
-    height: auto;
-    aspect-ratio: 3/1;
-    margin-top: 20px;
-    justify-content: space-between;
+    flex-shrink: 0;
+    padding: 0 32px; /* Links und rechts Abstand */
+    box-sizing: border-box;
+    
+    /* Mobile: 1 column */
+    grid-template-columns: 1fr;
+    
+    /* MODERN UI TRENDS: Smooth animations */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+
 
 .HomeInfo {
     position: relative;
-    height: 90%;
+    min-height: 200px;
     aspect-ratio: 1/1;
-    border-radius: 10px;
-    background-color: var(--background-default);
-    box-shadow:  0 2px 5px rgba(0,0,0,0.5);
+    /* MODERN UI TRENDS: Larger border radius for modern look */
+    border-radius: 24px;
+    /* MODERN UI TRENDS: Glassmorphism card design */
+    background: var(--background-card);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border-glass);
+    box-shadow: var(--shadow-modern);
     padding: 20px;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    /* MODERN UI TRENDS: Smooth hover interactions */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+}
+
+/* MODERN UI TRENDS: Interactive hover effects */
+.HomeInfo:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
+    border-color: var(--main-color);
+}
+
+.HomeInfo:active {
+    transform: translateY(-2px);
 }
 
 .ExerciseContainer {
@@ -238,8 +335,11 @@ body, html {
     display: flex;
     flex-direction: column;
     width: 100%;
-    overflow: scroll;
-    max-height: 50%;
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 4px;
+    margin-right: -4px;
 }
 
 .GuideText {
@@ -250,6 +350,7 @@ body, html {
     color: var(--light-color);
     margin-bottom: 10px;
     margin-top: 20px;
+    flex-shrink: 0;
 }
 
 .GroupExerciseContainer {
@@ -257,27 +358,45 @@ body, html {
     display: flex;
     flex-direction: column;
     width: 100%;
-    height: auto;
-    background-color: var(--background-default);
-    justify-content: center;
+    min-height: 120px;
+    /* MODERN UI TRENDS: Glassmorphism cards with modern styling */
+    background: var(--background-card);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border-glass);
+    justify-content: flex-start;
     text-align: left;
-    margin-bottom: 20px;
-    border-radius: 10px;
-    box-shadow:  0 2px 5px rgba(0,0,0,0.5);
+    margin-bottom: 16px;
+    border-radius: 20px;
+    box-shadow: var(--shadow-modern);
+    /* MODERN UI TRENDS: Smooth interactions */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+/* MODERN UI TRENDS: Subtle hover effects for list items */
+.GroupExerciseContainer:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
+    border-color: rgba(0, 255, 148, 0.3);
 }
 
 .GroupExerciseHeader {
     font-size: large;
     color: var(--main-color);
-    margin: 20px;
-    max-height: 30px;
+    margin: 20px 20px 10px 20px;
+    flex-shrink: 0;
 }
 
 .GroupExerciseContents {
-    color: var(--light-color);
-    margin: 0px 20px;
-    max-height: 35px;
-    overflow: scroll;
+    /* MODERN UI TRENDS: Better typography hierarchy */
+    color: var(--text-secondary);
+    margin: 0px 20px 20px 20px;
+    line-height: 1.5;
+    font-size: 14px;
+    flex: 1;
+    overflow-y: auto;
+    max-height: 80px;
 }
 
 .GroupExpContainer {
@@ -288,7 +407,6 @@ body, html {
 .ExpContainer {
     margin: 20px;
     width: 100%;
-    height: 50%;
     margin-bottom: 60px;
     box-sizing: border-box;
 }
@@ -300,7 +418,76 @@ body, html {
     margin-top: 10px;
 }
 
-.HomeInfoItemContainer {
-    height: auto;
-    width: auto;
+/* MODERN UI TRENDS: Improved scrollbar styling */
+.ExerciseContainer::-webkit-scrollbar {
+    width: 6px;
+}
+
+.ExerciseContainer::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+.ExerciseContainer::-webkit-scrollbar-thumb {
+    background: var(--main-color);
+    border-radius: 3px;
+}
+
+.ExerciseContainer::-webkit-scrollbar-thumb:hover {
+    background: var(--main-color-hover);
+}
+
+.GroupExerciseContents::-webkit-scrollbar {
+    width: 4px;
+}
+
+.GroupExerciseContents::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.GroupExerciseContents::-webkit-scrollbar-thumb {
+    background: var(--text-secondary);
+    border-radius: 2px;
+}
+
+/* MODERN UI TRENDS: Smooth focus states for accessibility */
+.HomeInfo:focus,
+.GroupExerciseContainer:focus,
+.UploadButton:focus,
+.LogoutButton:focus {
+    outline: 2px solid var(--main-color);
+    outline-offset: 2px;
+}
+
+/* MODERN UI TRENDS: Better touch targets for mobile */
+@media (max-width: 768px) {
+    .HomeInfo {
+        min-height: 160px;
+        padding: 16px;
+        aspect-ratio: auto;
+    }
+    
+    .GroupExerciseContainer {
+        min-height: 100px;
+    }
+    
+    .GroupExerciseHeader {
+        margin: 16px 16px 8px 16px;
+        font-size: medium;
+    }
+    
+    .GroupExerciseContents {
+        margin: 0px 16px 16px 16px;
+        font-size: 13px;
+    }
+    
+    .UploadButton,
+    .LogoutButton {
+        padding: 12px 16px;
+        min-height: 44px;
+    }
+    
+    .AppContents {
+        padding: 16px;
+    }
 }

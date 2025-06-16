@@ -104,84 +104,72 @@ const Home = ({ Data }) => {
     return (
         <div className="AppContents">
             <div className='ExpContainer'>
-                <ExpElements.NewCircleExpContainer level={userData.level} expnow={userData.points} expmax={1000} />
-                <div className='HomeInfoContainer'>
+                <div className='LevelDisplayContainer'>
+                    <ExpElements.NewCircleExpContainer
+                        level={userData.level}
+                        expnow={userData.points}
+                        expmax={1000}
+                    />
+                </div>
+
+                <div className='HomeInfoContainer FixedGridLayout'>
                     <div className='HomeInfo'>
-                        <div className='HomeInfoItemContainer'
-                            style={{ color: 'var(--main-color)' }}>
+                        <div className='HomeInfoItemContainer'>
                             <IconElements.RankingIcon />
-                            <div className='HomeInfoName'>
-                                11
-                            </div>
-                            <p style={{ textAlign: 'center' }}>Place</p>
+                            <div className='HomeInfoName'>11</div>
+                            <p className='HomeInfoLabel'>Place</p>
                         </div>
                     </div>
                     <div className='HomeInfo'>
-                        <div className='HomeInfoItemContainer'
-                            style={{ color: 'var(--main-color)' }}>
+                        <div className='HomeInfoItemContainer'>
                             <IconElements.TimeIcon />
-                            <div className='HomeInfoName'>
-                                45 min
-                            </div>
-                            <p style={{ textAlign: 'center' }}>Training</p>
+                            <div className='HomeInfoName'>45 min</div>
+                            <p className='HomeInfoLabel'>Training</p>
                         </div>
                     </div>
                     <div className='HomeInfo'>
-                        <div className='HomeInfoItemContainer'
-                            style={{ color: 'var(--main-color)' }}>
+                        <div className='HomeInfoItemContainer'>
                             <IconElements.FitnessIcon />
-                            <div className='HomeInfoName'>
-                                3/7
-                            </div>
-                            <p style={{ textAlign: 'center' }}>Goal</p>
+                            <div className='HomeInfoName'>3/7</div>
+                            <p className='HomeInfoLabel'>Goal</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className='GuideText'>Active Group Exercise</div>
+
+                <div className='ExerciseContainer'>
+                    <div className='GroupExerciseContainer'>
+                        <div className='GroupExerciseHeader'>Group exercise Name 1</div>
+                        <div className='GroupExerciseContents'>
+                            This is test information about active group exercise contents and this is place for description.
+                        </div>
+                        <div className='GroupExpContainer'>
+                            <ExpElements.NewLinearExpContainerSimple expnow={2} expmax={10} />
+                        </div>
+                    </div>
+                    <div className='GroupExerciseContainer'>
+                        <div className='GroupExerciseHeader'>Group exercise Name 2</div>
+                        <div className='GroupExerciseContents'>
+                            This is test information about active group exercise contents and this is place for description. And this is a long long long text, and it's very long. Really looooooooooong.
+                        </div>
+                        <div className='GroupExpContainer'>
+                            <ExpElements.NewLinearExpContainerSimple expnow={7} expmax={10} />
+                        </div>
+                    </div>
+                    <div className='GroupExerciseContainer'>
+                        <div className='GroupExerciseHeader'>Group exercise Name 3</div>
+                        <div className='GroupExerciseContents'>
+                            Short text.
+                        </div>
+                        <div className='GroupExpContainer'>
+                            <ExpElements.NewLinearExpContainerSimple expnow={5} expmax={10} />
                         </div>
                     </div>
                 </div>
             </div>
-
-            <div className='GuideText'>
-                Active Group Exercise
-            </div>
-            <div className='ExerciseContainer'>
-                <div className='GroupExerciseContainer'>
-
-                    <div className='GroupExerciseHeader'>
-                        Group exercise Name 1
-                    </div>
-                    <div className='GroupExerciseContents'>
-                        This is test information about active group exercise contents and this is place for description.
-                    </div>
-                    <div className='GroupExpContainer'>
-                        <ExpElements.NewLinearExpContainerSimple expnow={2} expmax={10} />
-                    </div>
-                </div>
-                <div className='GroupExerciseContainer'>
-
-                    <div className='GroupExerciseHeader'>
-                        Group exercise Name 2
-                    </div>
-                    <div className='GroupExerciseContents'>
-                        This is test information about active group exercise contents and this is place for description. And this is a long long long text, and it's very long. Really looooooooooong.
-                    </div>
-                    <div className='GroupExpContainer'>
-                        <ExpElements.NewLinearExpContainerSimple expnow={7} expmax={10} />
-                    </div>
-                </div>
-                <div className='GroupExerciseContainer'>
-
-                    <div className='GroupExerciseHeader'>
-                        Group exercise Name 3
-                    </div>
-                    <div className='GroupExerciseContents'>
-                        Short text.
-                    </div>
-                    <div className='GroupExpContainer'>
-                        <ExpElements.NewLinearExpContainerSimple expnow={5} expmax={10} />
-                    </div>
-                </div>
-            </div>
-
         </div>
+
     )
 }
 

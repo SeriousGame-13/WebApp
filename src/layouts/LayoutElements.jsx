@@ -108,7 +108,7 @@ const Home = ({ Data }) => {
                     <ExpElements.NewCircleExpContainer
                         level={userData.level}
                         expnow={userData.points}
-                        expmax={1000}
+                        expmax={500}
                     />
                 </div>
 

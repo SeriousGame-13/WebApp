@@ -8,7 +8,7 @@ import WorkoutManager from './../services/firebase/WorkoutManagement.jsx';
 import GroupManagement from '../services/firebase/GroupManagementSystem';
 import DatamanagerElements from '../utils/dataManager';
 import ProfileImageElements from '../utils/profileImageManager';
-import { generateDummyData } from '../services/api/dummyDataGenerator';
+import { getDummyWorkout } from '../utils/dummyDataGenerator.jsx';
 import UserModel from '../services/interfaces/user.jsx';
 import { GROUP_ROLE } from '../services/interfaces/constants.jsx';
 
@@ -262,7 +262,7 @@ const User = ({ Data }) => {
     const [workout, setStations] = useState(new Workout());
 
     const handleGenerate = () => {
-        const newData = generateDummyData(userData.uid, 30);
+        const newData = getDummyWorkout(userData.uid, 30);
         setStations(newData);
     };
 

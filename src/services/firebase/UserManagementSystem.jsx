@@ -1,6 +1,8 @@
 import FirebaseManager from './FirestoreManager';
 import FireAuthManager from './FirebaseAuthenticationManager';
+import WorkoutManager from './WorkoutManagement.jsx';
 import User from '../interfaces/user.jsx';
+import { Workout } from '../interfaces/workout.jsx';
 
 const USERS_COLLECTION = 'users';
 const FRIENDS_COLLECTION = 'user_friends';
@@ -26,6 +28,8 @@ const loginUser = async (email, password) => {
 const getUser = async (uid) => {
     try {
         const data = await FirebaseManager.readDocument(USERS_COLLECTION, uid);
+        const userWorkouts = await WorkoutManager.loadWorkouts(uid);
+        data.workouts = userWorkouts.map(entry => (Workout.fromJSON(entry)));
         if (!data) return null;
 
         const user = User.fromJSON(data);

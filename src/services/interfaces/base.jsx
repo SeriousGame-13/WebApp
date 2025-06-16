@@ -1,5 +1,5 @@
 // Base Model Klasse
-import {v4 as uuidv4} from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 
 export default class BaseModel {
   constructor(data = {}) {
@@ -34,9 +34,28 @@ export default class BaseModel {
     return this;
   }
 
-  // 
-  getCreateAt(){
+  getCreateAt() {
     const createdAtDate = this.createdAt?.toDate?.() ?? new Date(this.createdAt);
     return createdAtDate.toLocaleString();
+  }
+
+  getDurationMs(startTime, endTime) {
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+
+    if (isNaN(start) || isNaN(end)) {
+      throw new Error('Invalid date format');
+    }
+
+    return end - start;
+  }
+
+  formatDuration(ms) {
+    const totalSeconds = Math.floor(ms / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    return `${hours}h ${minutes}m ${seconds}s`;
   }
 }

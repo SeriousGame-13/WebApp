@@ -98,7 +98,8 @@ function IconContainer() {
     );
 }
 
-const Home = ({ userData }) => {
+const Home = ({ userData = new User()}) => {
+    const time = userData.formatDuration(userData.getTotalTrainingTime());
     return (
         <div className="AppContents">
             <div className='ExpContainer'>
@@ -121,7 +122,7 @@ const Home = ({ userData }) => {
                     <div className='HomeInfo'>
                         <div className='HomeInfoItemContainer'>
                             <IconElements.TimeIcon />
-                            <div className='HomeInfoName'>45 min</div>
+                            <div className='HomeInfoName'>{time}</div>
                             <p className='HomeInfoLabel'>Training</p>
                         </div>
                     </div>

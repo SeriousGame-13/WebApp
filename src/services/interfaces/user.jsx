@@ -67,7 +67,13 @@ export default class User extends BaseModel {
     return (this.points / currentLevelPoints) * 100;
   }
 
-  getCreatedAtDate(){
+  getCreatedAtDate() {
     return this.createdAt?.toDate?.() ?? new Date(this.createdAt).toLocaleString();
+  }
+
+  getTotalTrainingTime() {
+    return this.workouts.reduce((total, workout) => {
+      return total + (workout.getTotalTime());
+    }, 0);
   }
 }

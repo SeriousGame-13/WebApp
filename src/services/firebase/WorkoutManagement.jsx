@@ -1,10 +1,11 @@
+import { Station } from '../interfaces/workout.jsx';
 import FirestoreManager from './FirestoreManager.jsx';
 import UserManagement from './UserManagementSystem.jsx';
 
 const WORKOUT_COLLECTION = 'workouts';
-const STATION_COLLECTION = 'station';
+const STATION_COLLECTION = 'stations';
 
-const createPath = (userId) =>{
+const createPath = (userId) => {
     return `${UserManagement.getUserDatabasePath(userId)}${WORKOUT_COLLECTION}`;
 }
 
@@ -34,7 +35,14 @@ const saveWorkout = async (workout) => {
 const loadWorkouts = async (userId) => {
     try {
         const snapshot = await FirestoreManager.getAllDocuments(`${createPath(userId)}`);
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const workouts = snapshot.docs.map(doc => ({ ...doc.data() }));
+        for (const element of workouts) {
+            const stationsSnapshot = await FirestoreManager.getAllDocuments(`${createPath(userId)}/${element.uid}/${STATION_COLLECTION}`);
+            const stations = stationsSnapshot.docs.map(doc => Station.fromJSON(doc.data()));
+            element.stations = stations;
+        }
+
+        return workouts;
     } catch (error) {
         console.error('Fehler beim Laden:', error);
         throw error;

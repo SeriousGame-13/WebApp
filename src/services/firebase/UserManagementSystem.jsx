@@ -98,7 +98,7 @@ const updateUser = async (uid, userData) => {
         await FirebaseManager.updateDocument(USERS_COLLECTION, uid, userData, true);
 
         // Re-Get and return the updated user data
-        return getUserData(uid);
+        return getUser(uid);
     } catch (error) {
         console.error('Failed to update user:', error);
         throw error;
@@ -178,8 +178,8 @@ const addFriend = async (requesterId, recipientId) => {
  * @throws {Error} If either user does not exist
  */
 function validateUsersExist(user1Id, user2Id) {
-    const user = getUserData(user1Id);
-    const user2 = getUserData(user2Id);
+    const user = getUser(user1Id);
+    const user2 = getUser(user2Id);
 
     if (!user) {
         throw new Error('Requester User does not exist');

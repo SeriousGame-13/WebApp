@@ -115,7 +115,6 @@ body, html {
     padding-left: 20px;
     padding-right: 20px;
     flex-direction: column;
-    overflow: hidden;
 }
 
 .HeaderIconcontainer {
@@ -215,7 +214,7 @@ body, html {
     height: auto;
     aspect-ratio: 3/1;
     margin-top: 20px;
-    justify-content: space-between;
+    justify-content: space-around;
 }
 
 .HomeInfo {
@@ -231,6 +230,7 @@ body, html {
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    max-height: 160px;
 }
 
 .ExerciseContainer {
@@ -303,4 +303,115 @@ body, html {
 .HomeInfoItemContainer {
     height: auto;
     width: auto;
+}
+
+.ContentsHeader {
+    height: var(--header-height);
+    min-height: var(--header-height);
+    width: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+.ContentsHeaderItem {
+    position: relative;
+    display: flex;
+    height: 100%;
+    width: 30%;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: var(--light-color);
+}
+
+.GroupContainer {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+}
+
+.HelloText {
+    position: relative;
+    display: flex;
+    flex-direction: center;
+    justify-content: center;
+    text-align: center;
+    font-size: x-large;
+    font-weight: bold;
+    color: var(--light-color);
+    margin-bottom: 10px;
+    margin-top: 20px;
+}
+
+.MainContentWrapper.portrait {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    gap: 20px;
+    overflow: auto;
+}
+
+.MainContentWrapper.landscape {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    gap: 20px;
+    overflow: hidden;
+}
+
+
+/* 세로 모드 (1x2 배치) */
+.MainContentWrapper.portrait {
+    grid-template-rows: 1fr 1fr;
+    grid-template-columns: 1fr;
+}
+
+/* 가로 모드 (2x1 배치) */
+.MainContentWrapper.landscape {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
+}
+
+.TopGridSection {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+}
+
+/* TopGridSection 내부 요소들 스케일링 */
+.TopGridSection > * {
+    max-width: 80%;
+    flex-shrink: 1;
+}
+
+/* HelloText 크기 조정 */
+.TopGridSection .HelloText {
+    font-size: clamp(1rem, 4vw, 2rem);
+    max-height: 20%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.BottomGridSection {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    width: 100%;
+    height: 100%;
 }

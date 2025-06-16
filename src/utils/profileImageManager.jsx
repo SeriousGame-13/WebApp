@@ -1,7 +1,19 @@
 import React, { useState, useRef, useEffect } from 'react';
 
 import DatamanagerElements from './dataManager';
-import '../pages/LoginPage.css';
+import '../components/styles/LoginPage.css';
+
+/**
+ * I wanted to use Firebase's image storage feature, but it requires credit card 
+ * registration, and since I don't have a credit card, I implemented it a different 
+ * way for now. 
+ * I resize the images that users upload to a small size, convert them to Base64, 
+ * and then store them as strings in the database. 
+ * This definitely makes the image quality much worse, and I can't implement features 
+ * like zooming in on profile images, but it makes it possible to implement profile 
+ * image functionality without cloud storage.
+ * -Hyunu Park
+ */
 
 // Image resizing function
 const resizeImage = (file, width = 100, height = 100, quality = 0.8) => {

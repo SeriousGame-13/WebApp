@@ -1,4 +1,4 @@
-import './ExpBar.css';
+import '../styles/ExpBar.css';
 import React, { useState, useEffect } from 'react';
 
 function NewLinearExpContainer({ level, expnow, expmax }) {
@@ -23,7 +23,7 @@ function NewLinearExpContainerSimple({ expnow, expmax }) {
         <div className="LinearExpContainerSimple">
             <div className="LinearExpBarSimple">
                 <div 
-                    className="linear-exp-fill-simple" 
+                    className="LinearExpFillSimple" 
                     style={{ width: `${progress}%` }}
                 ></div>
             </div>

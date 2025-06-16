@@ -64,13 +64,38 @@
     margin-top: 10px;
 }
 
+/* TopGridSection 내부에서만 적용되는 CircularExpContainer */
+.TopGridSection .CircularExpContainer {
+    position: relative !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    width: 70% !important;
+    height: 70% !important;
+    max-width: 70% !important;
+    max-height: 70% !important;
+    min-width: 300px !important;
+    min-height: 300px !important;
+}
+
+/* 레벨 텍스트 크기를 컨테이너에 맞게 조정 */
+.TopGridSection .CircularExpText .Level {
+    font-size: clamp(60px, 12vw, 150px);
+    font-weight: bold;
+    color: #96E36C;
+    font-family: Arial, Helvetica, sans-serif;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    transform: translateY(-10px);
+}
+
 .CircularExpContainer {
     position: relative;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 70%;
+    height: 100%;
     width: 100%;
 }
 

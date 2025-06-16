@@ -1,14 +1,23 @@
 import React, { useState, useEffect } from 'react';
 
-import ExpElements from '../components/ui/ExpBar';
 import IconElements from '../components/ui/IconElements';
 import LoginPage from '../pages/LoginPage';
 import UserManagement from '../services/firebase/UserManagementSystem';  
 import DatamanagerElements from '../utils/dataManager';
-import ProfileImageElements from '../utils/profileImageManager';
 
-import './LayoutElements.css'
+import ChallengePageElements from '../pages/ChallengePage';
+import GroupPageElements from '../pages/GroupPage';
+import HomePageElements from '../pages/HomePage';
+import RankingPageElements from '../pages/RankingPage';
+import UserPageElements from '../pages/UserPage';
 
+import '../components/styles/LayoutElements.css'
+
+/**
+ * Where elements for layouts that will be used commonly will be placed.
+ * Content for each page should be written in the corresponding jsx file inside the 
+ * 'pages' directory.
+ */
 
 function Footer({ selectedIcon, onIconSelect }) {
     
@@ -92,143 +101,6 @@ function IconContainer () {
     );
 }
 
-const Home = ({Data}) => {
-    const userData = Data;
-
-    return (
-        <div className="AppContents">
-            <div className='ExpContainer'>
-                <ExpElements.NewCircleExpContainer level={userData.level} expnow={userData.points} expmax={1000} />
-                <div className='HomeInfoContainer'>
-                    <div className='HomeInfo'>
-                        <div className='HomeInfoItemContainer'
-                            style={{ color: 'var(--main-color)'}}>
-                            <IconElements.RankingIcon/>
-                            <div className='HomeInfoName'>
-                                11
-                            </div>
-                            <p style={{ textAlign: 'center'}}>Place</p>
-                        </div>
-                    </div>
-                    <div className='HomeInfo'>
-                        <div className='HomeInfoItemContainer'
-                            style={{ color: 'var(--main-color)'}}>
-                            <IconElements.TimeIcon/>
-                            <div className='HomeInfoName'>
-                                45 min
-                            </div>
-                            <p style={{ textAlign: 'center'}}>Training</p>
-                        </div>
-                    </div>
-                    <div className='HomeInfo'>
-                        <div className='HomeInfoItemContainer'
-                            style={{ color: 'var(--main-color)'}}>
-                            <IconElements.FitnessIcon/>
-                            <div className='HomeInfoName'>
-                                3/7
-                            </div>
-                            <p style={{ textAlign: 'center'}}>Goal</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div className='GuideText'>
-                    Active Group Exercise
-            </div>
-            <div className='ExerciseContainer'>
-                <div className='GroupExerciseContainer'>
-                    
-                    <div className='GroupExerciseHeader'>
-                        Group exercise Name 1
-                    </div>
-                    <div className='GroupExerciseContents'>
-                        This is test information about active group exercise contents and this is place for description.
-                    </div>
-                    <div className='GroupExpContainer'>
-                        <ExpElements.NewLinearExpContainerSimple expnow={2} expmax={10} />
-                    </div>
-                </div>
-                <div className='GroupExerciseContainer'>
-                    
-                    <div className='GroupExerciseHeader'>
-                        Group exercise Name 2
-                    </div>
-                    <div className='GroupExerciseContents'>
-                        This is test information about active group exercise contents and this is place for description. And this is a long long long text, and it's very long. Really looooooooooong.
-                    </div>
-                    <div className='GroupExpContainer'>
-                        <ExpElements.NewLinearExpContainerSimple expnow={7} expmax={10} />
-                    </div>
-                </div>
-                <div className='GroupExerciseContainer'>
-                    
-                    <div className='GroupExerciseHeader'>
-                        Group exercise Name 3
-                    </div>
-                    <div className='GroupExerciseContents'>
-                        Short text.    
-                    </div>
-                    <div className='GroupExpContainer'>
-                        <ExpElements.NewLinearExpContainerSimple expnow={5} expmax={10} />
-                    </div>
-                </div>
-            </div>
-            
-        </div>
-    )
-}
-
-const Ranking = ({Data}) => {
-    const userData = Data;
-
-    return (
-        <div className="AppContents">
-            This is Rankingpage !!!
-        </div>
-    )
-}
-
-const Challenge = ({Data}) => {
-    const userData = Data;
-
-    return (
-        <div className="AppContents">
-            This is Challengepage !!!
-        </div>
-    )
-}
-
-const Group = ({Data}) => {
-    const userData = Data;
-
-    return (
-        <div className="AppContents">
-            This is Grouppage !!!
-        </div>
-    )
-}
-
-const User = ({Data}) => {
-    const userData = Data;
-
-    return (
-        <div className="AppContents">
-            <ProfileImageElements.ProfileImageUploader userId={userData.uid}/>
-            <div>
-                <p>Halle, {userData.displayName}!</p>
-                <p>E-mail: {userData.email}</p>
-                <p>Level: {userData.level}</p>
-                <p>Active: {userData.isActive}</p>
-                <p>Points: {userData.points}</p>
-                <p>MaxRecord: {userData.longestStreak}</p>
-            </div>
-        </div>
-    )
-}
-
-
-
 function HomePage() {
     const { currentUser, userData, loading } = DatamanagerElements.useAuth('users');
 
@@ -237,17 +109,19 @@ function HomePage() {
     const renderCurrentPage = () => {
         switch(currentPage) {
             case 'home':
-                return <Home Data={userData} />
+                console.log('Rendering GroupPage with data:', userData);
+                return <HomePageElements.Page data={userData} />
             case 'ranking':
-                return <Ranking Data={userData} />
+                return <RankingPageElements.Page data={userData} />
             case 'challenge':
-                return <Challenge Data={userData} />
+                return <ChallengePageElements.Page data={userData} />
             case 'group':
-                return <Group Data={userData} />
+
+                return <GroupPageElements.Page data={userData} />
             case 'user':
-                return <User Data={userData} />
+                return <UserPageElements.Page data={userData} />
             default:
-                return <User Data={userData} />
+                return <HomePageElements.Page data={userData} />
         }
     }
 

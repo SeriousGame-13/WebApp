@@ -98,9 +98,7 @@ function IconContainer() {
     );
 }
 
-const Home = ({ Data }) => {
-    const userData = Data;
-
+const Home = ({ userData }) => {
     return (
         <div className="AppContents">
             <div className='ExpContainer'>
@@ -173,22 +171,19 @@ const Home = ({ Data }) => {
     )
 }
 
-const Ranking = () => {
+const Ranking = ({ userData }) => {
 
     return ("");
 };
 
-const Challenge = ({ Data }) => {
-    const userData = Data;
-
+const Challenge = ({ userData }) => {
     return (
         <div className="AppContents">
             This is Challengepage !!!
         </div>
     )
 }
-const Group = ({ Data }) => {
-    const userData = Data;
+const Group = ({ userData }) => {
     const [groupName, setGroupName] = useState('');
     const [memberId, setMemberId] = useState('');
 
@@ -256,9 +251,7 @@ const Group = ({ Data }) => {
     );
 };
 
-const User = ({ Data }) => {
-    const userData = UserModel.fromJSON(Data);
-
+const User = ({ userData }) => {
     const [workout, setStations] = useState(new Workout());
 
     const handleGenerate = () => {
@@ -357,24 +350,24 @@ const User = ({ Data }) => {
 
 
 function HomePage() {
-    const { currentUser, userData, loading } = DatamanagerElements.useAuth('users');
+    const { currentUser, userData, loading } = DatamanagerElements.useAuth();
 
     const [currentPage, setCurrentPage] = useState('home');
 
     const renderCurrentPage = () => {
         switch (currentPage) {
             case 'home':
-                return <Home Data={userData} />
+                return <Home userData={userData} />;
             case 'ranking':
-                return <Ranking Data={userData} />
+                return <Ranking userData={userData} />
             case 'challenge':
-                return <Challenge Data={userData} />
+                return <Challenge userData={userData} />
             case 'group':
-                return <Group Data={userData} />
+                return <Group userData={userData} />
             case 'user':
-                return <User Data={userData} />
+                return <User userData={userData} />
             default:
-                return <User Data={userData} />
+                return <User userData={userData} />
         }
     }
 

@@ -6,8 +6,8 @@ export class Workout extends BaseModel {
       workoutId: '',
       userId: '',
       startTime: Date.now(),
-      endTime: 0,
-      exercises: [],
+      endTime: null,
+      stations: [],
       ...data
     });
   }
@@ -27,24 +27,13 @@ export class Workout extends BaseModel {
     return Math.floor(this.getDuration() / (1000 * 60 * 60));
   }
 
-  addExercise(exercise) {
-    this.exercises.push(exercise);
+  addStation(station) {
+    station.workoutId = this.workoutId;
+    this.stations.push(station);
   }
 
-  removeExercise(exerciseId) {
-    this.exercises = this.exercises.filter(ex => ex.workoutExerciseId !== exerciseId);
-  }
-
-  finishWorkout() {
-    this.endTime = Date.now();
-  }
-
-  isFinished() {
-    return this.endTime > 0;
-  }
-
-  isActive() {
-    return this.endTime === 0;
+  removeStation(stationId) {
+    this.stations = this.stations.filter(st => st.stationId !== stationId);
   }
 
   validate() {
@@ -53,69 +42,23 @@ export class Workout extends BaseModel {
 
   // Berechne Gesamtpunkte des Workouts
   getTotalPoints() {
-    return this.exercises.reduce((total, exercise) => {
-      return total + (exercise.getPoints ? exercise.getPoints() : 0);
+    return this.stations.reduce((total, station) => {
+      return total + (station.points ? station.points : 0);
     }, 0);
-  }
-
-  // Bekomme alle Übungen einer bestimmten Kategorie
-  getExercisesByCategory(categoryId) {
-    return this.exercises.filter(ex => 
-      ex.exercise && ex.exercise.categoryId === categoryId
-    );
   }
 }
 
-export class WorkoutExercise extends BaseModel {
+export class Station extends BaseModel {
   constructor(data = {}) {
     super({
-      workoutExerciseId: '',
+      stationId: '',
       workoutId: '',
-      exerciseDefId: '',
-      exercise: null,
-      sets: [],
+      points: 0,
+      startTime: null,
+      endTime: null,
+      heartRateAvg: null,
+      calories: 0,
       ...data
     });
-  }
-
-  addSet(set) {
-    this.sets.push(set);
-  }
-
-  removeSet(setId) {
-    this.sets = this.sets.filter(set => set.setId !== setId);
-  }
-
-  getTotalVolume() {
-    return this.sets.reduce((total, set) => {
-      const value = parseFloat(set.value) || 0;
-      return total + value;
-    }, 0);
-  }
-
-  getAverageValue() {
-    if (this.sets.length === 0) return 0;
-    return this.getTotalVolume() / this.sets.length;
-  }
-
-  getMaxValue() {
-    if (this.sets.length === 0) return 0;
-    return Math.max(...this.sets.map(set => parseFloat(set.value) || 0));
-  }
-
-  getSetCount() {
-    return this.sets.length;
-  }
-
-  validate() {
-    return this.workoutExerciseId && this.workoutId && this.exerciseDefId;
-  }
-
-  // Berechne Punkte für diese Übung
-  getPoints() {
-    if (!this.exercise || !this.exercise.calculatePoints) return 0;
-    return this.sets.reduce((total, set) => {
-      return total + this.exercise.calculatePoints(parseFloat(set.value) || 0);
-    }, 0);
   }
 }

@@ -272,8 +272,6 @@ const Group = ({Data}) => {
 
 const User = ({ Data }) => {
     const userData = UserModel.fromJSON(Data);
-    
-
 
     return (
         <div className="AppContents">

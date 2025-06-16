@@ -1,22 +1,15 @@
-const fs = require("fs");
-const path = require("path");
+// frontendValidator.js
 
-// Pfad zur JSON-Datei relativ zum aktuellen Skript
-const filePath = path.join(__dirname, "..", "static", "data", "trainingData2025.json");
-
-console.log("Starte Parser...");
-console.log("Pfad zur JSON-Datei:", filePath);
-
-function isValidUserID(id) {
+export function isValidUserID(id) {
   return /^[a-z]{6}$/.test(id);
 }
 
-function isValidISODateString(dateStr) {
+export function isValidISODateString(dateStr) {
   const d = new Date(dateStr);
   return !isNaN(d.getTime()) && dateStr === d.toISOString();
 }
 
-function validateTrainingSession(session) {
+export function validateTrainingSession(session) {
   if (typeof session !== "object" || session === null) {
     return "Eintrag ist kein Objekt";
   }
@@ -47,7 +40,7 @@ function validateTrainingSession(session) {
   // Dauer check: Dauer in Minuten sollte ungefähr (±1 min Toleranz) der Differenz zwischen start und end sein
   const diffMinutes = (endDate - startDate) / 60000;
   if (Math.abs(diffMinutes - session.duration) > 1) {
-    return `duration stimmt nicht mit Differenz von start und end überein (Differenz=${diffMinutes} Minuten)`;
+    return `duration stimmt nicht mit Differenz von start und end überein (Differenz=${diffMinutes.toFixed(2)} Minuten)`;
   }
 
   if (!("points" in session) || typeof session.points !== "number" || session.points < 0) {
@@ -65,31 +58,19 @@ function validateTrainingSession(session) {
   return null; // Keine Fehler
 }
 
-try {
-  const rawData = fs.readFileSync(filePath, "utf-8");
-  const trainingSessions = JSON.parse(rawData);
-
+export function validateTrainingDataArray(trainingSessions) {
   if (!Array.isArray(trainingSessions)) {
-    throw new Error("Die JSON-Datei enthält kein Array von Trainingssessions");
+    return ["Die Daten sind kein Array."];
   }
 
-  let errorsFound = false;
+  const errors = [];
 
   trainingSessions.forEach((session, index) => {
     const error = validateTrainingSession(session);
     if (error) {
-      errorsFound = true;
-      console.error(`Fehler in Eintrag #${index} (userID=${session.userID || "undefined"}): ${error}`);
+      errors.push(`Fehler in Eintrag #${index} (userID=${session.userID || "undefined"}): ${error}`);
     }
   });
 
-  if (!errorsFound) {
-    console.log("JSON-Datei wurde erfolgreich geladen und validiert!");
-  } else {
-    console.error("Validierungsfehler wurden gefunden.");
-    process.exit(1);
-  }
-} catch (error) {
-  console.error(`Fehler beim Lesen oder Verarbeiten der Datei unter '${filePath}':`, error.message);
-  process.exit(1);
+  return errors; // Leeres Array = keine Fehler
 }

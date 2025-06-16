@@ -1,5 +1,4 @@
-const fs = require("fs");
-const path = require("path");
+// src/services/api/dummyDataGenerator.js
 
 function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -40,18 +39,10 @@ function generateTrainingSession() {
   };
 }
 
-const numberOfSessions = 20;
-const dummyData = [];
-
-for (let i = 0; i < numberOfSessions; i++) {
-  dummyData.push(generateTrainingSession());
+export function generateDummyData(numberOfSessions = 20) {
+  const dummyData = [];
+  for (let i = 0; i < numberOfSessions; i++) {
+    dummyData.push(generateTrainingSession());
+  }
+  return dummyData;
 }
-
-const dir = path.join(__dirname, "..", "static", "data");
-
-if (!fs.existsSync(dir)) {
-  fs.mkdirSync(dir, { recursive: true });
-}
-
-const filePath = path.join(dir, "trainingData2025.json");
-fs.writeFileSync(filePath, JSON.stringify(dummyData, null, 2));

@@ -6,6 +6,9 @@ import LoginPage from '../pages/LoginPage';
 import UserManagement from '../services/firebase/UserManagementSystem';  
 import DatamanagerElements from '../utils/dataManager';
 import ProfileImageElements from '../utils/profileImageManager';
+import { generateDummyData } from '../services/api/dummyDataGenerator';
+import * as validator from '../services/api/validateTrainingData';
+
 
 import './LayoutElements.css'
 
@@ -179,15 +182,131 @@ const Home = ({Data}) => {
     )
 }
 
-const Ranking = ({Data}) => {
-    const userData = Data;
+const Ranking = ({ Data }) => {
+    const [dummyData, setDummyData] = useState([]);
+    const [validationErrors, setValidationErrors] = useState(null); // null = noch nicht validiert
+
+    const handleGenerate = () => {
+        const newData = generateDummyData(30);
+        setDummyData(newData);
+        setValidationErrors(null); // Reset Errors bei neuem Datensatz
+    };
+
+    const handleValidate = () => {
+        const errors = validator.validateTrainingDataArray(dummyData);
+        if (errors.length === 0) {
+            setValidationErrors([]); // Keine Fehler
+        } else {
+            setValidationErrors(errors);
+        }
+    };
 
     return (
-        <div className="AppContents">
-            This is Rankingpage !!!
+        <div className="AppContents" style={{ backgroundColor: '#2e2f29', color: '#a0ff78', padding: '1rem' }}>
+            <h2 style={{ textAlign: 'center', fontSize: '1.8rem', marginBottom: '1rem' }}>RANKING</h2>
+
+            <button
+                onClick={handleGenerate}
+                style={{
+                    backgroundColor: '#a0ff78',
+                    color: '#2e2f29',
+                    border: 'none',
+                    padding: '0.75rem 1.5rem',
+                    borderRadius: '8px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    margin: '0 auto 1rem',
+                    display: 'block'
+                }}
+            >
+                Trainings-Daten generieren
+            </button>
+
+            <button
+                onClick={handleValidate}
+                disabled={dummyData.length === 0}
+                style={{
+                    backgroundColor: dummyData.length === 0 ? '#555' : '#a0ff78',
+                    color: '#2e2f29',
+                    border: 'none',
+                    padding: '0.75rem 1.5rem',
+                    borderRadius: '8px',
+                    fontWeight: 'bold',
+                    cursor: dummyData.length === 0 ? 'not-allowed' : 'pointer',
+                    margin: '0 auto 1.5rem',
+                    display: 'block'
+                }}
+            >
+                Daten validieren
+            </button>
+
+            {validationErrors === null && (
+                <p style={{ textAlign: 'center', color: '#aaa' }}>Bitte Trainings-Daten generieren und dann validieren.</p>
+            )}
+
+            {validationErrors && validationErrors.length === 0 && (
+                <p style={{ color: '#6f6', fontWeight: 'bold', textAlign: 'center' }}>
+                    Alle Trainings-Daten sind gültig!
+                </p>
+            )}
+
+            {validationErrors && validationErrors.length > 0 && (
+                <div style={{
+                    maxHeight: '200px',
+                    overflowY: 'auto',
+                    backgroundColor: '#4a1a1a',
+                    padding: '1rem',
+                    borderRadius: '10px',
+                    marginBottom: '1rem',
+                    color: '#f66',
+                    fontFamily: 'monospace',
+                    whiteSpace: 'pre-wrap'
+                }}>
+                    <strong>Validierungsfehler:</strong>
+                    <ul>
+                        {validationErrors.map((err, idx) => <li key={idx}>{err}</li>)}
+                    </ul>
+                </div>
+            )}
+
+            <div style={{
+                maxHeight: '300px',
+                overflowY: 'auto',
+                backgroundColor: '#3b3c36',
+                borderRadius: '10px',
+                padding: '1rem',
+                color: '#a0ff78',
+                fontFamily: 'sans-serif'
+            }}>
+                {dummyData.length === 0 && (
+                    <p style={{ textAlign: 'center', color: '#aaa' }}>
+                        Noch keine Trainings-Daten generiert.
+                    </p>
+                )}
+
+                {dummyData.map((entry, index) => (
+                    <div key={index} style={{
+                        marginBottom: '1rem',
+                        paddingBottom: '0.75rem',
+                        borderBottom: '1px solid #555'
+                    }}>
+                        <div><span style={{ color: '#ccc' }}>User:</span> {entry.userID}</div>
+                        <div><span style={{ color: '#ccc' }}>Start:</span> {new Date(entry.start).toLocaleString()}</div>
+                        <div><span style={{ color: '#ccc' }}>Ende:</span> {new Date(entry.end).toLocaleString()}</div>
+                        <div><span style={{ color: '#ccc' }}>Dauer:</span> {entry.duration} Min</div>
+                        <div><span style={{ color: '#ccc' }}>Punkte:</span> {entry.points}</div>
+                        <div><span style={{ color: '#ccc' }}>Kalorien:</span> {entry.calories}</div>
+                        <div><span style={{ color: '#ccc' }}>Ø Herzfrequenz:</span> {entry.heartRateAvg}</div>
+                    </div>
+                ))}
+            </div>
         </div>
-    )
-}
+    );
+};
+
+
+
+
 
 const Challenge = ({Data}) => {
     const userData = Data;

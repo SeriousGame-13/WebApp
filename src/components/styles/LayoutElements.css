@@ -1,38 +1,38 @@
 /* 
-.hex:nth-child(even) => Select only even-order hex classes
-:nth-child(odd) = Odd-order elements
-:nth-child(3) = Exactly the 3rd element
-:nth-child(3n) = Every 3rd element (3, 6, 9...)
-:first-child = First element
-:last-child = Last element
-:hover = When the mouse hovers over the element
+.hex:nth-child(even) => Wählt nur gerade hex-Klassen aus
+:nth-child(odd) = Ungerade Elemente
+:nth-child(3) = Genau das 3. Element
+:nth-child(3n) = Jedes 3. Element (3, 6, 9...)
+:first-child = Erstes Element
+:last-child = Letztes Element
+:hover = Wenn die Maus über das Element schwebt
 */
 
 /*
-If you want child elements to automatically adjust their size to match the parent element, use Flexbox or Grid.
-For Flexbox, use display: flex on the parent element and flex: 1 on the child elements (to divide them equally).
-You can also use flex-direction to adjust the layout direction.
-aspect-ratio: 1/1 can be used to fix each grid item as a square.
+Wenn Sie möchten, dass sich Kindelemente automatisch an das Elternelement anpassen, verwenden Sie Flexbox oder Grid.
+Für Flexbox verwenden Sie display: flex am Elternelement und flex: 1 an den Kindelementen (um sie gleichmäßig zu verteilen).
+Sie können auch flex-direction verwenden, um die Layout-Richtung anzupassen.
+aspect-ratio: 1/1 kann verwendet werden, um jedes Grid-Element als Quadrat zu fixieren.
 */
 
 /*
-CSS has Dynamic Viewport Height (dvh), which allows you to set viewport height that changes dynamically depending on whether the address bar is visible or hidden.
-Use dvh instead of vh for height.
-For width, use dvw.
-You can also use svh to get the height excluding the address bar.
+CSS hat Dynamic Viewport Height (dvh), womit Sie eine Viewport-Höhe einstellen können, die sich dynamisch ändert, je nachdem ob die Adressleiste sichtbar oder versteckt ist.
+Verwenden Sie dvh anstatt vh für die Höhe.
+Für die Breite verwenden Sie dvw.
+Sie können auch svh verwenden, um die Höhe ohne Adressleiste zu erhalten.
 */
 
-/* To arrange elements in a circular layout, use CSS transform and trigonometric functions. */
-/* Hexagon shapes can be created using clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); */
+/* Um Elemente in einem kreisförmigen Layout anzuordnen, verwenden Sie CSS transform und trigonometrische Funktionen. */
+/* Sechseck-Formen können mit clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); erstellt werden */
 
 /*
-Shadows
+Schatten
 box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-            x y blur color (including transparency)
-Adjust x and y offsets in px to control the direction of the shadow. If set to 0, no shadow appears in that direction.
+            x y Unschärfe Farbe (einschließlich Transparenz)
+Passen Sie x- und y-Offsets in px an, um die Richtung des Schattens zu steuern. Wenn auf 0 gesetzt, erscheint kein Schatten in diese Richtung.
 */
 
-/* 스크롤바 완전 제거 */
+/* Scrollbar vollständig entfernen */
 * {
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none; /* Internet Explorer 10+ */
@@ -48,7 +48,7 @@ Adjust x and y offsets in px to control the direction of the shadow. If set to 0
     --header-height: 56px;
     --footer-height: 80px; 
     --line-height: 2px;
-    --gaps: 4px; /* Total line spacing */
+    --gaps: 4px; /* Gesamter Zeilenabstand */
     --main-color: #00FF94;
     --main-color-hover: #00E085;
     --light-color: #E5E5E5;
@@ -69,7 +69,7 @@ body, html {
     box-sizing: border-box;
     background: var(--background-gradient);
     font-family: Arial, Helvetica, sans-serif;
-    overflow: hidden; /* 전체 페이지 스크롤 방지 */
+    overflow: hidden; /* Gesamtes Seiten-Scrollen verhindern */
 }
 
 .MainContainer {
@@ -124,7 +124,7 @@ body, html {
     position: relative;
 }
 
-/* AppContents - 전체 컨테이너 */
+/* AppContents - Gesamter Container */
 .AppContents {
     height: 100%;
     display: flex;
@@ -134,7 +134,7 @@ body, html {
     box-sizing: border-box;
 }
 
-/* MainContentWrapper - 메인 레이아웃 */
+/* MainContentWrapper - Haupt-Layout */
 .MainContentWrapper {
     width: 100%;
     height: 100%;
@@ -145,20 +145,20 @@ body, html {
     overflow: hidden;
 }
 
-/* 세로 모드 */
+/* Hochformat-Modus */
 .MainContentWrapper.portrait {
     flex-direction: column;
     overflow-y: auto;
     overflow-x: hidden;
 }
 
-/* 가로 모드 */
+/* Querformat-Modus */
 .MainContentWrapper.landscape {
     flex-direction: row;
     overflow: hidden;
 }
 
-/* TopGridSection - 첫 번째 영역 */
+/* TopGridSection - Erster Bereich */
 .portrait .TopGridSection {
     width: 100%;
     height: auto;
@@ -184,7 +184,7 @@ body, html {
     box-sizing: border-box;
 }
 
-/* BottomGridSection - 두 번째 영역 */
+/* BottomGridSection - Zweiter Bereich */
 .portrait .BottomGridSection {
     width: 100%;
     flex: 0 0 auto;
@@ -210,7 +210,7 @@ body, html {
     box-sizing: border-box;
 }
 
-/* TopGridSection 내부 요소들 */
+/* Elemente innerhalb von TopGridSection */
 .TopGridSection > * {
     width: 90%;
     max-width: 300px;

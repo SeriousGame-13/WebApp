@@ -168,6 +168,15 @@ const getDocumentReference = (collectionName, docId) => {
     }
 }
 
+const getServerTimestamp = () => {
+    try {
+        return serverTimestamp()
+    } catch (error) {
+        console.error(`Error getting server Timestamp:`, error);
+        return null;
+    }
+}
+
 const FirestoreManager = {
     getDocumentReference,
     createDocument,
@@ -175,7 +184,8 @@ const FirestoreManager = {
     updateDocument,
     deleteDocument,
     queryDocumentsByFieldValue,
-    getAllDocuments
+    getAllDocuments,
+    getServerTimestamp,
 };
 
 export default FirestoreManager;

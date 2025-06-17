@@ -1,5 +1,7 @@
-const fs = require("fs");
-const path = require("path");
+// src/services/api/dummyDataGenerator.js
+
+import { Workout, Station } from '../interfaces/workout.jsx';
+
 
 function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -28,30 +30,20 @@ function generateTrainingSession() {
   const startTime = getRandomDateTimeIn2025();
   const durationMinutes = getRandomInt(30, 90);
   const endTime = new Date(startTime.getTime() + durationMinutes * 60000);
-
-  return {
-    userID: getRandomUserID(),
-    start: startTime.toISOString(),
-    end: endTime.toISOString(),
-    duration: durationMinutes,
-    points: getRandomInt(500, 2000),
-    heartRateAvg: getRandomInt(110, 160),
-    calories: getRandomInt(300, 800),
-  };
+  const station = new Station();
+  station.startTime = startTime.toISOString();
+  station.endTime = endTime.toISOString();
+  station.points = getRandomInt(500, 2000);
+  station.heartRateAvg = getRandomInt(110, 220);
+  station.calories = getRandomInt(200, 1200);
+  return station;
 }
 
-const numberOfSessions = 20;
-const dummyData = [];
-
-for (let i = 0; i < numberOfSessions; i++) {
-  dummyData.push(generateTrainingSession());
+export function generateDummyData(uid, numberOfSessions = 20) {
+  const workout = new Workout();
+  workout.userId = uid;
+  for (let i = 0; i < numberOfSessions; i++) {
+    workout.addStation(generateTrainingSession());
+  }
+  return workout;
 }
-
-const dir = path.join(__dirname, "..", "static", "data");
-
-if (!fs.existsSync(dir)) {
-  fs.mkdirSync(dir, { recursive: true });
-}
-
-const filePath = path.join(dir, "trainingData2025.json");
-fs.writeFileSync(filePath, JSON.stringify(dummyData, null, 2));

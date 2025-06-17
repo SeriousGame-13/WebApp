@@ -12,14 +12,14 @@ function AppLogin() {
     const [isLoggingIn, setIsLoggingIn] = useState(false);
     const [isSigningUp, setIsSigningUp] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [userData, setUserData] = useState(null);
+    const [user, setUserData] = useState(null);
 
     const handleLogin = async (id, password) => {
         setIsLoggingIn(true);
         try {
-            const user = await UserManagement.loginUser(id, password);
-            const userInfo = await UserManagement.getUserData(user.uid);
-            setUserData(userInfo);
+            const userLogin = await UserManagement.loginUser(id, password);
+            const user = UserManagement.getUser(userLogin.uid);
+            setUserData(user);
             setIsLoggingIn(false);
             setShowLoginPopup(false);
             setIsLoggedIn(true);
@@ -32,9 +32,9 @@ function AppLogin() {
     const handleSignup = async (nickname, id, password) => {
         setIsSigningUp(true);
         try {
-            const user = await UserManagement.signupUser(nickname, id, password);
-            const userInfo = await UserManagement.getUserData(user.uid);
-            setUserData(userInfo);
+            const userLogin = UserManagement.signupUser(nickname, id, password);
+            const user = UserManagement.getUser(userLogin.uid);
+            setUserData(user);
             setIsSigningUp(false);
             setShowSignupPopup(false);
             setIsLoggedIn(true);

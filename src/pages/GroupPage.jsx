@@ -4,117 +4,74 @@ import IconElements from '../components/ui/IconElements';
 
 import '../components/styles/LayoutElements.css'
 
-const GroupList = ({data}) => {
-
-    const userData = data;
-    return (
-        <div className='GroupContainer'>
-            <MakeList data={userData} />
-        </div>
-    )
-}
-
-const MemberList = ({data}) => {
-
-    const userData = data;
-
-    return (
-        <div className='GroupContainer'>
-            <MakeList data={userData} />
-        </div>
-    )
-}
-
-const ChallengeList = ({data}) => {
-
-    const userData = data;
-
-    return (
-        <div className='GroupContainer'>
-            <MakeList data={userData} />
-        </div>
-    )
-}
-
-function MakeList ({data}) {
-    return (
-        <div>
-            <div className='GuideText'>
-                Active Group Exercise
-            </div>
-            <div className='GroupExerciseContainer'>
-                <div className='GroupExerciseHeader'>
-                    Group exercise Name 1
-                </div>
-                <div className='GroupExerciseContents'>
-                    This is test information about active group exercise contents and this is place for description.
-                </div>
-                <div className='GroupExpContainer'>
-                    <ExpElements.NewLinearExpContainerSimple expnow={2} expmax={10} />
-                </div>
-            </div>
-            <div className='GroupExerciseContainer'>
-                <div className='GroupExerciseHeader'>
-                    Group exercise Name 2
-                </div>
-                <div className='GroupExerciseContents'>
-                    This is test information about active group exercise contents and this is place for description. And this is a long long long text, and it's very long. Really looooooooooong.
-                </div>
-                <div className='GroupExpContainer'>
-                    <ExpElements.NewLinearExpContainerSimple expnow={7} expmax={10} />
-                </div>
-            </div>
-            <div className='GroupExerciseContainer'>
-                
-                <div className='GroupExerciseHeader'>
-                    Group exercise Name 3
-                </div>
-                <div className='GroupExerciseContents'>
-                    Short text.    
-                </div>
-                <div className='GroupExpContainer'>
-                    <ExpElements.NewLinearExpContainerSimple expnow={5} expmax={10} />
-                </div>
-            </div>
-        </div>
-            
-    )
-}
-
 function Page ({data}) {
 
-    const userData = data;
-    const [currentPageInGroup, setCurrentPageInGroup] = useState('grouplist');
+const userData = data;
+    const [groupName, setGroupName] = useState('');
+    const [memberId, setMemberId] = useState('');
 
-    const renderCurrentPageInGroup = () => {
-        switch(currentPageInGroup) {
-            case 'grouplist':
-                return <GroupList data={userData} />
-            case 'memberlist':
-                return <MemberList data={userData} />
-            case 'challengelist':
-                return <ChallengeList data={userData} />
-            default:
-                return <GroupList data={userData} />
-        }
-    }
+    const handleCreateGroup = async () => {
+        const user = await UserManagement.getCurrentUser();
+        GroupManagement.createGroup(user.uid, groupName, 'Description of the group')
+    };
+
+    const handleAddMember = async () => {
+        const user = await UserManagement.getCurrentUser();
+        const groups = await GroupManagement.getUserGroups(user.uid);
+        GroupManagement.addGroupMember(groups[0].groupId, memberId, GROUP_ROLE.MEMBER);
+    };
+
+    const handleRemoveMember = async () => {
+        const user = await UserManagement.getCurrentUser();
+        const groups = await GroupManagement.getUserGroups(user.uid);
+        GroupManagement.removeGroupMember(groups[0].groupId, user.uid, memberId)
+    };
+
+    const handleDeleteGroup = async () => {
+        const user = await UserManagement.getCurrentUser();
+        const groups = await GroupManagement.getUserGroups(user.uid);
+        GroupManagement.deleteGroup(groups[0].groupId, user.uid);
+    };
 
     return (
         <div className="AppContents">
-            <header className="ContentsHeader">
-                <div className='ContentsHeaderItem'>
-                    My Groups
-                    </div>
-                <div className='ContentsHeaderItem'>
-                    Members
+            <h2>Group Management</h2>
+
+            <div className="GroupInputContainer">
+                <div className="InputField">
+                    <label htmlFor="groupName">Group Name:</label>
+                    <input
+                        type="text"
+                        id="groupName"
+                        value={groupName}
+                        onChange={(e) => setGroupName(e.target.value)}
+                        placeholder="Enter group name"
+                    />
                 </div>
-                <div className='ContentsHeaderItem'>
-                    Challenges
+
+                <div className="InputField">
+                    <label htmlFor="memberEmail">Member Email:</label>
+                    <input
+                        type="email"
+                        id="memberEmail"
+                        value={memberId}
+                        onChange={(e) => setMemberId(e.target.value)}
+                        placeholder="Enter member email"
+                    />
                 </div>
-            </header>
-            {renderCurrentPageInGroup ()}
+            </div>
+
+            <div className="GroupButtonContainer">
+                <button className="GroupButton" onClick={handleCreateGroup}>Create Group</button>
+                <button className="GroupButton" onClick={handleAddMember}>Add Member</button>
+                <button className="GroupButton" onClick={handleRemoveMember}>Remove Member</button>
+                <button className="GroupButton" onClick={handleDeleteGroup}>Delete Group</button>
+            </div>
+            <div>
+                This is Grouppage !!!
+            </div>
         </div>
-    )
+    );
 }
 
 const GroupPageElements = {

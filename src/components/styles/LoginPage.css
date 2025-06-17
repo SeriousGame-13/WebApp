@@ -1,14 +1,22 @@
 :root {
-    --background-gradient: linear-gradient(45deg,#363a2a 0%,#22241c 20%,#1f211a 40%,#1d1f18 60%,#22241c 80%,#272920 100%);
+    --background-gradient: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 25%, #0d0d0d 50%, #111111 75%, #0a0a0a 100%);
+    --glass-gradient: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
     --header-height: 56px;
-    --footer-height: 80px; 
+    --footer-height: 80px;
     --line-height: 2px;
     --gaps: 4px; /* Total line spacing */
-    --main-color: #96E36C;
-    --light-color: #bcbcbcf3;
-    --background-default: #3a3c32;
-    --background-dark: #1e1e1c;
-    --background-red: #9f3434;
+    --main-color: #00FF94;
+    --main-color-hover: #00E085;
+    --light-color: #E5E5E5;
+    --text-secondary: #A0A0A0;
+    --background-default: rgba(30, 30, 30, 0.85);
+    --background-glass: rgba(255, 255, 255, 0.1);
+    --background-dark: #0a0a0a;
+    --background-card: rgba(20, 20, 20, 0.9);
+    --background-red: #FF4757;
+    --border-glass: rgba(255, 255, 255, 0.2);
+    --shadow-modern: 0 8px 32px rgba(0, 0, 0, 0.3);
+    --shadow-hover: 0 12px 40px rgba(0, 255, 148, 0.2);
 }
 
 .FirstContainer {
@@ -34,6 +42,13 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    box-shadow: var(--shadow-hover);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.LoginpageLogo:hover {
+    transform: scale(1.05);
+    box-shadow: var(--shadow-hover);
 }
 
 img {
@@ -45,6 +60,8 @@ img {
 .Title {
     color: var(--main-color);
     font-size: 25px;
+    margin-bottom: 50px;
+    font-weight: bold;
 }
 
 .Author {
@@ -58,26 +75,44 @@ p {
     font-size: small;
     padding: 0px;
     margin: 5px;
-    color: var(--light-color);
+    color: var(--text-secondary);
 }
 
 .LoginButton, .RegisterButton {
     padding: 10px 20px;
     margin: 5px;
-    background-color: var(--background-default);
-    border-radius: 5px;
+    border-radius: 12px;
     font-size: medium;
     font-weight: bold;
+    transition: all 0.2s ease;
+    cursor: pointer;
 }
 
 .LoginButton {
     color: var(--main-color);
     border: 2px solid var(--main-color);
+    background: var(--background-glass);
+    backdrop-filter: blur(20px);
+}
+
+.LoginButton:hover {
+    background: linear-gradient(135deg, var(--main-color) 0%, var(--main-color-hover) 100%);
+    color: var(--background-dark);
+    transform: scale(1.05);
+    box-shadow: var(--shadow-hover);
 }
 
 .RegisterButton {
     color: var(--light-color);
-    border: 0px;
+    border: 1px solid var(--border-glass);
+    background: var(--background-card);
+    backdrop-filter: blur(20px);
+}
+
+.RegisterButton:hover {
+    background: var(--background-glass);
+    transform: scale(1.05);
+    box-shadow: var(--shadow-modern);
 }
 
 .PopupBackground {
@@ -86,7 +121,8 @@ p {
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
 }
 
 .PopupContainer {
@@ -94,7 +130,11 @@ p {
     justify-content: center;
     align-items: center;
     flex-direction: column;
-    background-color: var(--background-default);
+    background: var(--background-card);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border-glass);
+    border-radius: 20px;
+    box-shadow: var(--shadow-modern);
     overflow: hidden;
     color: var(--main-color);
     width: auto;
@@ -103,17 +143,21 @@ p {
 
 .Input {
     width: 200px;
-    padding: 8px;
+    padding: 12px;
     margin: 10px;
-    background-color: var(--background-dark);
-    border-radius: 5px;
-    border: 2px solid var(--background-dark);
+    background: var(--background-glass);
+    backdrop-filter: blur(20px);
+    border-radius: 12px;
+    border: 1px solid var(--border-glass);
     color: var(--light-color);
+    transition: all 0.2s ease;
 }
 
 input:focus {
     outline: 2px solid var(--main-color);
     color: var(--main-color);
+    background: var(--background-card);
+    transform: scale(1.02);
 }
 
 .Inputfield {
@@ -145,6 +189,13 @@ input:focus {
     background-color: var(--background-red);
     border: 0px;
     color: var(--light-color);
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.CancelButton:hover {
+    background-color: #FF6B7A;
+    transform: scale(1.02);
 }
 
 .ConfirmButton {
@@ -154,11 +205,20 @@ input:focus {
     justify-content: center;
     align-items: center;
     flex-direction: row;
-    background-color: var(--background-default);
+    background: linear-gradient(135deg, var(--main-color) 0%, var(--main-color-hover) 100%);
     border: 0px;
-    color: var(--main-color);
+    color: var(--background-dark);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.ConfirmButton:hover {
+    transform: scale(1.02);
+    box-shadow: var(--shadow-hover);
 }
 
 h2 {
     margin: 20px 40px;
+    color: var(--light-color);
 }

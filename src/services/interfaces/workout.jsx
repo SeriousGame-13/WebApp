@@ -55,6 +55,13 @@ export class Workout extends BaseModel {
       return total;
     }, 0));
   }
+
+  getCalories() {
+    if (!this.stations || this.stations.length === 0) return 0;
+    return (this.stations.reduce((total, station) => {
+      return total + station.calories;
+    }, 0));
+  }
 }
 
 export class Station extends BaseModel {

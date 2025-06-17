@@ -6,7 +6,45 @@
   font-size: 0.85rem;
   font-weight: bold;
   white-space: nowrap;
-  overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
+}
+
+.HomeInfoContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.5rem;
+}
+
+.HomeInfo {
+  min-width: 80px;
+}
+
+.HomeInfoItemContainer {
+  padding: 0.75rem;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* For smaller screens, allow 2 columns */
+@media (max-width: 480px) {
+  .HomeInfoContainer {
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 0.5rem;
+  }
+}
+
+/* For very small screens, stack vertically */
+@media (max-width: 320px) {
+  .HomeInfoContainer {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
 }

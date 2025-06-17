@@ -89,7 +89,7 @@ const signupUser = async (nickname, email, password) => {
  */
 const updateUser = async (uid, userData) => {
     try {
-        const user = getCurrentUser(uid);
+        const user = await getCurrentUser(uid);
 
         // Update Authentication profile if needed
         if (userData.displayName) {
@@ -108,6 +108,22 @@ const updateUser = async (uid, userData) => {
         throw error;
     }
 };
+
+const addPoints = async (uid, points) => {
+    try {
+        const user = await getCurrentUser(uid);
+
+        user.addPoints(points);
+        
+        user.workouts = []; // firebase cant handle custom object
+
+        await FirebaseManager.updateDocument(USERS_COLLECTION, uid, user, true);
+        return getUser(uid);
+    } catch (error) {
+        console.error('Failed to update user:', error);
+        throw error;
+    }
+}
 
 /**
  * Gets and validates the current authenticated user
@@ -464,7 +480,8 @@ const UserManagement = {
     unblockUser,
     isUserBlocked,
     getUserBlocks,
-    getBlockData
+    getBlockData,
+    addPoints
 }
 
 export default UserManagement;

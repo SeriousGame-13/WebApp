@@ -1,4 +1,10 @@
-import './IconElements.css'
+import '../styles/IconElements.css'
+
+/**
+ * I'll store SVG images in this file. Please modify them so that colors can be changed using variables. 
+ * If you want to add icons, please follow the format written here.
+ * -Hyunu Park
+ */
 
 function HomeIcon() {
     return (

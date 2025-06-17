@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 
 import DatamanagerElements from './dataManager';
-import '../pages/LoginPage.css';
+import '../components/styles/LoginPage.css';
 
 // Image resizing function
 const resizeImage = (file, width = 100, height = 100, quality = 0.8) => {

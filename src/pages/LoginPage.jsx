@@ -4,8 +4,7 @@ import UserManagement from '../services/firebase/UserManagementSystem';
 import IconElements from '../components/ui/IconElements';
 import LayoutElements from '../layouts/LayoutElements';
 
-import './LoginPage.css';
-
+import '../components/styles/LoginPage.css';
 
 function AppLogin() {
     const [showLoginPopup, setShowLoginPopup] = useState(false);
@@ -56,11 +55,6 @@ function AppLogin() {
             <header />
             <div />
             <div className="FirstContainer">
-                <div className="LoginpageLogo">
-                    <div style={{ height: '80%', width: '80%' }}>
-                        <IconElements.FrontIcon />
-                    </div>
-                </div>
                 <div className='Title'>
                     This is demo-app
                 </div>
@@ -93,7 +87,7 @@ function AppLogin() {
             <div className='AppFooter'>
                 <div className='Author'>
                     <p>Made by. Serious Games Gruppe 13</p>
-                    <p>Hyunu Park</p>
+                    <p>Alexander Link, Hyunu Park, Igor Ricarte, Robert Rothenberger</p>
                 </div>
             </div>
         </div>

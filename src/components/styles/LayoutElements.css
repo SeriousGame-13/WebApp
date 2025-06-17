@@ -32,52 +32,35 @@ box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
 Adjust x and y offsets in px to control the direction of the shadow. If set to 0, no shadow appears in that direction.
 */
 
+/* 스크롤바 완전 제거 */
+* {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+*::-webkit-scrollbar {
+    display: none; /* WebKit */
+}
+
 :root {
-    /* MODERN UI TRENDS: Updated color palette with deeper contrasts and modern gradients */
     --background-gradient: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 25%, #0d0d0d 50%, #111111 75%, #0a0a0a 100%);
     --glass-gradient: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
     --header-height: 56px;
     --footer-height: 80px; 
     --line-height: 2px;
     --gaps: 4px; /* Total line spacing */
-    /* MODERN UI TRENDS: Vibrant accent color with better contrast */
     --main-color: #00FF94;
     --main-color-hover: #00E085;
     --light-color: #E5E5E5;
     --text-secondary: #A0A0A0;
-    /* MODERN UI TRENDS: Glassmorphism backgrounds */
     --background-default: rgba(30, 30, 30, 0.85);
     --background-glass: rgba(255, 255, 255, 0.1);
     --background-dark: #0a0a0a;
     --background-card: rgba(20, 20, 20, 0.9);
     --background-red: #FF4757;
-    /* MODERN UI TRENDS: Subtle borders and shadows */
     --border-glass: rgba(255, 255, 255, 0.2);
-    --shadow-modern: 0 8px 32px rgba(0, 0, 0, 0.3);
-    --shadow-hover: 0 12px 40px rgba(0, 255, 148, 0.2);
-}
-
-/* Hide scrollbars but keep functionality */
-* {
-    scrollbar-width: thin;
-    scrollbar-color: var(--main-color) transparent;
-}
-
-*::-webkit-scrollbar {
-    width: 4px;
-}
-
-*::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-*::-webkit-scrollbar-thumb {
-    background: var(--main-color);
-    border-radius: 2px;
-}
-
-*::-webkit-scrollbar-thumb:hover {
-    background: var(--main-color-hover);
+    --shadow-modern: 0 0px 10px rgba(0, 0, 0, 0.3);
+    --shadow-hover: 0 0px 10px rgba(0, 255, 148, 0.2);
 }
 
 body, html {
@@ -86,25 +69,26 @@ body, html {
     box-sizing: border-box;
     background: var(--background-gradient);
     font-family: Arial, Helvetica, sans-serif;
-    height: 100%;
-    overflow: hidden;
+    overflow: hidden; /* 전체 페이지 스크롤 방지 */
 }
 
 .MainContainer {
     display: grid;
     grid-template-rows: 
-        var(--header-height)
-        var(--line-height)
-        1fr
-        var(--line-height)
-        var(--footer-height);
+    var(--header-height)
+    var(--line-height)
+    calc(100svh - var(--header-height) - var(--footer-height) - var(--gaps)) 
+    var(--line-height)
+    var(--footer-height);
     height: 100dvh;
-    max-height: 100dvh;
+    align-content: center;
     overflow: hidden;
 }
 
 .Line {
     background-color: var(--light-color);
+    z-index: 10;
+    position: relative;
 }
 
 .AppHeader {
@@ -116,10 +100,11 @@ body, html {
     justify-content: space-between;
     padding-left: 20px;
     padding-right: 20px;
-    /* MODERN UI TRENDS: Glassmorphism effect with backdrop blur */
     background: var(--background-glass);
     backdrop-filter: blur(20px);
     border-bottom: 1px solid var(--border-glass);
+    z-index: 10;
+    position: relative;
 }
 
 .AppFooter {
@@ -132,46 +117,103 @@ body, html {
     align-items: center;
     padding-left: 20px;
     padding-right: 20px;
-    /* MODERN UI TRENDS: Glassmorphism footer with subtle border */
     background: var(--background-glass);
     backdrop-filter: blur(20px);
     border-top: 1px solid var(--border-glass);
-}
-
-.LevelDisplayContainer {
-  margin-bottom: 10px;
-}
-
-.FixedGridLayout {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  margin-bottom: 20px;
-}
-
-.AppContents {
+    z-index: 10;
     position: relative;
+}
+
+/* AppContents - 전체 컨테이너 */
+.AppContents {
     height: 100%;
     display: flex;
     flex-direction: column;
     padding: 20px;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+/* MainContentWrapper - 메인 레이아웃 */
+.MainContentWrapper {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    gap: 0;
+    padding: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+/* 세로 모드 */
+.MainContentWrapper.portrait {
+    flex-direction: column;
     overflow-y: auto;
     overflow-x: hidden;
 }
 
-.HomeInfoItemContainer {
-  color: var(--main-color);
-  text-align: center;
+/* 가로 모드 */
+.MainContentWrapper.landscape {
+    flex-direction: row;
+    overflow: hidden;
 }
-.HomeInfoLabel {
-  text-align: center;
-  color: var(--text-secondary);
-  margin: 0;
+
+/* TopGridSection - 첫 번째 영역 */
+.portrait .TopGridSection {
+    width: 100%;
+    height: auto;
+    min-height: 200px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    overflow: visible;
+    box-sizing: border-box;
 }
-@media (max-width: 768px) {
-  .FixedGridLayout {
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-  }
+
+.landscape .TopGridSection {
+    width: 45%;
+    height: 100%;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+/* BottomGridSection - 두 번째 영역 */
+.portrait .BottomGridSection {
+    width: 100%;
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    overflow: visible;
+    box-sizing: border-box;
+}
+
+.landscape .BottomGridSection {
+    width: 55%;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+/* TopGridSection 내부 요소들 */
+.TopGridSection > * {
+    width: 90%;
+    max-width: 300px;
 }
 
 .HeaderIconcontainer {
@@ -195,6 +237,19 @@ body, html {
     width: 80px;
     justify-content: center;
     align-items: center; 
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.FooterIconbox:hover {
+    transform: scale(1.05);
+}
+
+.IconName {
+    font-size: 10px;
+    font-weight: bold;
+    margin-top: 4px;
+    text-align: center;
 }
 
 .UserName {
@@ -220,7 +275,6 @@ body, html {
 .LogoutButton {
     padding: 5px 10px;
     border: 0px;
-    /* MODERN UI TRENDS: Modern button styling */
     border-radius: 12px;
     background-color: var(--light-color);
     color: var(--background-default);
@@ -230,13 +284,12 @@ body, html {
 
 .LogoutButton:hover {
     transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(229, 229, 229, 0.3);
+    box-shadow: 0 0px 10px rgba(229, 229, 229, 0.3);
 }
 
 .UploadButton {
     padding: 5px 10px;
     border: 0px;
-    /* MODERN UI TRENDS: Modern button with gradient and glow */
     border-radius: 12px;
     background: linear-gradient(135deg, var(--main-color) 0%, var(--main-color-hover) 100%);
     color: var(--background-dark);
@@ -247,7 +300,7 @@ body, html {
 
 .UploadButton:hover {
     transform: scale(1.05);
-    box-shadow: 0 8px 20px rgba(0, 255, 148, 0.4);
+    box-shadow: 0 0px 10px rgba(0, 255, 148, 0.4);
 }
 
 .ProfileImage, .ProfileImageAlt {
@@ -281,45 +334,50 @@ body, html {
     border: 2px solid var(--main-color);
 }
 
-.HomeInfoContainer {
-    display: grid;
+.HelloText {
+    font-size: clamp(1.2rem, 4vw, 2rem);
+    font-weight: bold;
+    color: var(--light-color);
+    text-align: center;
+    margin: 0 0 20px 0;
     width: 100%;
     flex-shrink: 0;
-    padding: 0 32px; /* Links und rechts Abstand */
-    box-sizing: border-box;
-    
-    /* Mobile: 1 column */
-    grid-template-columns: 1fr;
-    
-    /* MODERN UI TRENDS: Smooth animations */
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.HomeInfoContainer {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    width: 100%;
+    margin-bottom: 20px;
+    flex-shrink: 0;
+}
 
+@media (max-width: 768px) {
+    .HomeInfoContainer {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    }
+}
 
 .HomeInfo {
     position: relative;
-    min-height: 200px;
+    min-height: 100px;
+    max-height: 160px;
     aspect-ratio: 1/1;
-    /* MODERN UI TRENDS: Larger border radius for modern look */
     border-radius: 24px;
-    /* MODERN UI TRENDS: Glassmorphism card design */
     background: var(--background-card);
     backdrop-filter: blur(20px);
     border: 1px solid var(--border-glass);
     box-shadow: var(--shadow-modern);
-    padding: 20px;
+    padding: 40px;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    /* MODERN UI TRENDS: Smooth hover interactions */
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
 }
 
-/* MODERN UI TRENDS: Interactive hover effects */
 .HomeInfo:hover {
     transform: translateY(-4px);
     box-shadow: var(--shadow-hover);
@@ -330,26 +388,13 @@ body, html {
     transform: translateY(-2px);
 }
 
-.ExerciseContainer {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding-right: 4px;
-    margin-right: -4px;
-}
-
 .GuideText {
-    position: relative;
-    display: flex;
-    font-size: large;
+    font-size: medium;
     font-weight: bold;
     color: var(--light-color);
-    margin-bottom: 10px;
-    margin-top: 20px;
+    margin: 10px 0 8px 0;
+    width: 100%;
+    text-align: left;
     flex-shrink: 0;
 }
 
@@ -358,136 +403,85 @@ body, html {
     display: flex;
     flex-direction: column;
     width: 100%;
-    min-height: 120px;
-    /* MODERN UI TRENDS: Glassmorphism cards with modern styling */
+    height: auto;
+    min-height: auto;
     background: var(--background-card);
     backdrop-filter: blur(20px);
-    border: 1px solid var(--border-glass);
-    justify-content: flex-start;
+    border: 2px solid var(--border-glass);
     text-align: left;
-    margin-bottom: 16px;
-    border-radius: 20px;
+    margin-bottom: 12px;
+    border-radius: 16px;
     box-shadow: var(--shadow-modern);
-    /* MODERN UI TRENDS: Smooth interactions */
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
+    z-index: 1;
     flex-shrink: 0;
 }
 
-/* MODERN UI TRENDS: Subtle hover effects for list items */
 .GroupExerciseContainer:hover {
     transform: translateY(-2px);
-    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 0px 10px rgba(0, 0, 0, 0.4);
     border-color: rgba(0, 255, 148, 0.3);
 }
 
 .GroupExerciseHeader {
-    font-size: large;
+    font-size: medium;
     color: var(--main-color);
-    margin: 20px 20px 10px 20px;
-    flex-shrink: 0;
+    margin: 16px 16px 8px 16px;
 }
 
 .GroupExerciseContents {
-    /* MODERN UI TRENDS: Better typography hierarchy */
     color: var(--text-secondary);
-    margin: 0px 20px 20px 20px;
-    line-height: 1.5;
-    font-size: 14px;
-    flex: 1;
-    overflow-y: auto;
-    max-height: 80px;
+    margin: 0 16px 12px 16px;
+    line-height: 1.4;
+    font-size: 13px;
 }
 
 .GroupExpContainer {
-    margin: 20px 0px;
-    width: 100%;
-}
-
-.ExpContainer {
-    margin: 20px;
-    width: 100%;
-    margin-bottom: 60px;
-    box-sizing: border-box;
+    margin: 0 16px 16px 16px;
 }
 
 .HomeInfoName {
     color: var(--main-color);
-    font-size: 25px;
+    font-size: 20px;
     font-weight: bold;
-    margin-top: 10px;
+    margin-top: 8px;
 }
 
-/* MODERN UI TRENDS: Improved scrollbar styling */
-.ExerciseContainer::-webkit-scrollbar {
-    width: 6px;
+.HomeInfoItemContainer {
+    height: auto;
+    width: auto;
 }
 
-.ExerciseContainer::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 3px;
+.ContentsHeader {
+    height: var(--header-height);
+    min-height: var(--header-height);
+    width: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding-left: 20px;
+    padding-right: 20px;
 }
 
-.ExerciseContainer::-webkit-scrollbar-thumb {
-    background: var(--main-color);
-    border-radius: 3px;
+.ContentsHeaderItem {
+    position: relative;
+    display: flex;
+    height: 100%;
+    width: 30%;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: var(--light-color);
 }
 
-.ExerciseContainer::-webkit-scrollbar-thumb:hover {
-    background: var(--main-color-hover);
-}
-
-.GroupExerciseContents::-webkit-scrollbar {
-    width: 4px;
-}
-
-.GroupExerciseContents::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.GroupExerciseContents::-webkit-scrollbar-thumb {
-    background: var(--text-secondary);
-    border-radius: 2px;
-}
-
-/* MODERN UI TRENDS: Smooth focus states for accessibility */
-.HomeInfo:focus,
-.GroupExerciseContainer:focus,
-.UploadButton:focus,
-.LogoutButton:focus {
-    outline: 2px solid var(--main-color);
-    outline-offset: 2px;
-}
-
-/* MODERN UI TRENDS: Better touch targets for mobile */
-@media (max-width: 768px) {
-    .HomeInfo {
-        min-height: 160px;
-        padding: 16px;
-        aspect-ratio: auto;
-    }
-    
-    .GroupExerciseContainer {
-        min-height: 100px;
-    }
-    
-    .GroupExerciseHeader {
-        margin: 16px 16px 8px 16px;
-        font-size: medium;
-    }
-    
-    .GroupExerciseContents {
-        margin: 0px 16px 16px 16px;
-        font-size: 13px;
-    }
-    
-    .UploadButton,
-    .LogoutButton {
-        padding: 12px 16px;
-        min-height: 44px;
-    }
-    
-    .AppContents {
-        padding: 16px;
-    }
+.GroupContainer {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
 }

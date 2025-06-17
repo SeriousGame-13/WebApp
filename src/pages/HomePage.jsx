@@ -46,11 +46,11 @@ function Page ({data}) {
             }
         };
 
-        // 초기 체크
+        // Initiale Überprüfung
         checkOrientation();
         fitText();
 
-        // ResizeObserver를 사용하여 컨테이너 크기 변화 감지
+        // ResizeObserver verwenden um Containergrößenänderungen zu erkennen
         const resizeObserver = new ResizeObserver(() => {
             checkOrientation();
             fitText(); // Bei Größenänderung Text neu anpassen
@@ -60,7 +60,7 @@ function Page ({data}) {
             resizeObserver.observe(containerRef.current);
         }
 
-        // 윈도우 리사이즈 이벤트도 추가로 감지
+        // Fenster-Resize-Event zusätzlich erkennen
         window.addEventListener('resize', () => {
             checkOrientation();
             fitText();

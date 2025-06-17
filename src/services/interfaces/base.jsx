@@ -58,4 +58,39 @@ export default class BaseModel {
 
     return `${hours}h ${minutes}m ${seconds}s`;
   }
+
+  // Format duration in minutes to human readable format
+  formatDurationMinutes(minutes) {
+    if (minutes === 0 || isNaN(minutes)) return '0m';
+    if (minutes < 60) return `${minutes}m`;
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
+  }
+
+  // Format calories in European format (with thousand separators)
+  formatCalories(calories) {
+    if (!calories || isNaN(calories)) return '0';
+    return new Intl.NumberFormat('de-DE').format(calories);
+  }
+  // Calculate duration between two dates in minutes
+  getDurationMinutes(startTime, endTime) {
+    try {
+      // Handle ISO strings like '2025-05-29T13:50:00.000Z'
+      const start = new Date(startTime);
+      const end = new Date(endTime);
+
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        console.warn('Invalid date format:', { startTime, endTime });
+        return 0;
+      }
+
+      const durationMs = end.getTime() - start.getTime();
+      return Math.round(durationMs / (1000 * 60)); // Convert to minutes
+    } catch (error) {
+      console.error('Error calculating duration:', error, { startTime, endTime });
+      return 0;
+    }
+  }
+
 }

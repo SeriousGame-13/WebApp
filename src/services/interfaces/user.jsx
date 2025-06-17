@@ -18,17 +18,20 @@ export default class User extends BaseModel {
     });
   }
 
-  // Helper methods
-  isLevelUp(newPoints) {
-    const currentLevelPoints = this.level * 1000; // Beispiel: 1000 Punkte pro Level
-    return (this.points + newPoints) >= currentLevelPoints;
+  currentMaxPoints() {
+    return this.level * 1000;
   }
 
-  addPoints(points) {
-    this.points += points;
-    if (this.isLevelUp(0)) {
-      this.level++;
-      this.points = this.points - (this.level - 1) * 1000; // Übertrage Restpunkte
+  isLevelUp(newPoints) {
+    return (this.points + newPoints) >= this.currentMaxPoints();
+  }
+
+  addPoints(pointsToAdd) {
+    this.points += pointsToAdd;
+    // Keep leveling up while we have enough points
+    while (this.points >= this.level * 1000) {
+      this.points -= this.level * 1000; // Subtract points needed for current level
+      this.level++; // Level up
     }
   }
 
@@ -74,6 +77,12 @@ export default class User extends BaseModel {
   getTotalTrainingTime() {
     return this.workouts.reduce((total, workout) => {
       return total + (workout.getTotalTime());
+    }, 0);
+  }
+
+  getCalories() {
+       return this.workouts.reduce((total, workout) => {
+      return total + (workout.getCalories());
     }, 0);
   }
 }

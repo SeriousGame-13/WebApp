@@ -9,11 +9,13 @@ const createPath = (userId) => {
     return `${UserManagement.getUserDatabasePath(userId)}${WORKOUT_COLLECTION}`;
 }
 
-// Workout speichern (inkl. automatische UUID von Firebase und Stations)
 const saveWorkout = async (workout) => {
     try {
         const { stations = [], ...workoutData } = workout;
-
+        //TODO check uid
+        let points = workout.getTotalPoints();
+        UserManagement.addPoints(workoutData.userId,  points);
+        
         // Hauptdokument speichern und ID von Firebase generieren lassen
         const workoutRef = await FirestoreManager.createDocument(`${createPath(workoutData.userId)}`, workoutData.uid, workoutData);
         if (!workoutRef) throw new Error('Workout konnte nicht gespeichert werden');
@@ -22,6 +24,7 @@ const saveWorkout = async (workout) => {
         const stationSaves = stations.map(station =>
             FirestoreManager.createDocument(`${createPath(workoutData.userId)}/${workoutRef.id}/${STATION_COLLECTION}`, station.uid, station)
         );
+
         await Promise.all(stationSaves);
 
         return workoutRef.id;

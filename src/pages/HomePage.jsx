@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ExpElements from '../components/ui/ExpBar';
 import IconElements from '../components/ui/IconElements';
-import '../components/styles/LoginPage.css';
 
-function Page ({data}) {
+import '../components/styles/HomePage.css';
+
+import LastWorkoutsDisplay from '../components/ui/LastWorkoutsDisplay';
+
+function Page({ data }) {
     const userData = data;
     const containerRef = useRef(null);
     const timeRef = useRef(null); // Neu: Ref für das Zeit-Element
@@ -11,24 +14,7 @@ function Page ({data}) {
 
     const time = userData.formatDuration(userData.getTotalTrainingTime());
 
-    // Funktion um Text automatisch anzupassen
-    const autoFitText = (element) => {
-        if (!element || !element.parentElement) return;
-        
-        const parent = element.parentElement;
-        const maxWidth = parent.clientWidth; // Etwas Padding lassen
-        
-        // Mit einer vernünftigen Schriftgröße starten
-        let fontSize = 18;
-        element.style.fontSize = fontSize + 'px';
-        element.style.fontWeight = 'bold';
-        
-        // Schriftgröße reduzieren bis Text passt
-        while (element.scrollWidth > maxWidth && fontSize > 10) {
-            fontSize -= 0.5;
-            element.style.fontSize = fontSize + 'px';
-        }
-    };
+
 
     useEffect(() => {
         const checkOrientation = () => {
@@ -38,24 +24,14 @@ function Page ({data}) {
             }
         };
 
-        // Text anpassen wenn Komponente geladen ist
-        const fitText = () => {
-            if (timeRef.current) {
-                // Kurz warten damit Layout fertig ist
-                setTimeout(() => autoFitText(timeRef.current), 10);
-            }
-        };
-
-        // Initiale Überprüfung
+        // 초기 체크
         checkOrientation();
-        fitText();
 
         // ResizeObserver verwenden um Containergrößenänderungen zu erkennen
         const resizeObserver = new ResizeObserver(() => {
             checkOrientation();
-            fitText(); // Bei Größenänderung Text neu anpassen
         });
-        
+
         if (containerRef.current) {
             resizeObserver.observe(containerRef.current);
         }
@@ -63,7 +39,6 @@ function Page ({data}) {
         // Fenster-Resize-Event zusätzlich erkennen
         window.addEventListener('resize', () => {
             checkOrientation();
-            fitText();
         });
 
         return () => {
@@ -76,9 +51,9 @@ function Page ({data}) {
         <div className="AppContents" ref={containerRef}>
             <div className={`MainContentWrapper ${isLandscape ? 'landscape' : 'portrait'}`}>
                 <div className="TopGridSection">
-                    <ExpElements.NewCircleExpContainer level={userData.level} expnow={userData.points} expmax={1000} />
+                    <ExpElements.NewCircleExpContainer level={userData.level} expnow={userData.points} expmax={userData.currentMaxPoints()} />
                 </div>
-                
+
                 <div className="BottomGridSection">
                     <div className='HelloText'>
                         Good Morning, {userData.displayName}
@@ -86,73 +61,84 @@ function Page ({data}) {
                     <div className='HomeInfoContainer'>
                         <div className='HomeInfo'>
                             <div className='HomeInfoItemContainer'
-                                style={{ color: 'var(--main-color)'}}>
-                                <IconElements.RankingIcon/>
+                                style={{ color: 'var(--main-color)' }}>
+                                <IconElements.RankingIcon />
                                 <div className='HomeInfoName'>
                                     11
                                 </div>
-                                <p style={{ textAlign: 'center'}}>Place</p>
+                                <p style={{ textAlign: 'center' }}>Place</p>
                             </div>
                         </div>
                         <div className='HomeInfo'>
                             <div className='HomeInfoItemContainer'
-                                style={{ color: 'var(--main-color)'}}>
-                                <IconElements.TimeIcon/>
+                                style={{ color: 'var(--main-color)' }}>
+                                <IconElements.TimeIcon />
                                 <div className='HomeInfoName' ref={timeRef}>
-                                   {time}
+                                    {time}
                                 </div>
-                                <p style={{ textAlign: 'center'}}>Training</p>
+                                <p style={{ textAlign: 'center' }}>Training</p>
                             </div>
                         </div>
                         <div className='HomeInfo'>
                             <div className='HomeInfoItemContainer'
-                                style={{ color: 'var(--main-color)'}}>
-                                <IconElements.FitnessIcon/>
+                                style={{ color: 'var(--main-color)' }}>
+                                <IconElements.FitnessIcon />
                                 <div className='HomeInfoName'>
                                     3/7
                                 </div>
-                                <p style={{ textAlign: 'center'}}>Goal</p>
+                                <p style={{ textAlign: 'center' }}>Goal</p>
+                            </div>
+                        </div>
+                        <div className='HomeInfo'>
+                            <div className='HomeInfoItemContainer'
+                                style={{ color: 'var(--main-color)' }}>
+                                <IconElements.CalorieIcon />
+                                <div className='HomeInfoName'>
+                                    {userData.getCalories()}
+                                </div>
+                                <p style={{ textAlign: 'center' }}>Total Colories</p>
                             </div>
                         </div>
                     </div>
-
                     <div className='GuideText'>
-                        Active Group Exercise
+                        <div className='GuideText'>
+                            Active Group Exercise
+                        </div>
+                        <div className='GroupExerciseContainer'>
+                            <div className='GroupExerciseHeader'>
+                                Group exercise Name 1
+                            </div>
+                            <div className='GroupExerciseContents'>
+                                This is test information about active group exercise contents and this is place for description.
+                            </div>
+                            <div className='GroupExpContainer'>
+                                <ExpElements.NewLinearExpContainerSimple expnow={2} expmax={10} />
+                            </div>
+                        </div>
+                        <div className='GroupExerciseContainer'>
+                            <div className='GroupExerciseHeader'>
+                                Group exercise Name 2
+                            </div>
+                            <div className='GroupExerciseContents'>
+                                This is test information about active group exercise contents and this is place for description. And this is a long long long text, and it's very long. Really looooooooooong.
+                            </div>
+                            <div className='GroupExpContainer'>
+                                <ExpElements.NewLinearExpContainerSimple expnow={7} expmax={10} />
+                            </div>
+                        </div>
+                        <div className='GroupExerciseContainer'>
+                            <div className='GroupExerciseHeader'>
+                                Group exercise Name 3
+                            </div>
+                            <div className='GroupExerciseContents'>
+                                Short text.
+                            </div>
+                            <div className='GroupExpContainer'>
+                                <ExpElements.NewLinearExpContainerSimple expnow={5} expmax={10} />
+                            </div>
+                        </div>
                     </div>
-                    <div className='GroupExerciseContainer'>
-                        <div className='GroupExerciseHeader'>
-                            Group exercise Name 1
-                        </div>
-                        <div className='GroupExerciseContents'>
-                            This is test information about active group exercise contents and this is place for description.
-                        </div>
-                        <div className='GroupExpContainer'>
-                            <ExpElements.NewLinearExpContainerSimple expnow={2} expmax={10} />
-                        </div>
-                    </div>
-                    <div className='GroupExerciseContainer'>
-                        <div className='GroupExerciseHeader'>
-                            Group exercise Name 2
-                        </div>
-                        <div className='GroupExerciseContents'>
-                            This is test information about active group exercise contents and this is place for description. And this is a long long long text, and it's very long. Really looooooooooong.
-                        </div>
-                        <div className='GroupExpContainer'>
-                            <ExpElements.NewLinearExpContainerSimple expnow={7} expmax={10} />
-                        </div>
-                    </div>
-                    <div className='GroupExerciseContainer'>
-                        
-                        <div className='GroupExerciseHeader'>
-                            Group exercise Name 3
-                        </div>
-                        <div className='GroupExerciseContents'>
-                            Short text.    
-                        </div>
-                        <div className='GroupExpContainer'>
-                            <ExpElements.NewLinearExpContainerSimple expnow={5} expmax={10} />
-                        </div>
-                    </div>
+                    <LastWorkoutsDisplay userData={userData} />
                 </div>
             </div>
         </div>

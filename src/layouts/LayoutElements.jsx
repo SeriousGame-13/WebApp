@@ -8,7 +8,7 @@ import WorkoutManager from './../services/firebase/WorkoutManagement.jsx';
 import GroupManagement from '../services/firebase/GroupManagementSystem';
 import DatamanagerElements from '../utils/dataManager';
 import ProfileImageElements from '../utils/profileImageManager';
-import { generateDummyData } from '../services/api/dummyDataGenerator';
+import { getDummyWorkout } from '../utils/dummyDataGenerator.jsx';
 import UserModel from '../services/interfaces/user.jsx';
 import { GROUP_ROLE } from '../services/interfaces/constants.jsx';
 
@@ -98,9 +98,8 @@ function IconContainer() {
     );
 }
 
-const Home = ({ Data }) => {
-    const userData = Data;
-
+const Home = ({ userData = new User()}) => {
+    const time = userData.formatDuration(userData.getTotalTrainingTime());
     return (
         <div className="AppContents">
             <div className='ExpContainer'>
@@ -108,7 +107,7 @@ const Home = ({ Data }) => {
                     <ExpElements.NewCircleExpContainer
                         level={userData.level}
                         expnow={userData.points}
-                        expmax={1000}
+                        expmax={500}
                     />
                 </div>
 
@@ -123,7 +122,7 @@ const Home = ({ Data }) => {
                     <div className='HomeInfo'>
                         <div className='HomeInfoItemContainer'>
                             <IconElements.TimeIcon />
-                            <div className='HomeInfoName'>45 min</div>
+                            <div className='HomeInfoName'>{time}</div>
                             <p className='HomeInfoLabel'>Training</p>
                         </div>
                     </div>
@@ -173,22 +172,19 @@ const Home = ({ Data }) => {
     )
 }
 
-const Ranking = () => {
+const Ranking = ({ userData }) => {
 
     return ("");
 };
 
-const Challenge = ({ Data }) => {
-    const userData = Data;
-
+const Challenge = ({ userData }) => {
     return (
         <div className="AppContents">
             This is Challengepage !!!
         </div>
     )
 }
-const Group = ({ Data }) => {
-    const userData = Data;
+const Group = ({ userData }) => {
     const [groupName, setGroupName] = useState('');
     const [memberId, setMemberId] = useState('');
 
@@ -256,13 +252,11 @@ const Group = ({ Data }) => {
     );
 };
 
-const User = ({ Data }) => {
-    const userData = UserModel.fromJSON(Data);
-
+const User = ({ userData }) => {
     const [workout, setStations] = useState(new Workout());
 
     const handleGenerate = () => {
-        const newData = generateDummyData(userData.uid, 30);
+        const newData = getDummyWorkout(userData.uid, 30);
         setStations(newData);
     };
 
@@ -357,24 +351,24 @@ const User = ({ Data }) => {
 
 
 function HomePage() {
-    const { currentUser, userData, loading } = DatamanagerElements.useAuth('users');
+    const { currentUser, userData, loading } = DatamanagerElements.useAuth();
 
     const [currentPage, setCurrentPage] = useState('home');
 
     const renderCurrentPage = () => {
         switch (currentPage) {
             case 'home':
-                return <Home Data={userData} />
+                return <Home userData={userData} />;
             case 'ranking':
-                return <Ranking Data={userData} />
+                return <Ranking userData={userData} />
             case 'challenge':
-                return <Challenge Data={userData} />
+                return <Challenge userData={userData} />
             case 'group':
-                return <Group Data={userData} />
+                return <Group userData={userData} />
             case 'user':
-                return <User Data={userData} />
+                return <User userData={userData} />
             default:
-                return <User Data={userData} />
+                return <User userData={userData} />
         }
     }
 

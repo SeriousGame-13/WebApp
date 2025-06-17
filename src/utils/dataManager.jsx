@@ -12,32 +12,36 @@ import {
 } from 'firebase/firestore';
 
 import { firebaseApp } from '../services/firebase/FirebaseAppConfiguration';
+import UserManagement from '../services/firebase/UserManagementSystem';
 
 const db = getFirestore(firebaseApp);
 
 //#TODO clean this class up and imports. Please do not add to the mess
 
-const useAuth = (tableName) => {
+const useAuth = () => {
     const [currentUser, setCurrentUser] = useState(null);
     const [userData, setUserData] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const auth = getAuth();
-        const db = getFirestore();
         
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
             if (user) {
                 setCurrentUser(user);
                 
-                // Fetch detailed user information from Firestore
+                // Use UserManagement system to fetch detailed user information
                 try {
-                    const userDoc = await getDoc(doc(db, tableName, user.uid));
-                    if (userDoc.exists()) {
-                        setUserData(userDoc.data());
+                    const userDataFromManagement = await UserManagement.getUser(user.uid);
+                    if (userDataFromManagement) {
+                        setUserData(userDataFromManagement);
+                    } else {
+                        console.warn('User data not found in UserManagement system');
+                        setUserData(null);
                     }
                 } catch (error) {
-                    console.error('Failed to fetch user data:', error);
+                    console.error('Failed to fetch user data from UserManagement:', error);
+                    setUserData(null);
                 }
             } else {
                 setCurrentUser(null);

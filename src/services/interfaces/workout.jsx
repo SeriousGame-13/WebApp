@@ -44,14 +44,25 @@ export class Workout extends BaseModel {
       return total + (station.points ? station.points : 0);
     }, 0);
   }
+
+  getTotalTime() {
+    if (!this.stations || this.stations.length === 0) return 0;
+
+    return (this.stations.reduce((total, station) => {
+      if (station.startTime && station.endTime) {
+        return total + station.getDurationMs(station.startTime, station.endTime);
+      }
+      return total;
+    }, 0));
+  }
 }
 
 export class Station extends BaseModel {
   constructor(data = {}) {
     super({
       points: 0,
-      startTime: null,
-      endTime: null,
+      startTime: "",
+      endTime: "",
       heartRateAvg: null,
       calories: 0,
       ...data

@@ -1,6 +1,8 @@
 import FirebaseManager from './FirestoreManager';
 import FireAuthManager from './FirebaseAuthenticationManager';
+import WorkoutManager from './WorkoutManagement.jsx';
 import User from '../interfaces/user.jsx';
+import { Workout } from '../interfaces/workout.jsx';
 
 const USERS_COLLECTION = 'users';
 const FRIENDS_COLLECTION = 'user_friends';
@@ -26,6 +28,8 @@ const loginUser = async (email, password) => {
 const getUser = async (uid) => {
     try {
         const data = await FirebaseManager.readDocument(USERS_COLLECTION, uid);
+        const userWorkouts = await WorkoutManager.loadWorkouts(uid);
+        data.workouts = userWorkouts.map(entry => (Workout.fromJSON(entry)));
         if (!data) return null;
 
         const user = User.fromJSON(data);
@@ -85,7 +89,7 @@ const signupUser = async (nickname, email, password) => {
  */
 const updateUser = async (uid, userData) => {
     try {
-        const user = getCurrentAuthUser(uid);
+        const user = getCurrentUser(uid);
 
         // Update Authentication profile if needed
         if (userData.displayName) {
@@ -126,7 +130,7 @@ const getCurrentUser = async () => {
  */
 const deleteUser = async (uid) => {
     try {
-        const user = getCurrentAuthUser(uid);
+        const user = getCurrentUser(uid);
 
         // Deactivate user document from Firestore, but keep it for historical/restoring purposes
         await FirebaseManager.updateDocument(USERS_COLLECTION, uid, { isActive: false }, true);
@@ -336,6 +340,7 @@ const blockUser = async (userId, blockedUserId) => {
 
         try {
             await removeFriend(userId, blockedUserId);
+            // eslint-disable-next-line no-unused-vars
         } catch (error) {
             // Ignore errors if no friendship exists
         }
@@ -437,7 +442,12 @@ const getUserBlocks = async (userId) => {
     }
 };
 
+const getUserDatabasePath = (userId) => {
+    return `${USERS_COLLECTION}/${userId}/`;
+}
+
 const UserManagement = {
+    getUserDatabasePath,
     loginUser,
     getUser,
     logoutUser,

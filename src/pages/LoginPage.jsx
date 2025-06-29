@@ -6,6 +6,14 @@ import LayoutElements from '../layouts/LayoutElements';
 
 import '../components/styles/LoginPage.css';
 
+//temp
+//For Test - Hyunu P.
+import { Workout } from '../services/interfaces/workout.jsx';
+import { getDummyWorkout, createAllDummyUsers, createAllExerciseDefinitions, createAllChallenges } from '../utils/dummyDataGenerator.jsx';
+import UserModel from '../services/interfaces/user.jsx';
+import { GROUP_ROLE } from '../services/interfaces/constants.jsx';
+import WorkoutManager from './../services/firebase/WorkoutManagement.jsx';
+
 function AppLogin() {
     const [showLoginPopup, setShowLoginPopup] = useState(false);
     const [showSignupPopup, setShowSignupPopup] = useState(false);
@@ -18,7 +26,7 @@ function AppLogin() {
         setIsLoggingIn(true);
         try {
             const userLogin = await UserManagement.loginUser(id, password);
-            const user = UserManagement.getUser(userLogin.uid);
+            const user = await UserManagement.getUser(userLogin.uid); // await 추가!
             setUserData(user);
             setIsLoggingIn(false);
             setShowLoginPopup(false);
@@ -32,8 +40,8 @@ function AppLogin() {
     const handleSignup = async (nickname, id, password) => {
         setIsSigningUp(true);
         try {
-            const userLogin = UserManagement.signupUser(nickname, id, password);
-            const user = UserManagement.getUser(userLogin.uid);
+            const userLogin = await UserManagement.signupUser(nickname, id, password);
+            const user = await UserManagement.getUser(userLogin.uid); // await 추가!
             setUserData(user);
             setIsSigningUp(false);
             setShowSignupPopup(false);
@@ -44,10 +52,19 @@ function AppLogin() {
         }
     };
 
-    if (isLoggedIn) {
-        return (
-            <LayoutElements.HomePage />
-        );
+    // Admin check after log-in
+    if (isLoggedIn && user) {
+        console.log('Login check - user:', user);
+        console.log('Login check - user.isAdmin:', user.isAdmin);
+        console.log('Login check - typeof user.isAdmin:', typeof user.isAdmin);
+        
+        if (user.isAdmin === true) {  // 명시적 비교
+            console.log('Redirecting to Admin page');
+            return <AdminPage user={user} />;
+        } else {
+            console.log('Redirecting to regular HomePage');
+            return <LayoutElements.HomePage />;
+        }
     }
 
     return (
@@ -90,6 +107,146 @@ function AppLogin() {
                     <p>Alexander Link, Hyunu Park, Igor Ricarte, Robert Rothenberger</p>
                 </div>
             </div>
+        </div>
+    );
+}
+
+//temp
+//For Test - Hyunu P.
+function AdminPage({ user }) {
+    const userData = user;
+    const [workout, setStations] = useState(new Workout());
+
+    const handleGenerate = () => {
+        const newData = getDummyWorkout(userData.uid, 30);
+        setStations(newData);
+    };
+
+    const handleSave = () => {
+        WorkoutManager.saveWorkout(workout);
+    }
+
+    return (
+        <div>
+            <h1 style={{
+                    color: '#f2f2f2'
+                }}>Admin</h1>
+            <p>Willkommen, {user.displayName}</p>
+            
+            <button
+                onClick={handleGenerate}
+                style={{
+                    backgroundColor: '#a0ff78',
+                    color: '#2e2f29',
+                    border: 'none',
+                    padding: '0.75rem 1.5rem',
+                    borderRadius: '8px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    margin: '0 auto 1rem',
+                    display: 'block'
+                }}
+            >
+                Trainings-Daten generieren
+            </button>
+
+            <div style={{
+                maxHeight: '300px',
+                overflowY: 'auto',
+                backgroundColor: '#3b3c36',
+                borderRadius: '10px',
+                padding: '1rem',
+                color: '#a0ff78',
+                fontFamily: 'sans-serif'
+            }}>
+                {workout.stations.length === 0 && (
+                    <p style={{ textAlign: 'center', color: '#aaa' }}>
+                        Noch keine Trainings-Daten generiert.
+                    </p>
+                )}
+                {workout.stations.map((entry, index) => (
+                    <div key={index} style={{
+                        marginBottom: '1rem',
+                        paddingBottom: '0.75rem',
+                        borderBottom: '1px solid #555'
+                    }}>
+                        <div><span style={{ color: '#ccc' }}>User:</span> {workout.userId}</div>
+                        <div><span style={{ color: '#ccc' }}>Start:</span> {new Date(entry.start).toLocaleString()}</div>
+                        <div><span style={{ color: '#ccc' }}>Ende:</span> {new Date(entry.end).toLocaleString()}</div>
+                        <div><span style={{ color: '#ccc' }}>Punkte:</span> {entry.points}</div>
+                        <div><span style={{ color: '#ccc' }}>Kalorien:</span> {entry.calories}</div>
+                        <div><span style={{ color: '#ccc' }}>Ø Herzfrequenz:</span> {entry.heartRateAvg}</div>
+                    </div>
+                ))}
+            </div>
+
+            <button
+                onClick={handleSave}
+                style={{
+                    backgroundColor: '#a0ff78',
+                    color: '#2e2f29',
+                    border: 'none',
+                    padding: '0.75rem 1.5rem',
+                    borderRadius: '8px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    margin: '0 auto 1rem',
+                    display: 'block'
+                }}
+            >
+                Trainings-Daten speichern
+            </button>
+
+            <button
+                onClick={createAllDummyUsers}
+                style={{
+                    backgroundColor: '#a0ff78',
+                    color: '#2e2f29',
+                    border: 'none',
+                    padding: '0.75rem 1.5rem',
+                    borderRadius: '8px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    margin: '0 auto 1rem',
+                    display: 'block'
+                }}
+            >
+                Generate Dummy-users
+            </button>
+
+            <button
+                onClick={createAllExerciseDefinitions}
+                style={{
+                    backgroundColor: '#a0ff78',
+                    color: '#2e2f29',
+                    border: 'none',
+                    padding: '0.75rem 1.5rem',
+                    borderRadius: '8px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    margin: '0 auto 1rem',
+                    display: 'block'
+                }}
+            >
+                Generate Dummy-exercise_definitions
+            </button>
+
+            <button
+                onClick={createAllChallenges}
+                style={{
+                    backgroundColor: '#a0ff78',
+                    color: '#2e2f29',
+                    border: 'none',
+                    padding: '0.75rem 1.5rem',
+                    borderRadius: '8px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    margin: '0 auto 1rem',
+                    display: 'block'
+                }}
+            >
+                Generate challenges
+            </button>
         </div>
     );
 }

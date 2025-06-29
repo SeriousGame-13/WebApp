@@ -7,6 +7,7 @@ export default class User extends BaseModel {
       email: '',
       displayName: '',
       isActive: true,
+      isAdmin: false,
       level: 1,
       points: 0,
       longestStreak: 0,

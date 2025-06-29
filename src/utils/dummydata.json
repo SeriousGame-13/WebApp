@@ -1,0 +1,291 @@
+{
+  "users": [
+    {
+      "email": "max.mueller@demo.de",
+      "displayName": "Max Müller", 
+      "createdAt": "2024-01-10T09:00:00Z",
+      "isActive": true,
+      "level": 5,
+      "points": 2840,
+      "longestStreak": 8,
+      "isAdmin": false
+    },
+    {
+      "email": "anna.schmidt@demo.de",
+      "displayName": "Anna Schmidt",
+      "createdAt": "2024-01-12T11:15:00Z",
+      "isActive": true,
+      "level": 7,
+      "points": 4320,
+      "longestStreak": 12,
+      "isAdmin": false
+    },
+    {
+      "email": "thomas.weber@demo.de",
+      "displayName": "Thomas Weber",
+      "createdAt": "2024-01-08T16:30:00Z",
+      "isActive": true,
+      "level": 3,
+      "points": 1650,
+      "longestStreak": 5,
+      "isAdmin": false
+    },
+    {
+      "email": "lisa.wagner@demo.de", 
+      "displayName": "Lisa Wagner",
+      "createdAt": "2024-01-14T08:45:00Z",
+      "isActive": true,
+      "level": 6,
+      "points": 3780,
+      "longestStreak": 9,
+      "isAdmin": false
+    },
+    {
+      "email": "michael.becker@demo.de",
+      "displayName": "Michael Becker", 
+      "createdAt": "2024-01-06T14:20:00Z",
+      "isActive": true,
+      "level": 8,
+      "points": 5640,
+      "longestStreak": 15,
+      "isAdmin": false
+    },
+    {
+      "email": "sarah.hoffmann@demo.de",
+      "displayName": "Sarah Hoffmann",
+      "createdAt": "2024-01-16T10:30:00Z",
+      "isActive": true,
+      "level": 4,
+      "points": 2190,
+      "longestStreak": 6,
+      "isAdmin": false
+    },
+    {
+      "email": "daniel.koch@demo.de",
+      "displayName": "Daniel Koch",
+      "createdAt": "2024-01-11T13:45:00Z", 
+      "isActive": true,
+      "level": 9,
+      "points": 6890,
+      "longestStreak": 18,
+      "isAdmin": false
+    },
+    {
+      "email": "julia.richter@demo.de",
+      "displayName": "Julia Richter",
+      "createdAt": "2024-01-09T15:10:00Z",
+      "isActive": true,
+      "level": 2,
+      "points": 980,
+      "longestStreak": 3,
+      "isAdmin": false
+    },
+    {
+      "email": "patrick.klein@demo.de",
+      "displayName": "Patrick Klein",
+      "createdAt": "2024-01-13T12:00:00Z",
+      "isActive": true,
+      "level": 6,
+      "points": 3420,
+      "longestStreak": 10,
+      "isAdmin": false
+    },
+    {
+      "email": "nina.wolf@demo.de",
+      "displayName": "Nina Wolf",
+      "createdAt": "2024-01-07T09:30:00Z",
+      "isActive": true,
+      "level": 5,
+      "points": 2750,
+      "longestStreak": 7,
+      "isAdmin": false
+    },
+    {
+      "email": "stefan.schulz@demo.de",
+      "displayName": "Stefan Schulz",
+      "createdAt": "2024-01-05T11:45:00Z",
+      "isActive": true,
+      "level": 7,
+      "points": 4580,
+      "longestStreak": 13,
+      "isAdmin": false
+    },
+    {
+      "email": "petra.neumann@demo.de",
+      "displayName": "Petra Neumann",
+      "createdAt": "2024-01-17T14:15:00Z",
+      "isActive": true,
+      "level": 3,
+      "points": 1420,
+      "longestStreak": 4,
+      "isAdmin": false
+    },
+    {
+      "email": "robert.zimmermann@demo.de",
+      "displayName": "Robert Zimmermann",
+      "createdAt": "2024-01-04T16:30:00Z",
+      "isActive": true,
+      "level": 10,
+      "points": 8250,
+      "longestStreak": 22,
+      "isAdmin": false
+    },
+    {
+      "email": "claudia.braun@demo.de",
+      "displayName": "Claudia Braun",
+      "createdAt": "2024-01-15T08:20:00Z",
+      "isActive": true,
+      "level": 4,
+      "points": 2380,
+      "longestStreak": 6,
+      "isAdmin": false
+    },
+    {
+      "email": "alexander.krueger@demo.de", 
+      "displayName": "Alexander Krüger",
+      "createdAt": "2024-01-03T10:45:00Z",
+      "isActive": true,
+      "level": 8,
+      "points": 5920,
+      "longestStreak": 16,
+      "isAdmin": false
+    }
+  ],
+
+  "exercise_definitions": [
+    {
+      "name": "Cardio Boxer",
+      "category": "Ausdauer",
+      "description": "Der VR Boxer ergänzt dein Training ideal – perfekt für Fitness und Ausdauer, besonders im Trend bei CrossFit und Kampfsport.",
+      "instructions": "Folge den Anweisungen auf dem Bildschirm und schlage die richtigen Panels im perfekten Timing. 4 obere Panels + 2 untere Panels stehen zur Verfügung.",
+      "muscleGroups": "Ganzkörper, Herz-Kreislauf-System",
+      "unit": "score",
+      "isActive": true,
+      "createdAt": "2024-01-15T10:00:00Z",
+      "pointsFormula": "score * 0.1"
+    }
+  ],
+
+  "challenges": [
+    {
+      "name": "Neujahrs Fitness Challenge",
+      "description": "Starte das neue Jahr mit Power! Erreiche 5000 Punkte bis Ende Januar.",
+      "startDate": "2024-01-01T00:00:00Z",
+      "endDate": "2024-01-31T23:59:59Z",
+      "creatorIndex": 0,
+      "rewardPoints": 1000,
+      "challengeType": "TARGET",
+      "scope": "admin",
+      "targetExerciseId": null,
+      "targetValue": 5000,
+      "unit": "points",
+      "condition": "total",
+      "createdAt": "2023-12-28T10:00:00Z"
+    },
+    {
+      "name": "Cardio Boxer Meisterschaft",
+      "description": "Werde zum Cardio Boxer Champion! Erreiche mindestens 3500 Punkte in einer Woche.",
+      "startDate": "2024-01-15T00:00:00Z",
+      "endDate": "2024-01-21T23:59:59Z",
+      "creatorIndex": 0,
+      "rewardPoints": 750,
+      "challengeType": "TARGET",
+      "scope": "admin",
+      "targetExerciseIndex": 0,
+      "targetValue": 3500,
+      "unit": "points",
+      "condition": "total",
+      "createdAt": "2024-01-10T14:30:00Z"
+    },
+    {
+      "name": "Wöchentliche Ausdauer Challenge",
+      "description": "Trainiere jeden Tag diese Woche mindestens 30 Minuten für extra Punkte!",
+      "startDate": "2024-01-22T00:00:00Z",
+      "endDate": "2024-01-28T23:59:59Z",
+      "creatorIndex": 0,
+      "rewardPoints": 500,
+      "challengeType": "STREAK",
+      "scope": "admin",
+      "targetExerciseId": null,
+      "targetValue": 7,
+      "unit": "days",
+      "condition": "consecutive",
+      "createdAt": "2024-01-18T09:15:00Z"
+    },
+    {
+      "name": "Summer Fitness Marathon",
+      "description": "Sammle 10000 Punkte bis Ende Juli und gewinne exklusive Belohnungen!",
+      "startDate": "2024-02-01T00:00:00Z",
+      "endDate": "2024-02-29T23:59:59Z",
+      "creatorIndex": 0,
+      "rewardPoints": 2000,
+      "challengeType": "ENDURANCE",
+      "scope": "admin",
+      "targetExerciseId": null,
+      "targetValue": 10000,
+      "unit": "points",
+      "condition": "total",
+      "createdAt": "2024-01-25T16:45:00Z"
+    },
+    {
+      "name": "Speed Boxer Challenge",
+      "description": "Zeige deine Schnelligkeit! Erreiche in einer Session mindestens 4000 Punkte am Cardio Boxer.",
+      "startDate": "2024-01-20T00:00:00Z",
+      "endDate": "2024-02-20T23:59:59Z",
+      "creatorIndex": 0,
+      "rewardPoints": 600,
+      "challengeType": "TARGET",
+      "scope": "admin",
+      "targetExerciseIndex": 0,
+      "targetValue": 4000,
+      "unit": "points",
+      "condition": "single_session",
+      "createdAt": "2024-01-17T11:00:00Z"
+    },
+    {
+      "name": "Frühe Vögel Challenge",
+      "description": "Trainiere 5 Tage vor 10:00 Uhr morgens und erhalte extra Motivation!",
+      "startDate": "2024-02-05T00:00:00Z",
+      "endDate": "2024-02-11T23:59:59Z",
+      "creatorIndex": 0,
+      "rewardPoints": 400,
+      "challengeType": "FREQUENCY",
+      "scope": "admin",
+      "targetExerciseId": null,
+      "targetValue": 5,
+      "unit": "sessions",
+      "condition": "before_time",
+      "createdAt": "2024-02-01T09:30:00Z"
+    },
+    {
+      "name": "Perfekte Woche",
+      "description": "Erreiche jeden Tag mindestens 500 Punkte für eine perfekte Trainingswoche!",
+      "startDate": "2024-02-12T00:00:00Z",
+      "endDate": "2024-02-18T23:59:59Z",
+      "creatorIndex": 0,
+      "rewardPoints": 800,
+      "challengeType": "FREQUENCY",
+      "scope": "admin",
+      "targetExerciseId": null,
+      "targetValue": 500,
+      "unit": "points",
+      "condition": "daily_minimum",
+      "createdAt": "2024-02-08T14:20:00Z"
+    },
+    {
+      "name": "Ausdauer König",
+      "description": "Bleibe 14 Tage am Stück aktiv und werde zum Ausdauer König!",
+      "startDate": "2024-02-15T00:00:00Z",
+      "endDate": "2024-03-15T23:59:59Z",
+      "creatorIndex": 0,
+      "rewardPoints": 1200,
+      "challengeType": "STREAK",
+      "scope": "admin",
+      "targetExerciseId": null,
+      "targetValue": 14,
+      "unit": "days",
+      "condition": "consecutive",
+      "createdAt": "2024-02-10T16:45:00Z"
+    }
+  ]
+}

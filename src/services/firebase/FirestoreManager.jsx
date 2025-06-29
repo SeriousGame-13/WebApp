@@ -9,6 +9,8 @@ import {
     getDocs,
     serverTimestamp,
     getFirestore, 
+    addDoc,
+    limit,
 } from 'firebase/firestore';
 
 import { firebaseApp } from './FirebaseAppConfiguration';
@@ -177,6 +179,43 @@ const getServerTimestamp = () => {
     }
 }
 
+const createDocumentWithAutoId = async (collectionName, data) => {
+    try {
+        const docRef = await addDoc(collection(db, collectionName), data);
+        return docRef;
+    } catch (error) {
+        console.error(`Error creating document in ${collectionName}:`, error);
+        return null;
+    }
+}
+
+/**
+ * find one Doc containts given value
+ * @param {string} collectionName - Collection name
+ * @param {string} field - Doc name
+ * @param {any} value - Value
+ * @returns {Promise<object|null>} Data found
+ */
+const findDocumentByField = async (collectionName, field, value) => {
+    try {
+        const q = query(collection(db, collectionName), where(field, '==', value), limit(1));
+        const snapshot = await getDocs(q);
+        
+        if (snapshot.empty) {
+            return null;
+        }
+        
+        const doc = snapshot.docs[0];
+        return {
+            id: doc.id,
+            ...doc.data()
+        };
+    } catch (error) {
+        console.error(`Error finding document in ${collectionName}:`, error);
+        return null;
+    }
+};
+
 const FirestoreManager = {
     getDocumentReference,
     createDocument,
@@ -186,6 +225,8 @@ const FirestoreManager = {
     queryDocumentsByFieldValue,
     getAllDocuments,
     getServerTimestamp,
+    createDocumentWithAutoId,
+    findDocumentByField,
 };
 
 export default FirestoreManager;

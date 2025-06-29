@@ -4,7 +4,6 @@ import { CHALLENGE_TYPE } from './constants.jsx';
 export class Challenge extends BaseModel {
   constructor(data = {}) {
     super({
-      challengeId: '',
       name: '',
       description: '',
       startDate: Date.now(),

@@ -28,6 +28,9 @@ const loginUser = async (email, password) => {
 const getUser = async (uid) => {
     try {
         const data = await FirebaseManager.readDocument(USERS_COLLECTION, uid);
+
+        if (!data) return null;
+
         const userWorkouts = await WorkoutManager.loadWorkouts(uid);
         data.workouts = userWorkouts.map(entry => (Workout.fromJSON(entry)));
         if (!data) return null;
@@ -73,6 +76,7 @@ const signupUser = async (nickname, email, password) => {
         uid: userLogin.uid,
         email: email,
         displayName: nickname,
+        isAdmin: false,
     });
 
     await FirebaseManager.createDocument(USERS_COLLECTION, userLogin.uid, newUser, true);

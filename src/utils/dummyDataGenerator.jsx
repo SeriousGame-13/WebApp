@@ -170,7 +170,7 @@ export async function createAllDummyUsers() {
 }
 
 
-
+/**
 export function getDummyExerciseDefinitions() {
   return initialData.exercise_definitions.map(exerciseDefinition => {
     return {
@@ -187,7 +187,6 @@ export function getDummyExerciseDefinitions() {
   });
 }
 
-/**
  * Creates a new Document with given data
  * Exp. newData
  * const newUser = new User({
@@ -199,7 +198,7 @@ export function getDummyExerciseDefinitions() {
 const createDocument = async (documentName, docId, newData) => {
 await FirebaseManager.createDocument(documentName, docId, newData, true);
 };
- */
+
 
 async function createSingleDummyExerciseDefinition(exerciseData, index) {
   try {
@@ -429,3 +428,4 @@ export async function createAllChallenges() {
     failedChallenges: failed
   };
 }
+*/

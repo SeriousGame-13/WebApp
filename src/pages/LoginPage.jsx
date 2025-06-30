@@ -9,7 +9,7 @@ import '../components/styles/LoginPage.css';
 //temp
 //For Test - Hyunu P.
 import { Workout } from '../services/interfaces/workout.jsx';
-import { getDummyWorkout, createAllDummyUsers, createAllExerciseDefinitions, createAllChallenges } from '../utils/dummyDataGenerator.jsx';
+import { getDummyWorkout, createAllDummyUsers} from '../utils/dummyDataGenerator.jsx';
 import UserModel from '../services/interfaces/user.jsx';
 import { GROUP_ROLE } from '../services/interfaces/constants.jsx';
 import WorkoutManager from './../services/firebase/WorkoutManagement.jsx';
@@ -58,7 +58,7 @@ function AppLogin() {
         console.log('Login check - user.isAdmin:', user.isAdmin);
         console.log('Login check - typeof user.isAdmin:', typeof user.isAdmin);
         
-        if (user.isAdmin === true) {  // 명시적 비교
+        if (user.isAdmin === true) {
             console.log('Redirecting to Admin page');
             return <AdminPage user={user} />;
         } else {
@@ -212,40 +212,6 @@ function AdminPage({ user }) {
                 }}
             >
                 Generate Dummy-users
-            </button>
-
-            <button
-                onClick={createAllExerciseDefinitions}
-                style={{
-                    backgroundColor: '#a0ff78',
-                    color: '#2e2f29',
-                    border: 'none',
-                    padding: '0.75rem 1.5rem',
-                    borderRadius: '8px',
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
-                    margin: '0 auto 1rem',
-                    display: 'block'
-                }}
-            >
-                Generate Dummy-exercise_definitions
-            </button>
-
-            <button
-                onClick={createAllChallenges}
-                style={{
-                    backgroundColor: '#a0ff78',
-                    color: '#2e2f29',
-                    border: 'none',
-                    padding: '0.75rem 1.5rem',
-                    borderRadius: '8px',
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
-                    margin: '0 auto 1rem',
-                    display: 'block'
-                }}
-            >
-                Generate challenges
             </button>
         </div>
     );

@@ -1,4 +1,5 @@
 import BaseModel from './base.jsx';
+import { serverTimestamp } from 'firebase/firestore';
 export class UserGoal extends BaseModel {
   constructor(data = {}) {
     super({
@@ -12,20 +13,20 @@ export class UserGoal extends BaseModel {
   }
 
   isExpired() {
-    return Date.now() > this.deadline;
+    return serverTimestamp() > this.deadline;
   }
 
   daysUntilDeadline() {
-    const diff = this.deadline - Date.now();
+    const diff = this.deadline - serverTimestamp();
     return Math.ceil(diff / (1000 * 60 * 60 * 24));
   }
 
   hoursUntilDeadline() {
-    const diff = this.deadline - Date.now();
+    const diff = this.deadline - serverTimestamp();
     return Math.ceil(diff / (1000 * 60 * 60));
   }
 
   validate() {
-    return this.goalId && this.userId && this.exerciseDefId && this.deadline > Date.now();
+    return this.goalId && this.userId && this.exerciseDefId && this.deadline > serverTimestamp();
   }
 }

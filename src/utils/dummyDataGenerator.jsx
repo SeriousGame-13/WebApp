@@ -1,30 +1,31 @@
 import { Workout, Station } from '../services/interfaces/workout.jsx';
-import { Challenge } from '../services/interfaces/challenge.jsx';
-import { addDoc, collection } from 'firebase/firestore';
-import FirebaseManager from '../services/firebase/FirestoreManager.jsx';
-import FireAuthManager from '../services/firebase/FirebaseAuthenticationManager.jsx'
+import { 
+    Timestamp 
+} from 'firebase/firestore';
 
 function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function getRandomDateTimeIn2025() {
+function getRandomTimeStampIn2025() {
   const year = 2025;
   const month = getRandomInt(0, 6);
   const day = getRandomInt(1, 31);
   const hour = getRandomInt(8, 22);
   const minute = getRandomInt(0, 59);
 
-  return new Date(year, month, day, hour, minute);
+  return Timestamp.fromDate(new Date(year, month, day, hour, minute));
 }
 
 function getDummyStationEntry() {
-  const startTime = getRandomDateTimeIn2025();
+  const startTime = getRandomTimeStampIn2025();
   const durationMinutes = getRandomInt(10, 90);
-  const endTime = new Date(startTime.getTime() + durationMinutes * 60000);
+  var time = startTime.toDate()
+  time.setTime(time.getTime() + durationMinutes * 60000);
+  const endTime = Timestamp.fromDate(new Date(time));
   const station = new Station();
-  station.startTime = startTime.toISOString();
-  station.endTime = endTime.toISOString();
+  station.startTime = startTime;
+  station.endTime = endTime;
   station.points = getRandomInt(500, 2000);
   station.heartRateAvg = getRandomInt(110, 220);
   station.calories = getRandomInt(200, 1200);
@@ -80,7 +81,7 @@ async function createSingleDummyUser(userData, index) {
     console.log(`Registrierung erfolgreich - UID: ${userLogin.uid}`);
     
     // 2. Benutzerdaten laden
-    const currentUser = await UserManagement.getUser(userLogin.uid);
+    // const currentUser = await UserManagement.getUser(userLogin.uid);
     console.log(`Benutzerdaten geladen`);
     
     // 3. Mit JSON-Daten aktualisieren (createdAt und Email ausgenommen)

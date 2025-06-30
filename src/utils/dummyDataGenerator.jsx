@@ -1,7 +1,15 @@
 import { Workout, Station } from '../services/interfaces/workout.jsx';
-import { 
-    Timestamp 
+import {
+  Timestamp
 } from 'firebase/firestore';
+
+import initialData from './dummydata.json';
+import UserManagement from '../services/firebase/UserManagementSystem';
+
+import { Badge, UserBadge } from '../services/interfaces/badge.jsx';
+import BadgeManager from '../services/firebase/BadgeManagement.jsx';
+
+const DEFAULT_PASSWORD = '1q2w3e4r!';
 
 function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -42,11 +50,20 @@ export function getDummyWorkout(uid, numberOfSessions = 20) {
 }
 
 
+export function getDummyBadges(numberOf = 10) {
+  var badges = [];
+  for (let i = 0; i < numberOf; i++) {
+    let badge = new Badge();
+    badge.rarity = getRandomInt(1, 5);
+    badge.points = badge.getRarityWeight() * getRandomInt(1, 500);
+    badges.push(badge);
+  }
 
-import initialData from './dummydata.json';
-import UserManagement from '../services/firebase/UserManagementSystem';
+  return badges;
+}
 
-const DEFAULT_PASSWORD = '1q2w3e4r!';
+
+
 
 export function getDummyUsers() {
   return initialData.users.map(userData => {
@@ -70,20 +87,22 @@ export function getDummyUsers() {
 async function createSingleDummyUser(userData, index) {
   try {
     console.log(`${index + 1}. Benutzer wird erstellt: ${userData.displayName} (${userData.email})`);
-    
+
     // 1. Registrierung
     const userLogin = await UserManagement.signupUser(
-      userData.displayName, 
-      userData.email, 
+      userData.displayName,
+      userData.email,
       DEFAULT_PASSWORD
     );
-    
+
+
+
     console.log(`Registrierung erfolgreich - UID: ${userLogin.uid}`);
-    
+
     // 2. Benutzerdaten laden
     // const currentUser = await UserManagement.getUser(userLogin.uid);
     console.log(`Benutzerdaten geladen`);
-    
+
     // 3. Mit JSON-Daten aktualisieren (createdAt und Email ausgenommen)
     const updateData = {
       level: userData.level,
@@ -92,31 +111,38 @@ async function createSingleDummyUser(userData, index) {
       isAdmin: userData.isAdmin,
       isActive: userData.isActive
     };
-    
-    await UserManagement.updateUser(userLogin.uid, updateData);
+
+    var user = await UserManagement.updateUser(userLogin.uid, updateData);
     console.log(`Daten aktualisiert`);
-    
+
+    const badges = getDummyBadges();
+    badges.map(badge => {
+      BadgeManager.createBadge(badge);
+      BadgeManager.awardBadge(user.uid, badge.uid)
+    }
+    );
+
     // 4. Abmelden
     await UserManagement.logoutUser();
     console.log(`Abgemeldet`);
-    
+
     return {
       success: true,
       uid: userLogin.uid,
       email: userData.email,
       displayName: userData.displayName
     };
-    
+
   } catch (error) {
     console.error(`Fehler: ${error.message}`);
-    
+
     // Auch bei Fehler versuchen abzumelden
     try {
       await UserManagement.logoutUser();
     } catch (logoutError) {
       // Abmelde-Fehler ignorieren
     }
-    
+
     return {
       success: false,
       email: userData.email,
@@ -131,36 +157,36 @@ async function createSingleDummyUser(userData, index) {
 export async function createAllDummyUsers() {
   const dummyUsers = getDummyUsers();
   const results = [];
-  
+
   console.log(`Erstelle ${dummyUsers.length} Dummy-Benutzer...`);
   console.log('Passwort:', DEFAULT_PASSWORD);
   console.log('=====================================');
-  
+
   for (let i = 0; i < dummyUsers.length; i++) {
     const result = await createSingleDummyUser(dummyUsers[i], i);
     results.push(result);
-    
+
     // Kurze Pause zwischen Benutzererstellungen (Firebase-Belastung vermeiden)
     if (i < dummyUsers.length - 1) {
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
   }
-  
+
   console.log('=====================================');
   console.log('Dummy-Benutzer Erstellung abgeschlossen!');
-  
+
   // Ergebnis-Zusammenfassung
   const successful = results.filter(r => r.success);
   const failed = results.filter(r => !r.success);
-  
+
   console.log(`Erfolgreich: ${successful.length} Benutzer`);
   console.log(`Fehlgeschlagen: ${failed.length} Benutzer`);
-  
+
   if (failed.length > 0) {
     console.log('Fehlgeschlagene Benutzer:');
     failed.forEach(f => console.log(`  - ${f.email}: ${f.error}`));
   }
-  
+
   return {
     total: dummyUsers.length,
     successful: successful.length,

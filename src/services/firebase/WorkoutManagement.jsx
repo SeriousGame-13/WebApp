@@ -14,8 +14,8 @@ const saveWorkout = async (workout) => {
         const { stations = [], ...workoutData } = workout;
         //TODO check uid
         let points = workout.getTotalPoints();
-        UserManagement.addPoints(workoutData.userId,  points);
-        
+        UserManagement.addPoints(workoutData.userId, points);
+
         // Hauptdokument speichern und ID von Firebase generieren lassen
         const workoutRef = await FirestoreManager.createDocument(`${createPath(workoutData.userId)}`, workoutData.uid, workoutData);
         if (!workoutRef) throw new Error('Workout konnte nicht gespeichert werden');
@@ -32,7 +32,7 @@ const saveWorkout = async (workout) => {
         console.error('Fehler beim Speichern:', error);
         throw error;
     }
-};
+}
 
 // Alle Workouts laden (ohne Stations)
 const loadWorkouts = async (userId) => {
@@ -50,7 +50,7 @@ const loadWorkouts = async (userId) => {
         console.error('Fehler beim Laden:', error);
         throw error;
     }
-};
+}
 
 // Einzelnes Workout laden (inkl. Stations)
 const loadWorkoutById = async (userId, idWorkout) => {
@@ -66,7 +66,7 @@ const loadWorkoutById = async (userId, idWorkout) => {
         console.error('Fehler beim Laden des Workouts:', error);
         throw error;
     }
-};
+}
 
 const WorkoutManager = {
     saveWorkout,

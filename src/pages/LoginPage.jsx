@@ -9,10 +9,11 @@ import '../components/styles/LoginPage.css';
 //temp
 //For Test - Hyunu P.
 import { Workout } from '../services/interfaces/workout.jsx';
-import { getDummyWorkout, createAllDummyUsers} from '../utils/dummyDataGenerator.jsx';
+import { getDummyWorkout, createAllDummyUsers, getDummyBadges } from '../utils/dummyDataGenerator.jsx';
 import UserModel from '../services/interfaces/user.jsx';
 import { GROUP_ROLE } from '../services/interfaces/constants.jsx';
 import WorkoutManager from './../services/firebase/WorkoutManagement.jsx';
+import BadgeManager from '../services/firebase/BadgeManagement.jsx';
 
 function AppLogin() {
     const [showLoginPopup, setShowLoginPopup] = useState(false);
@@ -57,7 +58,7 @@ function AppLogin() {
         console.log('Login check - user:', user);
         console.log('Login check - user.isAdmin:', user.isAdmin);
         console.log('Login check - typeof user.isAdmin:', typeof user.isAdmin);
-        
+
         if (user.isAdmin === true) {
             console.log('Redirecting to Admin page');
             return <AdminPage user={user} />;
@@ -116,23 +117,32 @@ function AppLogin() {
 function AdminPage({ user }) {
     const userData = user;
     const [workout, setStations] = useState(new Workout());
+    const [badges, setBadges] = useState([]);
 
     const handleGenerate = () => {
         const newData = getDummyWorkout(userData.uid, 30);
         setStations(newData);
+        setBadges(getDummyBadges());
+
     };
 
     const handleSave = () => {
         WorkoutManager.saveWorkout(workout);
+        badges.map(badge => {
+            BadgeManager.createBadge(badge);
+            BadgeManager.awardBadge(user.uid, badge.uid)
+        }
+        );
+
     }
 
     return (
         <div>
             <h1 style={{
-                    color: '#f2f2f2'
-                }}>Admin</h1>
+                color: '#f2f2f2'
+            }}>Admin</h1>
             <p>Willkommen, {user.displayName}</p>
-            
+
             <button
                 onClick={handleGenerate}
                 style={{

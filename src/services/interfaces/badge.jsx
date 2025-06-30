@@ -5,12 +5,11 @@ import { serverTimestamp } from 'firebase/firestore';
 export class Badge extends BaseModel {
   constructor(data = {}) {
     super({
-      badgeId: '',
       name: '',
       description: '',
       rarity: BADGE_RARITY.COMMON,
-      createdAt: serverTimestamp(),
       rewardPoints: 0,
+      conditions: '', // build querry to determine if the badges has been earned
       ...data
     });
   }
@@ -65,9 +64,8 @@ export class Badge extends BaseModel {
 export class UserBadge extends BaseModel {
   constructor(data = {}) {
     super({
-      badgeInstanceId: '',
-      userId: '',
-      badgeId: '',
+      userId: data.userId || '',
+      badgeId: data.badgeId || '',
       earnedAt: serverTimestamp(),
       ...data
     });

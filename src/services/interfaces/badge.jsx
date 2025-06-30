@@ -1,5 +1,6 @@
 import BaseModel from './base.jsx';
 import { BADGE_RARITY } from './constants.jsx';
+import { serverTimestamp } from 'firebase/firestore';
 
 export class Badge extends BaseModel {
   constructor(data = {}) {
@@ -8,7 +9,7 @@ export class Badge extends BaseModel {
       name: '',
       description: '',
       rarity: BADGE_RARITY.COMMON,
-      createdAt: Date.now(),
+      createdAt: serverTimestamp(),
       rewardPoints: 0,
       ...data
     });
@@ -67,20 +68,14 @@ export class UserBadge extends BaseModel {
       badgeInstanceId: '',
       userId: '',
       badgeId: '',
-      earnedAt: Date.now(),
-      badge: null,
+      earnedAt: serverTimestamp(),
       ...data
     });
   }
 
   getDaysOld() {
-    const diff = Date.now() - this.earnedAt;
+    const diff = serverTimestamp() - this.earnedAt;
     return Math.floor(diff / (1000 * 60 * 60 * 24));
-  }
-
-  getHoursOld() {
-    const diff = Date.now() - this.earnedAt;
-    return Math.floor(diff / (1000 * 60 * 60));
   }
 
   isNewlyEarned(hoursThreshold = 24) {
@@ -91,23 +86,4 @@ export class UserBadge extends BaseModel {
     return this.badgeInstanceId && this.userId && this.badgeId;
   }
 
-  // Bekomme Badge-Details falls verfügbar
-  getBadgeDetails() {
-    return this.badge || null;
-  }
-
-  // Bekomme Punkte des Badges
-  getRewardPoints() {
-    return this.badge ? this.badge.rewardPoints : 0;
-  }
-
-  // Bekomme Seltenheit des Badges
-  getRarity() {
-    return this.badge ? this.badge.rarity : BADGE_RARITY.COMMON;
-  }
-
-  // Formatiere Earned-Datum
-  getFormattedEarnedDate() {
-    return new Date(this.earnedAt).toLocaleDateString();
-  }
 }

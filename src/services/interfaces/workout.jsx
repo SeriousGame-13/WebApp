@@ -1,10 +1,13 @@
 import BaseModel from './base.jsx';
+import { 
+    serverTimestamp 
+} from 'firebase/firestore';
 
 export class Workout extends BaseModel {
   constructor(data = {}) {
     super({
       userId: '',
-      startTime: Date.now(),
+      startTime: serverTimestamp(),
       endTime: null,
       stations: [],
       ...data

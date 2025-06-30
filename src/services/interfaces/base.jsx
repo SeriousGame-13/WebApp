@@ -1,11 +1,15 @@
 // Base Model Klasse
 import { v4 as uuidv4 } from 'uuid';
 
+import { 
+    serverTimestamp 
+} from 'firebase/firestore';
+
 export default class BaseModel {
   constructor(data = {}) {
     this.uid = data.uid || uuidv4();
-    this.createdAt = data.createdAt || Date.now();
-    this.updatedAt = data.updatedAt || Date.now();
+    this.createdAt = data.createdAt || serverTimestamp();
+    this.updatedAt = data.updatedAt || serverTimestamp();
     Object.assign(this, data);
   }
 
@@ -77,8 +81,8 @@ export default class BaseModel {
   getDurationMinutes(startTime, endTime) {
     try {
       // Handle ISO strings like '2025-05-29T13:50:00.000Z'
-      const start = new Date(startTime);
-      const end = new Date(endTime);
+      const start = startTime.toDate();
+      const end = endTime.toDate();
 
       if (isNaN(start.getTime()) || isNaN(end.getTime())) {
         console.warn('Invalid date format:', { startTime, endTime });

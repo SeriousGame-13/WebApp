@@ -1,5 +1,6 @@
 import BaseModel from './base.jsx';
 import { BADGE_RARITY } from './constants.jsx';
+import { serverTimestamp } from 'firebase/firestore';
 
 export class Badge extends BaseModel {
   constructor(data = {}) {
@@ -8,7 +9,7 @@ export class Badge extends BaseModel {
       name: '',
       description: '',
       rarity: BADGE_RARITY.COMMON,
-      createdAt: Date.now(),
+      createdAt: serverTimestamp(),
       rewardPoints: 0,
       ...data
     });
@@ -73,7 +74,7 @@ export class UserBadge extends BaseModel {
   }
 
   getDaysOld() {
-    const diff = Date.now() - this.earnedAt;
+    const diff = serverTimestamp() - this.earnedAt;
     return Math.floor(diff / (1000 * 60 * 60 * 24));
   }
 

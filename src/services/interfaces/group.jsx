@@ -1,5 +1,6 @@
 import BaseModel from './base.jsx';
 import { GROUP_ROLE } from './constants.jsx';
+import { serverTimestamp } from 'firebase/firestore';
 
 export class Group extends BaseModel {
   constructor(data = {}) {
@@ -85,7 +86,7 @@ export class GroupMember extends BaseModel {
       groupId: '',
       userId: '',
       role: GROUP_ROLE.MEMBER,
-      joinedAt: Date.now(),
+      joinedAt: serverTimestamp(),
       leftAt: null,
       user: null,
       ...data
@@ -93,12 +94,12 @@ export class GroupMember extends BaseModel {
   }
 
   leave() {
-    this.leftAt = Date.now();
+    this.leftAt = serverTimestamp();
   }
 
   rejoin() {
     this.leftAt = null;
-    this.joinedAt = Date.now();
+    this.joinedAt = serverTimestamp();
   }
 
   isActive() {
@@ -130,7 +131,7 @@ export class GroupMember extends BaseModel {
   }
 
   getDaysInGroup() {
-    const endTime = this.leftAt || Date.now();
+    const endTime = this.leftAt || serverTimestamp();
     const diff = endTime - this.joinedAt;
     return Math.floor(diff / (1000 * 60 * 60 * 24));
   }

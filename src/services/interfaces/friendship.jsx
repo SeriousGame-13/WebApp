@@ -1,5 +1,6 @@
 import BaseModel from './base.jsx';
 import { FRIENDSHIP_STATUS } from './constants.jsx';
+import { serverTimestamp } from 'firebase/firestore';
 
 export default class Friendship extends BaseModel {
   constructor(data = {}) {
@@ -16,7 +17,7 @@ export default class Friendship extends BaseModel {
 
   accept() {
     this.status = FRIENDSHIP_STATUS.ACCEPTED;
-    this.acceptedAt = Date.now();
+    this.acceptedAt = serverTimestamp();
   }
 
   block() {
@@ -49,7 +50,7 @@ export default class Friendship extends BaseModel {
   // Dauer der Freundschaft in Tagen
   getFriendshipDuration() {
     if (!this.acceptedAt) return 0;
-    const diff = Date.now() - this.acceptedAt;
+    const diff = serverTimestamp() - this.acceptedAt;
     return Math.floor(diff / (1000 * 60 * 60 * 24));
   }
 }

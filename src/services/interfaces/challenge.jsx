@@ -1,4 +1,3 @@
-import { serverTimestamp } from 'firebase/firestore';
 import BaseModel from './base.jsx';
 import { CHALLENGE_TYPE } from './constants.jsx';
 
@@ -7,7 +6,7 @@ export class Challenge extends BaseModel {
     super({
       name: '',
       description: '',
-      startDate: serverTimestamp(),
+      startDate: Date.now(),
       endDate: 0,
       creatorId: '',
       rewardPoints: 0,
@@ -22,34 +21,34 @@ export class Challenge extends BaseModel {
   }
 
   isActive() {
-    const now = serverTimestamp();
+    const now = Date.now();
     return now >= this.startDate && now <= this.endDate;
   }
 
   isExpired() {
-    return serverTimestamp() > this.endDate;
+    return Date.now() > this.endDate;
   }
 
   hasStarted() {
-    return serverTimestamp() >= this.startDate;
+    return Date.now() >= this.startDate;
   }
 
   hasNotStarted() {
-    return serverTimestamp() < this.startDate;
+    return Date.now() < this.startDate;
   }
 
   getDaysRemaining() {
-    const diff = this.endDate - serverTimestamp();
+    const diff = this.endDate - Date.now();
     return Math.ceil(diff / (1000 * 60 * 60 * 24));
   }
 
   getHoursRemaining() {
-    const diff = this.endDate - serverTimestamp();
+    const diff = this.endDate - Date.now();
     return Math.ceil(diff / (1000 * 60 * 60));
   }
 
   getDaysUntilStart() {
-    const diff = this.startDate - serverTimestamp();
+    const diff = this.startDate - Date.now();
     return Math.ceil(diff / (1000 * 60 * 60 * 24));
   }
 
@@ -95,7 +94,7 @@ export class ChallengeParticipant extends BaseModel {
       participantId: '',
       challengeId: '',
       userId: '',
-      joinedAt: serverTimestamp(),
+      joinedAt: Date.now(),
       completedAt: null,
       user: null,
       ...data
@@ -103,7 +102,7 @@ export class ChallengeParticipant extends BaseModel {
   }
 
   complete() {
-    this.completedAt = serverTimestamp();
+    this.completedAt = Date.now();
   }
 
   isCompleted() {
@@ -111,7 +110,7 @@ export class ChallengeParticipant extends BaseModel {
   }
 
   getDaysParticipating() {
-    const diff = serverTimestamp() - this.joinedAt;
+    const diff = Date.now() - this.joinedAt;
     return Math.floor(diff / (1000 * 60 * 60 * 24));
   }
 

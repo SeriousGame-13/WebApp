@@ -82,7 +82,7 @@ const saveImageToFirestore = async (base64Data, userId) => {
       uid: userId,
       base64: base64Data,
       size: Math.round(base64Data.length * 0.75),
-      updatedAt: serverTimestamp()
+      updatedAt: new Date()
     };
 
   } catch (error) {

@@ -1,7 +1,9 @@
 import { Workout, Station } from '../services/interfaces/workout.jsx';
-import { 
-    Timestamp 
-} from 'firebase/firestore';
+import { Challenge } from '../services/interfaces/challenge.jsx';
+import { addDoc, collection } from 'firebase/firestore';
+import FirebaseManager from '../services/firebase/FirestoreManager.jsx';
+import FireAuthManager from '../services/firebase/FirebaseAuthenticationManager.jsx'
+import FirestoreManager from '../services/firebase/FirestoreManager.jsx';
 
 function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;

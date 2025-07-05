@@ -10,6 +10,28 @@ const GROUPS_COLLECTION = 'user_groups';
 const GROUP_MEMBERS_COLLECTION = 'user_group_members';
 const USERS_COLLECTION = 'users';
 
+const generateUniqueGroupId = async () => {
+    let groupId;
+    let isUnique = false;
+    let counter = 1;
+    
+    while (!isUnique) {
+        // OG + 6 Nummern
+        const paddedNumber = counter.toString().padStart(6, '0');
+        groupId = `OG${paddedNumber}`;
+        
+        // Same ID check
+        const existingGroup = await FirebaseManager.readDocument(GROUPS_COLLECTION, groupId);
+        if (!existingGroup) {
+            isUnique = true;
+        } else {
+            counter++;
+        }
+    }
+    
+    return groupId;
+};
+
 /**
  * Creates a new group
  * @param {string} userId - ID of user creating the group
@@ -19,7 +41,7 @@ const USERS_COLLECTION = 'users';
  * @returns {Promise<Group>} Created group object
  * @throws {Error} If creation fails
  */
-const createGroup = async (userId, name, description, maxMembers = 50) => {
+const createGroup = async (userId, name, description, maxMembers = 50, isPrivate = false) => {
     try {
         const currentUser = await FireAuthManager.getCurrentUser();
         if (!currentUser || currentUser.uid !== userId) {
@@ -27,19 +49,22 @@ const createGroup = async (userId, name, description, maxMembers = 50) => {
         }
 
         // Group ID subject to change later
-        const groupId = uuidv4();
-        
+        // const groupId = uuidv4();
+        const groupId = await generateUniqueGroupId();
+
         const group = new Group({
             groupId,
             createdBy: userId,
             name,
             description,
             maxMembers,
+            isPrivate,
             members: []
         });
         
-        await FirebaseManager.createDocument(GROUPS_COLLECTION, groupId, group, true);
-
+        const { members, ...groupDataForFirebase } = group;
+        await FirebaseManager.createDocument(GROUPS_COLLECTION, groupId, groupDataForFirebase, true);
+        
         await addGroupMember(groupId, userId, GROUP_ROLE.ADMIN);
         
         return getGroupWithMembers(groupId);
@@ -526,6 +551,8 @@ const GroupManagementSystem = {
     getMembershipData,
     canUserJoinGroup,
     rejoinGroup,
+
+    generateUniqueGroupId,
 };
 
 export default GroupManagementSystem;

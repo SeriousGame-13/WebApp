@@ -12,6 +12,8 @@ export class Group extends BaseModel {
       maxMembers: 50,
       members: [],
       creator: null,
+      // Added -Hyunu P
+      isPrivate: false,
       ...data
     });
   }

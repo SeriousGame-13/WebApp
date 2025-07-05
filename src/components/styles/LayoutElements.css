@@ -481,7 +481,99 @@ body, html {
     position: relative;
     display: flex;
     flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+    gap: 12px;
+    padding: 10px;
+}
+
+.AddGroupButtonContainer {
+    position: relative;
+    display: flex;
+    flex-direction: row-reverse;
+    z-index: 10;
+}
+
+.AddGroupButton {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--main-color);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: var(--shadow-modern);
+    margin: 10px;
+}
+
+.PlusIcon {
+    font-size: 28px;
+    font-weight: bold;
+    color: var(--background-dark);
+    line-height: 1;
+}
+
+.ActionButtonContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px;
+    width: 300px;
+}
+
+.ActionButton {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    border-radius: 16px;
+    border: 1px solid var(--border-glass);
+    background: var(--background-glass);
+    backdrop-filter: blur(20px);
+    cursor: pointer;
+    color: var(--light-color);
+}
+
+.ActionIcon {
+    font-size: 20px;
+    margin-right: 16px;
+    width: 20px;
+    text-align: center;
+}
+
+.ActionText {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.PrivacySelector {
+    display: flex;
+    gap: 20px;
+    margin-top: 10px;
+}
+
+.PrivacyOption {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--light-color);
+    cursor: pointer;
+}
+
+.PrivacyOption input[type="radio"] {
+    margin: 0;
+    accent-color: var(--main-color);
+}
+
+.PrivacyOption input[type="radio"] {
+    margin: 0;
+}
+
+.GroupContents {
+    display: flex;
+    justify-content: space-between;
+    flex-direction: column;
     width: 100%;
     height: 100%;
-    overflow: hidden;
 }

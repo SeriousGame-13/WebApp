@@ -191,15 +191,25 @@ const getAllGroups = async (limit = 50) => {
         const snapshot = await FirebaseManager.getAllDocuments(GROUPS_COLLECTION);
         
         const groups = [];
+        const promises = [];
         let count = 0;
         
         snapshot.forEach(doc => {
             if (count < limit) {
-                const group = Group.fromJSON(doc.data());
-                groups.push(group);
+                const groupData = doc.data();
+                const group = Group.fromJSON(groupData);
+                
+                const promise = getGroupMembers(group.groupId).then(members => {
+                    group.members = members;
+                    groups.push(group);
+                });
+                
+                promises.push(promise);
                 count++;
             }
         });
+        
+        await Promise.all(promises);
         
         return groups;
     } catch (error) {
@@ -229,10 +239,9 @@ const getUserGroups = async (userId) => {
             
             // Only include active memberships
             if (membership.isActive()) {
-                // Get group data for each membership
-                const promise = getGroupData(membership.groupId).then(group => {
+                // getGroupData 대신 getGroupWithMembers 사용
+                const promise = getGroupWithMembers(membership.groupId).then(group => {
                     if (group) {
-                        group.members = [membership]; // Add the user's membership
                         groups.push(group);
                     }
                 });
@@ -366,21 +375,43 @@ const removeGroupMember = async (groupId, userId, targetUserId) => {
                 true
             );
             
+            // 그룹 생성자가 탈퇴하는 경우
             if (group.createdBy === userId) {
-                const admins = group.getAdmins().filter(member => member.userId !== userId);
-                if (admins.length > 0) {
+                const remainingMembers = group.members.filter(member => 
+                    member.userId !== userId && member.isActive()
+                );
+                
+                if (remainingMembers.length > 0) {
+                    // 가장 오래된 멤버 찾기 (joinedAt이 가장 작은 값)
+                    const oldestMember = remainingMembers.reduce((oldest, current) => 
+                        current.joinedAt < oldest.joinedAt ? current : oldest
+                    );
+                    
+                    // 가장 오래된 멤버를 Admin으로 승격
+                    await FirebaseManager.updateDocument(
+                        GROUP_MEMBERS_COLLECTION, 
+                        oldestMember.membershipId, 
+                        { role: GROUP_ROLE.ADMIN }, 
+                        true
+                    );
+                    
+                    // 그룹의 createdBy를 새 Admin으로 변경
                     await FirebaseManager.updateDocument(
                         GROUPS_COLLECTION, 
                         groupId, 
-                        { createdBy: admins[0].userId }, 
+                        { createdBy: oldestMember.userId }, 
                         true
                     );
+                    
+                    console.log(`Group ownership transferred to ${oldestMember.userId}`);
                 } else {
-                    // No other admins, delete the group
+                    // 남은 멤버가 없으면 그룹 삭제
                     await deleteGroup(groupId, userId);
+                    console.log('Group deleted as no members remain');
                 }
             }
         } else {
+            // 다른 멤버를 제거하는 경우
             targetMember.leave();
             await FirebaseManager.updateDocument(
                 GROUP_MEMBERS_COLLECTION, 

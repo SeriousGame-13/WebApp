@@ -147,10 +147,28 @@ function JoinGroupListPopup({ onCancel }) {
     const [selectedGroup, setSelectedGroup] = useState(null);
     const [isLoadingGroups, setIsLoadingGroups] = useState(true);
     const [isJoining, setIsJoining] = useState(false);
+    const [creatorName, setCreatorName] = useState('');
 
     useEffect(() => {
         loadPublicGroups();
     }, []);
+
+    useEffect(() => {
+        if (selectedGroup) {
+            loadCreatorName();
+        }
+    }, [selectedGroup]);
+
+    const loadCreatorName = async () => {
+        if (!selectedGroup) return;
+        try {
+            const creator = await UserManagement.getUser(selectedGroup.createdBy);
+            setCreatorName(creator?.displayName || 'Unknown User');
+        } catch (error) {
+            console.error('Failed to load creator name:', error);
+            setCreatorName('Unknown User');
+        }
+    };
 
     const loadPublicGroups = async () => {
         try {
@@ -210,7 +228,7 @@ function JoinGroupListPopup({ onCancel }) {
                         <div className='GroupDetailInfo'>
                             <div>Group ID: {selectedGroup.groupId}</div>
                             <div>Members: {selectedGroup.getActiveMemberCount()}/{selectedGroup.maxMembers}</div>
-                            <div>Created by: {selectedGroup.createdBy}</div>
+                            <div>Created by: {creatorName || 'Loading...'}</div>
                         </div>
                     </div>
                     <div className='Line'></div>
@@ -275,6 +293,7 @@ function JoinGroupListPopup({ onCancel }) {
 function JoinedGroupDetailPopup({ group, onClose, onGroupLeft }) {
     const [isProcessing, setIsProcessing] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
+    const [creatorName, setCreatorName] = useState('Loading...');
 
     useEffect(() => {
         const loadCurrentUser = async () => {
@@ -287,6 +306,20 @@ function JoinedGroupDetailPopup({ group, onClose, onGroupLeft }) {
         };
         loadCurrentUser();
     }, []);
+
+    useEffect(() => {
+        loadCreatorName();
+    }, [group.createdBy]);
+
+    const loadCreatorName = async () => {
+        try {
+            const creator = await UserManagement.getUser(group.createdBy);
+            setCreatorName(creator?.displayName || 'Unknown User');
+        } catch (error) {
+            console.error('Failed to load creator name:', error);
+            setCreatorName('Unknown User');
+        }
+    };
 
     const formatJoinDate = (timestamp) => {
         const date = new Date(timestamp);
@@ -351,7 +384,7 @@ function JoinedGroupDetailPopup({ group, onClose, onGroupLeft }) {
                     <div className='GroupDetailInfo' style={{ textAlign: 'left' }}>
                         <div>Group ID: {group.groupId}</div>
                         <div>Members: {group.getActiveMemberCount()}/{group.maxMembers}</div>
-                        <div>Created by: {group.createdBy}</div>
+                        <div>Created by: {creatorName}</div>
                     </div>
                     
                     {/* 멤버 목록 */}

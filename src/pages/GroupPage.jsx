@@ -686,7 +686,8 @@ function ActionSelectionPopup({ onCreateGroup, onJoinGroup, onJoinGroupViaId, on
 }
 
 const GroupPageElements = {
-    Page
+    Page,
+    CreateGroupPopup
 };
 
 export default GroupPageElements;

@@ -6,6 +6,7 @@ import GroupManagement from '../services/firebase/GroupManagementSystem';
 import BadgeManagement from '../services/firebase/BadgeManagement';
 import { BADGE_RARITY } from '../services/interfaces/constants';
 import BadgeImageElements from '../utils/BadgeImageUploader';
+import GroupPageElements from './GroupPage';
 
 function AdminHeader({ user, onPageSelect, currentPage }) {
     const [showDropdown, setShowDropdown] = useState(false);
@@ -188,7 +189,7 @@ function GroupManagerPage() {
 
             {/* 그룹 생성 팝업 */}
             {showCreateGroupPopup && (
-                <CreateGroupPopup
+                <GroupPageElements.CreateGroupPopup
                     onCreateGroup={handleGroupCreation}
                     onCancel={() => setShowCreateGroupPopup(false)}
                     isCreating={isCreatingGroup}

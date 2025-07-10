@@ -475,7 +475,54 @@ const getUserDatabasePath = (userId) => {
     return `${USERS_COLLECTION}/${userId}/`;
 }
 
+const getAllUsers = async (limit = 100) => {
+    try {
+        const snapshot = await FirebaseManager.getAllDocuments(USERS_COLLECTION);
+        
+        const users = [];
+        let count = 0;
+        
+        snapshot.forEach(doc => {
+            if (count < limit) {
+                const userData = doc.data();
+                // 활성 유저만 포함 (isActive가 true인 유저들)
+                if (userData.isActive !== false) {
+                    users.push({
+                        uid: doc.id,
+                        ...userData
+                    });
+                    count++;
+                }
+            }
+        });
+        
+        return users;
+    } catch (error) {
+        console.error('Failed to get all users:', error);
+        return [];
+    }
+};
+
+const searchUsers = async (searchTerm, limit = 50) => {
+    try {
+        const allUsers = await getAllUsers();
+        
+        const searchLower = searchTerm.toLowerCase();
+        const matchingUsers = allUsers.filter(user => 
+            user.displayName?.toLowerCase().includes(searchLower) ||
+            user.email?.toLowerCase().includes(searchLower)
+        ).slice(0, limit);
+        
+        return matchingUsers;
+    } catch (error) {
+        console.error('Failed to search users:', error);
+        return [];
+    }
+};
+
 const UserManagement = {
+    getAllUsers,
+    searchUsers,
     getUserDatabasePath,
     loginUser,
     getUser,

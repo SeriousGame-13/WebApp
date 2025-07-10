@@ -563,6 +563,57 @@ const rejoinGroup = async (groupId, userId) => {
     }
 };
 
+const changeGroupAdmin = async (groupId, currentAdminId, newAdminId) => {
+    try {
+        const group = await getGroup(groupId);
+        
+        if (group.createdBy !== currentAdminId) {
+            throw new Error('Permission denied: Only current admin can change admin');
+        }
+        
+        if (currentAdminId === newAdminId) {
+            throw new Error('Selected user is already the admin');
+        }
+        
+        // 직접 권한 체크 (validateUserPermission 사용하지 않음)
+        const currentAdminMember = group.members.find(m => m.userId === currentAdminId && m.leftAt === null);
+        if (!currentAdminMember || currentAdminMember.role !== 'admin') {
+            throw new Error('Permission denied: Only admins can change admin');
+        }
+        
+        // 1. 새 유저를 Admin으로 승격 (권한 체크 없이 직접 업데이트)
+        const newAdminMembershipId = `${groupId}_${newAdminId}`;
+        await FirebaseManager.updateDocument(
+            GROUP_MEMBERS_COLLECTION, 
+            newAdminMembershipId, 
+            { role: GROUP_ROLE.ADMIN }, 
+            true
+        );
+        
+        // 2. 현재 Admin을 일반 멤버로 변경
+        const currentAdminMembershipId = `${groupId}_${currentAdminId}`;
+        await FirebaseManager.updateDocument(
+            GROUP_MEMBERS_COLLECTION, 
+            currentAdminMembershipId, 
+            { role: GROUP_ROLE.MEMBER }, 
+            true
+        );
+        
+        // 3. 그룹의 createdBy 변경
+        await FirebaseManager.updateDocument(
+            GROUPS_COLLECTION, 
+            groupId, 
+            { createdBy: newAdminId }, 
+            true
+        );
+        
+        return true;
+    } catch (error) {
+        console.error('Failed to change group admin:', error);
+        throw error;
+    }
+};
+
 // Export group management functions
 const GroupManagementSystem = {
     // Group operations
@@ -584,6 +635,7 @@ const GroupManagementSystem = {
     rejoinGroup,
 
     generateUniqueGroupId,
+    changeGroupAdmin,
 };
 
 export default GroupManagementSystem;

@@ -138,15 +138,22 @@ function validateUserPermission(group, userId) {
  * @returns {Promise<Group>} Updated group data
  * @throws {Error} If update fails or user doesn't have permission
  */
-const updateGroup = async (groupId, userId, groupData) => {
+const updateGroup = async (groupId, requesterId, groupData, skipPermissionCheck = false) => {
     try {
-        const group = await getGroup(groupId);
-        
-        validateUserPermission(group, userId);
+        if (!skipPermissionCheck) {
+            const group = await getGroup(groupId);
+            
+            // 권한 체크
+            if (group.createdBy !== requesterId) {
+                const member = group.members.find(m => m.userId === requesterId && m.leftAt === null);
+                if (!member || member.role !== 'admin') {
+                    throw new Error('Permission denied: Only admins can manage group details');
+                }
+            }
+        }
         
         await FirebaseManager.updateDocument(GROUPS_COLLECTION, groupId, groupData, true);
-        
-        return getGroupWithMembers(groupId);
+        return true;
     } catch (error) {
         console.error('Failed to update group:', error);
         throw error;
@@ -575,13 +582,11 @@ const changeGroupAdmin = async (groupId, currentAdminId, newAdminId) => {
             throw new Error('Selected user is already the admin');
         }
         
-        // 직접 권한 체크 (validateUserPermission 사용하지 않음)
         const currentAdminMember = group.members.find(m => m.userId === currentAdminId && m.leftAt === null);
         if (!currentAdminMember || currentAdminMember.role !== 'admin') {
             throw new Error('Permission denied: Only admins can change admin');
         }
         
-        // 1. 새 유저를 Admin으로 승격 (권한 체크 없이 직접 업데이트)
         const newAdminMembershipId = `${groupId}_${newAdminId}`;
         await FirebaseManager.updateDocument(
             GROUP_MEMBERS_COLLECTION, 
@@ -590,7 +595,6 @@ const changeGroupAdmin = async (groupId, currentAdminId, newAdminId) => {
             true
         );
         
-        // 2. 현재 Admin을 일반 멤버로 변경
         const currentAdminMembershipId = `${groupId}_${currentAdminId}`;
         await FirebaseManager.updateDocument(
             GROUP_MEMBERS_COLLECTION, 
@@ -599,7 +603,6 @@ const changeGroupAdmin = async (groupId, currentAdminId, newAdminId) => {
             true
         );
         
-        // 3. 그룹의 createdBy 변경
         await FirebaseManager.updateDocument(
             GROUPS_COLLECTION, 
             groupId, 
@@ -624,6 +627,7 @@ const GroupManagementSystem = {
     deleteGroup,
     getAllGroups,
     getUserGroups,
+    getGroup,
     
     // Membership operations
     addGroupMember,

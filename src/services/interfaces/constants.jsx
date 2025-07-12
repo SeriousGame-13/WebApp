@@ -32,3 +32,10 @@ export const CHALLENGE_TYPE = {
   ENDURANCE: 'endurance',
   FREQUENCY: 'frequency'
 };
+
+//Added
+export const CHALLENGE_VISIBILITY = {
+  PUBLIC: 'public',
+  HIDDEN: 'hidden', 
+  GROUP: 'group'
+};

@@ -3,6 +3,8 @@ import ExpElements from '../components/ui/ExpBar';
 import IconElements from '../components/ui/IconElements';
 import UserManagement from '../services/firebase/UserManagementSystem';
 import GroupManagement from '../services/firebase/GroupManagementSystem';
+import ChallengeManagement from '../services/firebase/ChallengeManagement';
+import { CHALLENGE_TYPE } from '../services/interfaces/constants';
 
 import '../components/styles/LayoutElements.css'
 
@@ -175,16 +177,13 @@ function JoinGroupListPopup({ onCancel }) {
             setIsLoadingGroups(true);
             const currentUser = await UserManagement.getCurrentUser();
             
-            // 모든 그룹과 사용자의 가입 그룹을 병렬로 가져오기
             const [allGroups, userGroups] = await Promise.all([
                 GroupManagement.getAllGroups(),
                 GroupManagement.getUserGroups(currentUser.uid)
             ]);
-            
-            // 사용자가 이미 가입한 그룹 ID 목록
+
             const joinedGroupIds = userGroups.map(group => group.groupId);
             
-            // 공개 그룹 중에서 이미 가입하지 않은 그룹만 필터링
             const availablePublicGroups = allGroups.filter(group => 
                 !group.isPrivate && !joinedGroupIds.includes(group.groupId)
             );
@@ -205,8 +204,7 @@ function JoinGroupListPopup({ onCancel }) {
         try {
             const currentUser = await UserManagement.getCurrentUser();
             await GroupManagement.addGroupMember(selectedGroup.groupId, currentUser.uid);
-            onCancel(); // 팝업 닫기
-            // TODO: 그룹 목록 새로고침
+            onCancel(); 
         } catch (error) {
             console.error('Failed to join group:', error);
             alert('Failed to join group: ' + error.message);
@@ -290,10 +288,171 @@ function JoinGroupListPopup({ onCancel }) {
         </div>
     );
 }
+
+function CreateGroupChallengePopup({ group, onCreateChallenge, onCancel, isCreating }) {
+    const [challengeName, setChallengeName] = useState('');
+    const [challengeDescription, setChallengeDescription] = useState('');
+    const [challengeType, setChallengeType] = useState('target');
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+    const [rewardPoints, setRewardPoints] = useState(0);
+    const [targetValue, setTargetValue] = useState('');
+
+    const handleConfirm = async () => {
+        if (!challengeName.trim() || !startDate || !endDate) {
+            alert('Please fill in all required fields');
+            return;
+        }
+
+        if (new Date(endDate) <= new Date(startDate)) {
+            alert('End date must be after start date');
+            return;
+        }
+
+        const challengeData = {
+            name: challengeName.trim(),
+            description: challengeDescription.trim(),
+            challengeType: challengeType,
+            startDate: new Date(startDate).getTime(),
+            endDate: new Date(endDate).getTime(),
+            rewardPoints: parseInt(rewardPoints) || 0,
+            targetValue: targetValue ? parseFloat(targetValue) : null
+        };
+        
+        onCreateChallenge(challengeData);
+    };
+
+    if (isCreating) {
+        return (
+            <div className='PopupBackground'>
+                <div className='PopupContainer'>
+                    <h2>Creating Challenge...</h2>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className='PopupBackground'>
+            <div className='LargePopupContainer'>
+                <h2 style={{ margin: '20px 0', textAlign: 'center' }}>
+                    Create Challenge for {group.name}
+                </h2>
+                
+                <div className='BadgeCreateContent'>
+                    <div className='BadgeInputSection'>
+                        <div className='BadgeInputGroup'>
+                            <label className='BadgeInputLabel'>Challenge Name</label>
+                            <input 
+                                className='Input'
+                                type="text"
+                                value={challengeName}
+                                onChange={(e) => setChallengeName(e.target.value)}
+                                placeholder="Enter challenge name"
+                                maxLength={50}
+                            />
+                        </div>
+
+                        <div className='BadgeInputGroup'>
+                            <label className='BadgeInputLabel'>Description</label>
+                            <input 
+                                className='Input'
+                                type="text"
+                                value={challengeDescription}
+                                onChange={(e) => setChallengeDescription(e.target.value)}
+                                placeholder="Enter challenge description"
+                                maxLength={200}
+                            />
+                        </div>
+
+                        <div className='BadgeInputGroup'>
+                            <label className='BadgeInputLabel'>Challenge Type</label>
+                            <select 
+                                className='Input'
+                                value={challengeType}
+                                onChange={(e) => setChallengeType(e.target.value)}
+                            >
+                                <option value="target">Target</option>
+                                <option value="streak">Streak</option>
+                                <option value="endurance">Endurance</option>
+                                <option value="frequency">Frequency</option>
+                            </select>
+                        </div>
+
+                        <div className='BadgeInputGroup'>
+                            <label className='BadgeInputLabel'>Target Value</label>
+                            <input 
+                                className='Input'
+                                type="number"
+                                value={targetValue}
+                                onChange={(e) => setTargetValue(e.target.value)}
+                                placeholder="Enter target value"
+                                min="0"
+                            />
+                        </div>
+                    </div>
+
+                    <div className='BadgeInputSection'>
+                        <div className='BadgeInputGroup'>
+                            <label className='BadgeInputLabel'>Start Date</label>
+                            <input 
+                                className='Input'
+                                type="date"
+                                value={startDate}
+                                onChange={(e) => setStartDate(e.target.value)}
+                            />
+                        </div>
+
+                        <div className='BadgeInputGroup'>
+                            <label className='BadgeInputLabel'>End Date</label>
+                            <input 
+                                className='Input'
+                                type="date"
+                                value={endDate}
+                                onChange={(e) => setEndDate(e.target.value)}
+                            />
+                        </div>
+
+                        <div className='BadgeInputGroup'>
+                            <label className='BadgeInputLabel'>Reward Points</label>
+                            <input 
+                                className='Input'
+                                type="number"
+                                value={rewardPoints}
+                                onChange={(e) => setRewardPoints(e.target.value)}
+                                placeholder="Points awarded when completed"
+                                min="0"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <div className='BadgeCreateFooter'>
+                    <div className='Line'></div>
+                    <div className='Buttonfield'>
+                        <button className='CancelButton' onClick={onCancel}>
+                            Cancel
+                        </button>
+                        <button 
+                            className='ConfirmButton' 
+                            onClick={handleConfirm}
+                            disabled={!challengeName.trim() || !startDate || !endDate}
+                        >
+                            Create Challenge
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 function JoinedGroupDetailPopup({ group, onClose, onGroupLeft }) {
     const [isProcessing, setIsProcessing] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
     const [creatorName, setCreatorName] = useState('Loading...');
+    const [showCreateChallengePopup, setShowCreateChallengePopup] = useState(false); // 추가
+    const [isCreatingChallenge, setIsCreatingChallenge] = useState(false);
 
     useEffect(() => {
         const loadCurrentUser = async () => {
@@ -336,7 +495,7 @@ function JoinedGroupDetailPopup({ group, onClose, onGroupLeft }) {
         setIsProcessing(true);
         try {
             await GroupManagement.removeGroupMember(group.groupId, currentUser.uid, currentUser.uid);
-            onGroupLeft(); // 그룹 목록 새로고침
+            onGroupLeft();
             onClose();
         } catch (error) {
             console.error('Failed to leave group:', error);
@@ -355,7 +514,7 @@ function JoinedGroupDetailPopup({ group, onClose, onGroupLeft }) {
         setIsProcessing(true);
         try {
             await GroupManagement.deleteGroup(group.groupId, currentUser.uid);
-            onGroupLeft(); // 그룹 목록 새로고침
+            onGroupLeft();
             onClose();
         } catch (error) {
             console.error('Failed to delete group:', error);
@@ -365,15 +524,39 @@ function JoinedGroupDetailPopup({ group, onClose, onGroupLeft }) {
         }
     };
 
+    const handleChallengeCreation = async (challengeData) => {
+        setIsCreatingChallenge(true);
+        try {
+            const challengeRequest = {
+                ...challengeData,
+                visibility: 'group',
+                groupId: group.groupId,
+                creatorId: currentUser.uid
+            };
+            
+            await ChallengeManagement.createChallenge(challengeRequest);
+            setShowCreateChallengePopup(false);
+            //alert('Challenge created successfully!');
+        } catch (error) {
+            console.error('Failed to create challenge:', error);
+            alert('Failed to create challenge: ' + error.message);
+        } finally {
+            setIsCreatingChallenge(false);
+        }
+    };
+
+
     const activeMembers = group.members.filter(member => member.isActive());
     const isCreator = currentUser && group.createdBy === currentUser.uid;
+    const isAdmin = currentUser && activeMembers.find(member => 
+        member.userId === currentUser.uid && member.isAdmin()
+    );
 
     return (
         <div className='PopupBackground'>
             <div className='LargePopupContainer'>
                 <h2 style={{ textAlign: 'center' }}>Group Details</h2>
                 
-                {/* 그룹 정보 */}
                 <div className='GroupDetailContainer'>
                     <div className='GroupDetailHeader' style={{ textAlign: 'left' }}>
                         {group.name} {group.isPrivate && <span style={{ fontSize: '16px', color: '#A0A0A0' }}>(Private)</span>}
@@ -387,7 +570,6 @@ function JoinedGroupDetailPopup({ group, onClose, onGroupLeft }) {
                         <div>Created by: {creatorName}</div>
                     </div>
                     
-                    {/* 멤버 목록 */}
                     <div style={{ marginTop: '20px' }}>
                         <div className="MemberListContainer">
                             <div className="GuideText" style={{ textAlign: 'center' }}>Members</div>
@@ -420,8 +602,17 @@ function JoinedGroupDetailPopup({ group, onClose, onGroupLeft }) {
                                 </div>
                             ))}
                             
-                            {/* 그룹 액션 버튼들 */}
                             <div className="GroupActionButtons">
+                                {isAdmin && (
+                                    <button 
+                                        className='AdminActionButton'
+                                        onClick={() => setShowCreateChallengePopup(true)}
+                                        disabled={isProcessing}
+                                    >
+                                        Add Challenge
+                                    </button>
+                                )}
+                                
                                 {isCreator && (
                                     <button 
                                         className='GroupActionButton'
@@ -450,6 +641,15 @@ function JoinedGroupDetailPopup({ group, onClose, onGroupLeft }) {
                     </button>
                 </div>
             </div>
+
+            {showCreateChallengePopup && (
+                <CreateGroupChallengePopup
+                    group={group}
+                    onCreateChallenge={handleChallengeCreation}
+                    onCancel={() => setShowCreateChallengePopup(false)}
+                    isCreating={isCreatingChallenge}
+                />
+            )}
         </div>
     );
 }
@@ -516,7 +716,7 @@ function Page ({data}) {
             );
             
             setShowCreateGroupPopup(false);
-            await loadUserGroups(); // 그룹 목록 새로고침
+            await loadUserGroups();
         } catch (error) {
             console.error('Failed to create group:', error);
             alert('Failed to create group: ' + error.message);
@@ -577,7 +777,7 @@ function Page ({data}) {
                             <div 
                                 key={group.groupId} 
                                 className="GroupExerciseContainer"
-                                onClick={() => setSelectedJoinedGroup(group)}  // 클릭 이벤트 추가
+                                onClick={() => setSelectedJoinedGroup(group)}
                             >
                                 <div className="GroupExerciseHeader">
                                     {group.name} {group.isPrivate && <span style={{ fontSize: '12px', color: '#A0A0A0' }}>(Private)</span>}

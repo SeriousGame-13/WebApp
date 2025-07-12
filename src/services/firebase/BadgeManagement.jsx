@@ -5,9 +5,6 @@ import { BADGE_RARITY } from '../interfaces/constants.jsx';
 const BADGES_COLLECTION = 'badges';
 const BADGE_IMAGES_COLLECTION = 'badgeimages';
 
-/**
- * 고유한 뱃지 ID 생성 (BD000001 형태)
- */
 const generateUniqueBadgeId = async () => {
     let badgeId;
     let isUnique = false;
@@ -28,9 +25,6 @@ const generateUniqueBadgeId = async () => {
     return badgeId;
 };
 
-/**
- * 뱃지 생성
- */
 const createBadge = async (badgeData) => {
     try {
         const badge = new Badge({
@@ -40,17 +34,14 @@ const createBadge = async (badgeData) => {
             rewardPoints: badgeData.rewardPoints
         });
         
-        // badge 객체에서 badgeId 제거 (Firebase가 자동 생성할 것)
         const { badgeId, ...badgeDataForFirebase } = badge;
         
-        // 자동 ID로 문서 생성
         const docRef = await FirebaseManager.createDocumentWithAutoId(BADGES_COLLECTION, badgeDataForFirebase);
         
         if (!docRef || !docRef.id) {
             throw new Error('Failed to create badge document');
         }
         
-        // 생성된 ID를 badgeId로 설정
         badge.badgeId = docRef.id;
         
         return badge;
@@ -60,9 +51,6 @@ const createBadge = async (badgeData) => {
     }
 };
 
-/**
- * 모든 뱃지 조회
- */
 const getAllBadges = async () => {
     try {
         const snapshot = await FirebaseManager.getAllDocuments(BADGES_COLLECTION);
@@ -84,9 +72,6 @@ const getAllBadges = async () => {
     }
 };
 
-/**
- * 뱃지 이미지 저장
- */
 const saveBadgeImage = async (base64Data, badgeId) => {
     try {
         const imageData = {
@@ -108,9 +93,6 @@ const saveBadgeImage = async (base64Data, badgeId) => {
     }
 };
 
-/**
- * 뱃지 이미지 조회
- */
 const getBadgeImage = async (badgeId) => {
     try {
         const imageDoc = await FirebaseManager.readDocument(BADGE_IMAGES_COLLECTION, badgeId);
@@ -121,15 +103,10 @@ const getBadgeImage = async (badgeId) => {
     }
 };
 
-/**
- * 뱃지 삭제
- */
 const deleteBadge = async (badgeId) => {
     try {
-        // 뱃지 삭제
         await FirebaseManager.deleteDocument(BADGES_COLLECTION, badgeId);
         
-        // 뱃지 이미지도 삭제
         await FirebaseManager.deleteDocument(BADGE_IMAGES_COLLECTION, badgeId);
         
         return true;
@@ -139,9 +116,6 @@ const deleteBadge = async (badgeId) => {
     }
 };
 
-/**
- * 뱃지 업데이트
- */
 const updateBadge = async (badgeId, badgeData) => {
     try {
         await FirebaseManager.updateDocument(BADGES_COLLECTION, badgeId, badgeData, true);

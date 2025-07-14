@@ -1,8 +1,8 @@
 // Base Model Klasse
 import { v4 as uuidv4 } from 'uuid';
 
-import { 
-    serverTimestamp 
+import {
+  serverTimestamp, Timestamp
 } from 'firebase/firestore';
 
 export default class BaseModel {
@@ -44,13 +44,16 @@ export default class BaseModel {
   }
 
   getDurationMs(startTime, endTime) {
-    const start = new Date(startTime);
-    const end = new Date(endTime);
+    let start;
+    let end;
 
-    if (isNaN(start) || isNaN(end)) {
-      throw new Error('Invalid date format');
+    if (startTime instanceof Timestamp) {
+      start = startTime.toDate();
+      end = endTime.toDate()
+    } else {
+      start = new Date(startTime);
+      end = new Date(endTime);
     }
-
     return end - start;
   }
 

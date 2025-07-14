@@ -25,7 +25,7 @@ function getRandomTimeStampIn2025() {
   return Timestamp.fromDate(new Date(year, month, day, hour, minute));
 }
 
-function getDummyStationEntry() {
+function getDummyStationEntry(userId) {
   const startTime = getRandomTimeStampIn2025();
   const durationMinutes = getRandomInt(10, 90);
   var time = startTime.toDate()
@@ -37,6 +37,7 @@ function getDummyStationEntry() {
   station.points = getRandomInt(500, 2000);
   station.heartRateAvg = getRandomInt(110, 220);
   station.calories = getRandomInt(200, 1200);
+  station.userId = userId;
   return station;
 }
 
@@ -44,7 +45,7 @@ export function getDummyWorkout(uid, numberOfSessions = 20) {
   const workout = new Workout();
   workout.userId = uid;
   for (let i = 0; i < numberOfSessions; i++) {
-    workout.addStation(getDummyStationEntry());
+    workout.addStation(getDummyStationEntry(uid));
   }
   return workout;
 }

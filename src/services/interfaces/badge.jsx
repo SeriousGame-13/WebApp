@@ -9,7 +9,6 @@ export class Badge extends BaseModel {
       description: '',
       rarity: BADGE_RARITY.COMMON,
       rewardPoints: 0,
-      conditions: '', // build querry to determine if the badges has been earned
       ...data
     });
   }

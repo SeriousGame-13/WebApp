@@ -1,7 +1,9 @@
 import { useState } from 'react';
 
 import UserManagement from '../services/firebase/UserManagementSystem';
+import ChallengeManagement from '../services/firebase/ChallengeManagement';
 import IconElements from '../components/ui/IconElements';
+import AdminPage from './AdminPage';
 import LayoutElements from '../layouts/LayoutElements';
 
 import '../components/styles/LoginPage.css';
@@ -27,7 +29,7 @@ function AppLogin() {
         setIsLoggingIn(true);
         try {
             const userLogin = await UserManagement.loginUser(id, password);
-            const user = await UserManagement.getUser(userLogin.uid); // await 추가!
+            const user = await UserManagement.getUser(userLogin.uid); 
             setUserData(user);
             setIsLoggingIn(false);
             setShowLoginPopup(false);
@@ -42,7 +44,15 @@ function AppLogin() {
         setIsSigningUp(true);
         try {
             const userLogin = await UserManagement.signupUser(nickname, id, password);
-            const user = await UserManagement.getUser(userLogin.uid); // await 추가!
+            const user = await UserManagement.getUser(userLogin.uid);
+            
+            // Add new User in all Public/Hidden Challenge
+            try {
+                await ChallengeManagement.addNewUserToChallenges(userLogin.uid);
+            } catch (error) {
+                console.error('Failed to add new user to challenges:', error);
+            }
+            
             setUserData(user);
             setIsSigningUp(false);
             setShowSignupPopup(false);
@@ -61,7 +71,7 @@ function AppLogin() {
 
         if (user.isAdmin === true) {
             console.log('Redirecting to Admin page');
-            return <AdminPage user={user} />;
+            return <AdminPage.AdminPageMain user={user} />;
         } else {
             console.log('Redirecting to regular HomePage');
             return <LayoutElements.HomePage />;

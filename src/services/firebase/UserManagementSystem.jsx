@@ -31,6 +31,7 @@ const getUser = async (uid) => {
 
         if (!data) return null;
 
+        // ToDo: Same things for other sub-collenctions
         const userWorkouts = await WorkoutManager.loadWorkouts(uid);
         data.workouts = userWorkouts.map(entry => (Workout.fromJSON(entry)));
         if (!data) return null;
@@ -79,7 +80,10 @@ const signupUser = async (nickname, email, password) => {
         isAdmin: false,
     });
 
-    await FirebaseManager.createDocument(USERS_COLLECTION, userLogin.uid, newUser, true);
+    // Remove arrays
+    const { goals, badges, workouts, friends, ...updateData } = newUser;
+
+    await FirebaseManager.createDocument(USERS_COLLECTION, userLogin.uid, updateData, true);
 
     return userLogin;
 };
@@ -103,7 +107,10 @@ const updateUser = async (uid, userData) => {
             await FireAuthManager.updateEmail(user, userData.email);
         }
 
-        await FirebaseManager.updateDocument(USERS_COLLECTION, uid, userData, true);
+        // Remove arrays
+        const { goals, badges, workouts, friends, ...updateData } = userData;
+
+        await FirebaseManager.updateDocument(USERS_COLLECTION, uid, updateData, true);
 
         // Re-Get and return the updated user data
         return getUser(uid);
@@ -120,8 +127,10 @@ const addPoints = async (uid, points) => {
         user.addPoints(points);
         
         user.workouts = []; // firebase cant handle custom object
+        // Remove arrays
+        const { goals, badges, workouts, friends, ...updateData } = user;
 
-        await FirebaseManager.updateDocument(USERS_COLLECTION, uid, user, true);
+        await FirebaseManager.updateDocument(USERS_COLLECTION, uid, updateData, true);
         return getUser(uid);
     } catch (error) {
         console.error('Failed to update user:', error);
@@ -466,7 +475,54 @@ const getUserDatabasePath = (userId) => {
     return `${USERS_COLLECTION}/${userId}/`;
 }
 
+const getAllUsers = async (limit = 100) => {
+    try {
+        const snapshot = await FirebaseManager.getAllDocuments(USERS_COLLECTION);
+        
+        const users = [];
+        let count = 0;
+        
+        snapshot.forEach(doc => {
+            if (count < limit) {
+                const userData = doc.data();
+                // 활성 유저만 포함 (isActive가 true인 유저들)
+                if (userData.isActive !== false) {
+                    users.push({
+                        uid: doc.id,
+                        ...userData
+                    });
+                    count++;
+                }
+            }
+        });
+        
+        return users;
+    } catch (error) {
+        console.error('Failed to get all users:', error);
+        return [];
+    }
+};
+
+const searchUsers = async (searchTerm, limit = 50) => {
+    try {
+        const allUsers = await getAllUsers();
+        
+        const searchLower = searchTerm.toLowerCase();
+        const matchingUsers = allUsers.filter(user => 
+            user.displayName?.toLowerCase().includes(searchLower) ||
+            user.email?.toLowerCase().includes(searchLower)
+        ).slice(0, limit);
+        
+        return matchingUsers;
+    } catch (error) {
+        console.error('Failed to search users:', error);
+        return [];
+    }
+};
+
 const UserManagement = {
+    getAllUsers,
+    searchUsers,
     getUserDatabasePath,
     loginUser,
     getUser,

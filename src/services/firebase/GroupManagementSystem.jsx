@@ -10,6 +10,28 @@ const GROUPS_COLLECTION = 'user_groups';
 const GROUP_MEMBERS_COLLECTION = 'user_group_members';
 const USERS_COLLECTION = 'users';
 
+const generateUniqueGroupId = async () => {
+    let groupId;
+    let isUnique = false;
+    let counter = 1;
+    
+    while (!isUnique) {
+        // OG + 6 Nummern
+        const paddedNumber = counter.toString().padStart(6, '0');
+        groupId = `OG${paddedNumber}`;
+        
+        // Same ID check
+        const existingGroup = await FirebaseManager.readDocument(GROUPS_COLLECTION, groupId);
+        if (!existingGroup) {
+            isUnique = true;
+        } else {
+            counter++;
+        }
+    }
+    
+    return groupId;
+};
+
 /**
  * Creates a new group
  * @param {string} userId - ID of user creating the group
@@ -19,7 +41,7 @@ const USERS_COLLECTION = 'users';
  * @returns {Promise<Group>} Created group object
  * @throws {Error} If creation fails
  */
-const createGroup = async (userId, name, description, maxMembers = 50) => {
+const createGroup = async (userId, name, description, maxMembers = 50, isPrivate = false) => {
     try {
         const currentUser = await FireAuthManager.getCurrentUser();
         if (!currentUser || currentUser.uid !== userId) {
@@ -27,19 +49,22 @@ const createGroup = async (userId, name, description, maxMembers = 50) => {
         }
 
         // Group ID subject to change later
-        const groupId = uuidv4();
-        
+        // const groupId = uuidv4();
+        const groupId = await generateUniqueGroupId();
+
         const group = new Group({
             groupId,
             createdBy: userId,
             name,
             description,
             maxMembers,
+            isPrivate,
             members: []
         });
         
-        await FirebaseManager.createDocument(GROUPS_COLLECTION, groupId, group, true);
-
+        const { members, ...groupDataForFirebase } = group;
+        await FirebaseManager.createDocument(GROUPS_COLLECTION, groupId, groupDataForFirebase, true);
+        
         await addGroupMember(groupId, userId, GROUP_ROLE.ADMIN);
         
         return getGroupWithMembers(groupId);
@@ -113,15 +138,22 @@ function validateUserPermission(group, userId) {
  * @returns {Promise<Group>} Updated group data
  * @throws {Error} If update fails or user doesn't have permission
  */
-const updateGroup = async (groupId, userId, groupData) => {
+const updateGroup = async (groupId, requesterId, groupData, skipPermissionCheck = false) => {
     try {
-        const group = await getGroup(groupId);
-        
-        validateUserPermission(group, userId);
+        if (!skipPermissionCheck) {
+            const group = await getGroup(groupId);
+            
+            // 권한 체크
+            if (group.createdBy !== requesterId) {
+                const member = group.members.find(m => m.userId === requesterId && m.leftAt === null);
+                if (!member || member.role !== 'admin') {
+                    throw new Error('Permission denied: Only admins can manage group details');
+                }
+            }
+        }
         
         await FirebaseManager.updateDocument(GROUPS_COLLECTION, groupId, groupData, true);
-        
-        return getGroupWithMembers(groupId);
+        return true;
     } catch (error) {
         console.error('Failed to update group:', error);
         throw error;
@@ -166,15 +198,25 @@ const getAllGroups = async (limit = 50) => {
         const snapshot = await FirebaseManager.getAllDocuments(GROUPS_COLLECTION);
         
         const groups = [];
+        const promises = [];
         let count = 0;
         
         snapshot.forEach(doc => {
             if (count < limit) {
-                const group = Group.fromJSON(doc.data());
-                groups.push(group);
+                const groupData = doc.data();
+                const group = Group.fromJSON(groupData);
+                
+                const promise = getGroupMembers(group.groupId).then(members => {
+                    group.members = members;
+                    groups.push(group);
+                });
+                
+                promises.push(promise);
                 count++;
             }
         });
+        
+        await Promise.all(promises);
         
         return groups;
     } catch (error) {
@@ -204,10 +246,9 @@ const getUserGroups = async (userId) => {
             
             // Only include active memberships
             if (membership.isActive()) {
-                // Get group data for each membership
-                const promise = getGroupData(membership.groupId).then(group => {
+                // getGroupData 대신 getGroupWithMembers 사용
+                const promise = getGroupWithMembers(membership.groupId).then(group => {
                     if (group) {
-                        group.members = [membership]; // Add the user's membership
                         groups.push(group);
                     }
                 });
@@ -341,21 +382,43 @@ const removeGroupMember = async (groupId, userId, targetUserId) => {
                 true
             );
             
+            // 그룹 생성자가 탈퇴하는 경우
             if (group.createdBy === userId) {
-                const admins = group.getAdmins().filter(member => member.userId !== userId);
-                if (admins.length > 0) {
+                const remainingMembers = group.members.filter(member => 
+                    member.userId !== userId && member.isActive()
+                );
+                
+                if (remainingMembers.length > 0) {
+                    // 가장 오래된 멤버 찾기 (joinedAt이 가장 작은 값)
+                    const oldestMember = remainingMembers.reduce((oldest, current) => 
+                        current.joinedAt < oldest.joinedAt ? current : oldest
+                    );
+                    
+                    // 가장 오래된 멤버를 Admin으로 승격
+                    await FirebaseManager.updateDocument(
+                        GROUP_MEMBERS_COLLECTION, 
+                        oldestMember.membershipId, 
+                        { role: GROUP_ROLE.ADMIN }, 
+                        true
+                    );
+                    
+                    // 그룹의 createdBy를 새 Admin으로 변경
                     await FirebaseManager.updateDocument(
                         GROUPS_COLLECTION, 
                         groupId, 
-                        { createdBy: admins[0].userId }, 
+                        { createdBy: oldestMember.userId }, 
                         true
                     );
+                    
+                    console.log(`Group ownership transferred to ${oldestMember.userId}`);
                 } else {
-                    // No other admins, delete the group
+                    // 남은 멤버가 없으면 그룹 삭제
                     await deleteGroup(groupId, userId);
+                    console.log('Group deleted as no members remain');
                 }
             }
         } else {
+            // 다른 멤버를 제거하는 경우
             targetMember.leave();
             await FirebaseManager.updateDocument(
                 GROUP_MEMBERS_COLLECTION, 
@@ -507,6 +570,53 @@ const rejoinGroup = async (groupId, userId) => {
     }
 };
 
+const changeGroupAdmin = async (groupId, currentAdminId, newAdminId) => {
+    try {
+        const group = await getGroup(groupId);
+        
+        if (group.createdBy !== currentAdminId) {
+            throw new Error('Permission denied: Only current admin can change admin');
+        }
+        
+        if (currentAdminId === newAdminId) {
+            throw new Error('Selected user is already the admin');
+        }
+        
+        const currentAdminMember = group.members.find(m => m.userId === currentAdminId && m.leftAt === null);
+        if (!currentAdminMember || currentAdminMember.role !== 'admin') {
+            throw new Error('Permission denied: Only admins can change admin');
+        }
+        
+        const newAdminMembershipId = `${groupId}_${newAdminId}`;
+        await FirebaseManager.updateDocument(
+            GROUP_MEMBERS_COLLECTION, 
+            newAdminMembershipId, 
+            { role: GROUP_ROLE.ADMIN }, 
+            true
+        );
+        
+        const currentAdminMembershipId = `${groupId}_${currentAdminId}`;
+        await FirebaseManager.updateDocument(
+            GROUP_MEMBERS_COLLECTION, 
+            currentAdminMembershipId, 
+            { role: GROUP_ROLE.MEMBER }, 
+            true
+        );
+        
+        await FirebaseManager.updateDocument(
+            GROUPS_COLLECTION, 
+            groupId, 
+            { createdBy: newAdminId }, 
+            true
+        );
+        
+        return true;
+    } catch (error) {
+        console.error('Failed to change group admin:', error);
+        throw error;
+    }
+};
+
 // Export group management functions
 const GroupManagementSystem = {
     // Group operations
@@ -517,6 +627,7 @@ const GroupManagementSystem = {
     deleteGroup,
     getAllGroups,
     getUserGroups,
+    getGroup,
     
     // Membership operations
     addGroupMember,
@@ -526,6 +637,9 @@ const GroupManagementSystem = {
     getMembershipData,
     canUserJoinGroup,
     rejoinGroup,
+
+    generateUniqueGroupId,
+    changeGroupAdmin,
 };
 
 export default GroupManagementSystem;

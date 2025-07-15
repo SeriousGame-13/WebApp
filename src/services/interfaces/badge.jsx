@@ -5,12 +5,14 @@ import { serverTimestamp } from 'firebase/firestore';
 export class Badge extends BaseModel {
   constructor(data = {}) {
     super({
-      badgeId: '',
       name: '',
       description: '',
       rarity: BADGE_RARITY.COMMON,
-      createdAt: serverTimestamp(),
       rewardPoints: 0,
+      structure: 'name:users,idField:uid;\nname:workouts,idField:uid;\nname:stations,idField:uid;',
+      mapping: '0:uid,createdAt;\n1:uid,duration;\n2:uid,calories,points,heartRateAvg,startTime,endTime;',
+      query: 'targetDepth:2\ngroupByField:uid\ngroupByDepth:1\nsumField:calories',
+      conditions: 'field:uid,operator:==,value:{user.uid},depth:0\n',
       ...data
     });
   }
@@ -65,9 +67,8 @@ export class Badge extends BaseModel {
 export class UserBadge extends BaseModel {
   constructor(data = {}) {
     super({
-      badgeInstanceId: '',
-      userId: '',
-      badgeId: '',
+      userId: data.userId || '',
+      badgeId: data.badgeId || '',
       earnedAt: serverTimestamp(),
       ...data
     });

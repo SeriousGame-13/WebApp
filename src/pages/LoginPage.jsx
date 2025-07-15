@@ -8,7 +8,14 @@ import LayoutElements from '../layouts/LayoutElements';
 
 import '../components/styles/LoginPage.css';
 
-
+//temp
+//For Test - Hyunu P.
+import { Workout } from '../services/interfaces/workout.jsx';
+import { getDummyWorkout, createAllDummyUsers, getDummyBadges } from '../utils/dummyDataGenerator.jsx';
+import UserModel from '../services/interfaces/user.jsx';
+import { GROUP_ROLE } from '../services/interfaces/constants.jsx';
+import WorkoutManager from './../services/firebase/WorkoutManagement.jsx';
+import BadgeManager from '../services/firebase/BadgeManagement.jsx';
 
 function AppLogin() {
     const [showLoginPopup, setShowLoginPopup] = useState(false);
@@ -61,7 +68,7 @@ function AppLogin() {
         console.log('Login check - user:', user);
         console.log('Login check - user.isAdmin:', user.isAdmin);
         console.log('Login check - typeof user.isAdmin:', typeof user.isAdmin);
-        
+
         if (user.isAdmin === true) {
             console.log('Redirecting to Admin page');
             return <AdminPage.AdminPageMain user={user} />;

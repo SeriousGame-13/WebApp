@@ -75,6 +75,7 @@ export class Station extends BaseModel {
       endTime: "",
       heartRateAvg: null,
       calories: 0,
+      userId: "",
       ...data
     });
   }

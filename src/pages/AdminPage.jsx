@@ -15,7 +15,7 @@ function AdminPageMain({ user }) {
             case 'Challenge Manager':
                 return <ChallengeManagerPage />;
             case 'Badge Manager':
-                return <BadgeManagerPage />;
+                return <BadgeManagerPage  user={user} />;
             default:
                 return <GroupManagerPage />;
         }

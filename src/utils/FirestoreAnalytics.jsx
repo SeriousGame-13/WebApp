@@ -1,4 +1,4 @@
-import FirestoreManager from './FirestoreManager';
+import FirestoreManager from '../services/firebase/FirestoreManager';
 
 /**
  * Abstract Firestore Analytics Engine
@@ -16,9 +16,9 @@ class FirestoreAnalytics {
      * Define the collection structure
      * @param {Array} structure - Array of collection level definitions
      * Structure format: [
-     *   { name: 'users', idField: 'userId' },
-     *   { name: 'workouts', idField: 'workoutId' },
-     *   { name: 'stations', idField: 'stationId' }
+     *   { name: 'users', idField: 'uid' },
+     *   { name: 'workouts', idField: 'uid' },
+     *   { name: 'stations', idField: 'uid' }
      * ]
      */
     setStructure(structure) {
@@ -31,9 +31,9 @@ class FirestoreAnalytics {
      * Define field mappings for each depth level
      * @param {Object} mappings - Object mapping depth to available fields
      * Format: {
-     *   0: ['userId', 'userName'], // fields at users level
-     *   1: ['workoutId', 'workoutDate', 'duration'], // fields at workouts level
-     *   2: ['stationId', 'calories', 'points', 'heartRateAvg'] // fields at stations level
+     *   0: ['uid', 'userName'], // fields at users level
+     *   1: ['uid', 'workoutDate', 'duration'], // fields at workouts level
+     *   2: ['uid', 'calories', 'points', 'heartRateAvg'] // fields at stations level
      * }
      */
     setFieldMappings(mappings) {
@@ -218,7 +218,7 @@ class FirestoreAnalytics {
      */
     getFieldValue(doc, field, depth) {
         // Check current document first
-        if (doc.hasOwnProperty(field)) {
+        if (doc.hasOwnProperty(field) && depth == doc.depth) {
             return doc[field];
         }
 
@@ -403,7 +403,7 @@ function createWorkoutAnalytics() {
     // Define field mappings
     analytics.setFieldMappings({
         0: ['uid', 'createdAt'],
-        1: ['uid', 'duration', 'workoutType'],
+        1: ['uid', 'duration'],
         2: ['uid', 'calories', 'points', 'heartRateAvg', 'startTime', 'endTime']
     });
 

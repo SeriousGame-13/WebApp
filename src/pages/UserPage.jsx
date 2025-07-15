@@ -6,8 +6,7 @@ import { GROUP_ROLE } from '../services/interfaces/constants.jsx';
 import WorkoutManager from './../services/firebase/WorkoutManagement.jsx';
 import React, { useState } from 'react';
 
-import UserAnalytics from '../services/firebase/UserAnalytics.jsx';
-import { createWorkoutAnalytics } from '../services/firebase/Analytics.jsx';
+import { createWorkoutAnalytics } from '../utils/FirestoreAnalytics.jsx';
 
 function Page({ data }) {
     const userData = data;

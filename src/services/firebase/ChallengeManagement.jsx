@@ -1,12 +1,9 @@
-// Added - Hyunu P
 import FirebaseManager from './FirestoreManager.jsx';
 import { Challenge, ChallengeParticipant } from '../interfaces/challenge.jsx';
 import { CHALLENGE_VISIBILITY } from '../interfaces/constants.jsx';
 import UserManagement from './UserManagementSystem.jsx';
 import GroupManagement from './GroupManagementSystem.jsx';
-
-const CHALLENGES_COLLECTION = 'challenges';
-const PARTICIPANTS_SUBCOLLECTION = 'participants';
+import { CHALLENGES_COLLECTION, CHALLENGE_PARTICIPANTS_SUBCOLLECTION } from './collections';
 
 const createChallenge = async (challengeData) => {
     try {
@@ -26,7 +23,7 @@ const createChallenge = async (challengeData) => {
         
         const { challengeId, participants, creator, targetExercise, ...challengeDataForFirebase } = challenge;
         
-        const docRef = await FirebaseManager.createDocumentWithAutoId(CHALLENGES_COLLECTION, challengeDataForFirebase);
+        const docRef = await FirebaseManager.createDocument(CHALLENGES_COLLECTION, challengeDataForFirebase);
         
         if (!docRef || !docRef.id) {
             throw new Error('Failed to create challenge document');
@@ -194,12 +191,12 @@ const updateChallenge = async (challengeId, challengeData) => {
 const deleteChallenge = async (challengeId) => {
     try {
         const participantsSnapshot = await FirebaseManager.getAllDocuments(
-            `${CHALLENGES_COLLECTION}/${challengeId}/${PARTICIPANTS_SUBCOLLECTION}`
+            `${CHALLENGES_COLLECTION}/${challengeId}/${CHALLENGE_PARTICIPANTS_SUBCOLLECTION}`
         );
         
         for (const doc of participantsSnapshot.docs) {
             await FirebaseManager.deleteDocument(
-                `${CHALLENGES_COLLECTION}/${challengeId}/${PARTICIPANTS_SUBCOLLECTION}`,
+                `${CHALLENGES_COLLECTION}/${challengeId}/${CHALLENGE_PARTICIPANTS_SUBCOLLECTION}`,
                 doc.id
             );
         }
@@ -228,7 +225,7 @@ const joinChallenge = async (challengeId, userId) => {
         });
         
         await FirebaseManager.createDocument(
-            `${CHALLENGES_COLLECTION}/${challengeId}/${PARTICIPANTS_SUBCOLLECTION}`,
+            `${CHALLENGES_COLLECTION}/${challengeId}/${CHALLENGE_PARTICIPANTS_SUBCOLLECTION}`,
             userId,
             participant,
             true
@@ -244,7 +241,7 @@ const joinChallenge = async (challengeId, userId) => {
 const leaveChallenge = async (challengeId, userId) => {
     try {
         await FirebaseManager.deleteDocument(
-            `${CHALLENGES_COLLECTION}/${challengeId}/${PARTICIPANTS_SUBCOLLECTION}`,
+            `${CHALLENGES_COLLECTION}/${challengeId}/${CHALLENGE_PARTICIPANTS_SUBCOLLECTION}`,
             userId
         );
         
@@ -258,7 +255,7 @@ const leaveChallenge = async (challengeId, userId) => {
 const getChallengeParticipants = async (challengeId) => {
     try {
         const snapshot = await FirebaseManager.getAllDocuments(
-            `${CHALLENGES_COLLECTION}/${challengeId}/${PARTICIPANTS_SUBCOLLECTION}`
+            `${CHALLENGES_COLLECTION}/${challengeId}/${CHALLENGE_PARTICIPANTS_SUBCOLLECTION}`
         );
         
         const participants = [];
@@ -327,7 +324,7 @@ const getUserChallenges = async (userId) => {
 const completeChallengeForUser = async (challengeId, userId) => {
     try {
         const participant = await FirebaseManager.readDocument(
-            `${CHALLENGES_COLLECTION}/${challengeId}/${PARTICIPANTS_SUBCOLLECTION}`,
+            `${CHALLENGES_COLLECTION}/${challengeId}/${CHALLENGE_PARTICIPANTS_SUBCOLLECTION}`,
             userId
         );
         
@@ -336,7 +333,7 @@ const completeChallengeForUser = async (challengeId, userId) => {
         }
         
         await FirebaseManager.updateDocument(
-            `${CHALLENGES_COLLECTION}/${challengeId}/${PARTICIPANTS_SUBCOLLECTION}`,
+            `${CHALLENGES_COLLECTION}/${challengeId}/${CHALLENGE_PARTICIPANTS_SUBCOLLECTION}`,
             userId,
             { completedAt: Date.now() },
             true

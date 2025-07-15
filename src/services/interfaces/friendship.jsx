@@ -5,7 +5,6 @@ import { serverTimestamp } from 'firebase/firestore';
 export default class Friendship extends BaseModel {
   constructor(data = {}) {
     super({
-      friendshipId: '',
       user1Id: '',
       user2Id: '',
       status: FRIENDSHIP_STATUS.PENDING,

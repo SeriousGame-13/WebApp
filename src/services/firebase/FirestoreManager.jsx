@@ -39,14 +39,14 @@ const readDocument = async (collectionName, docId) => {
 }
 
 /**
- * Creates a new document with the specified ID
+ * Creates a new document with an Auto-generated ID or with a specific ID
  * @param {string} collectionName - Name of the Firestore collection
- * @param {string} docId - Document ID to create
  * @param {object} data - Data to store in the document
+ * @param {string} [docId=null] - Specific Document ID to create
  * @param {boolean} [addTimestamp=true] - Whether to add creation and update timestamps
  * @returns {Promise<DocumentReference|null>} Document reference or null on error
  */
-const createDocument = async (collectionName, docId, data, addTimestamp = true) => {
+const createDocument = async (collectionName, data, docId=null, addTimestamp = true) => {
     try {
         const documentReference = getDocumentReference(collectionName, docId);
         const documentData = addTimestamp 
@@ -55,12 +55,19 @@ const createDocument = async (collectionName, docId, data, addTimestamp = true) 
                 updatedAt: serverTimestamp() } 
             : data;
 
-        return await setDocument(documentReference, documentData);
-    } catch (error) {
+        if (docId) {
+            return await setDocument(documentReference, documentData);
+        } else {
+            return await createDocumentWithAutoId(collectionName, documentData);
+        }
+    } 
+    catch (error) {
         console.error(`Error creating document in ${collectionName}:`, error);
         return null;
     }
 }
+
+
 
 /**
  * Creates or replaces a document with specific reference
@@ -170,6 +177,15 @@ const getDocumentReference = (collectionName, docId) => {
     }
 }
 
+/**
+ * Retrieves a server timestamp from Firebase Firestore.
+ * 
+ * This function attempts to get a server timestamp using Firebase's serverTimestamp()
+ * function. It handles any errors that might occur during the process.
+ * 
+ * @returns {firebase.firestore.FieldValue|null} A Firebase server timestamp FieldValue 
+ * that can be used in document operations, or null if an error occurs.
+ */
 const getServerTimestamp = () => {
     try {
         return serverTimestamp()
@@ -179,6 +195,13 @@ const getServerTimestamp = () => {
     }
 }
 
+/**
+ * Creates a new document with an auto-generated ID in the specified Firestore collection.
+ * 
+ * @param {string} collectionName - The name of the Firestore collection to add the document to
+ * @param {object} data - The data to be stored in the document
+ * @returns {Promise<import('firebase/firestore').DocumentReference|null>} A Promise that resolves to the document reference if successful, or null if an error occurs
+ */
 const createDocumentWithAutoId = async (collectionName, data) => {
     try {
         const docRef = await addDoc(collection(db, collectionName), data);
@@ -225,7 +248,6 @@ const FirestoreManager = {
     queryDocumentsByFieldValue,
     getAllDocuments,
     getServerTimestamp,
-    createDocumentWithAutoId,
     findDocumentByField,
 };
 

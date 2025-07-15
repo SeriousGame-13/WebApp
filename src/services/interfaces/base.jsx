@@ -1,15 +1,11 @@
 // Base Model Klasse
 import { v4 as uuidv4 } from 'uuid';
 
-import {
-  serverTimestamp, Timestamp
-} from 'firebase/firestore';
-
 export default class BaseModel {
   constructor(data = {}) {
     this.uid = data.uid || uuidv4();
-    this.createdAt = data.createdAt || serverTimestamp();
-    this.updatedAt = data.updatedAt || serverTimestamp();
+    this.createdAt = data.createdAt;
+    this.updatedAt = data.updatedAt;
     Object.assign(this, data);
   }
 

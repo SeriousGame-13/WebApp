@@ -3,10 +3,8 @@ import FireAuthManager from './FirebaseAuthenticationManager';
 import WorkoutManager from './WorkoutManagement.jsx';
 import User from '../interfaces/user.jsx';
 import { Workout } from '../interfaces/workout.jsx';
+import {USERS_COLLECTION, FRIENDS_COLLECTION, BLOCKS_COLLECTION } from './collections.jsx'
 
-const USERS_COLLECTION = 'users';
-const FRIENDS_COLLECTION = 'user_friends';
-const BLOCKS_COLLECTION = 'user_blocks';
 
 /**
  * Authenticates a user with email and password
@@ -83,7 +81,7 @@ const signupUser = async (nickname, email, password) => {
     // Remove arrays
     const { goals, badges, workouts, friends, ...updateData } = newUser;
 
-    await FirebaseManager.createDocument(USERS_COLLECTION, userLogin.uid, updateData, true);
+    await FirebaseManager.createDocument(USERS_COLLECTION, updateData, userLogin.uid, true);
 
     return userLogin;
 };
@@ -195,7 +193,7 @@ const addFriend = async (requesterId, recipientId) => {
             status: 'PENDING',
         };
 
-        await FirebaseManager.createDocument(FRIENDS_COLLECTION, friendshipId, friendshipData, true);
+        await FirebaseManager.createDocument(FRIENDS_COLLECTION, friendshipData, true);
 
         return getFriendshipData(friendshipId);
     } catch (error) {
@@ -374,7 +372,7 @@ const blockUser = async (userId, blockedUserId) => {
             // Ignore errors if no friendship exists
         }
 
-        await FirebaseManager.createDocument(BLOCKS_COLLECTION, blockId, blockData, true);
+        await FirebaseManager.createDocument(BLOCKS_COLLECTION, blockData, true);
 
         // Re-Get the block data
         return getBlockData(blockId);

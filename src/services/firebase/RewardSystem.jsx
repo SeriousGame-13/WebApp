@@ -1,5 +1,6 @@
 import CompetitonSystem from './CompetitionSystem';
 import UserManagement from './UserManagementSystem';
+import { CHALLENGE_STYLE } from '../interfaces/constants';
 
 
 /**
@@ -34,7 +35,7 @@ const awardChallengeRewards = async (challengeId) => {
 const awardTournamentRewards = async (challengeId) => {
     try {
         const challenge = await CompetitonSystem.getChallenge(challengeId);
-        if (!challenge || challenge.challengeType !== CHALLENGE_TYPE.TOURNAMENT) {
+        if (!challenge || challenge.challengeType !== CHALLENGE_STYLE.TOURNAMENT) {
             return;
         }
 

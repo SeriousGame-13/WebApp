@@ -1,6 +1,6 @@
 import FirebaseManager from './FirestoreManager';
+import { RANKINGS_COLLECTION } from './collections.jsx'
 
-const RANKINGS_COLLECTION = 'user_rankings';
 const RANKING_LEVEL_ID = 'level';
 const RANKING_POINTS_ID = 'points';
 

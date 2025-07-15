@@ -5,7 +5,7 @@ import { serverTimestamp } from 'firebase/firestore';
 export class Group extends BaseModel {
   constructor(data = {}) {
     super({
-      groupId: '',
+      alias: '',
       createdBy: '',
       name: '',
       description: '',

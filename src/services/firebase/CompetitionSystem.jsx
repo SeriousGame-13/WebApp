@@ -4,10 +4,9 @@ import UserManagement from './UserManagementSystem';
 import GroupManagementSystem from './GroupManagementSystem';
 import RewardSystem from './RewardSystem';
 import { Challenge, ChallengeParticipant } from '../interfaces/challenge';
-import { CHALLENGE_TYPE, CHALLENGE_STATUS, CHALLENGE_PARTICIPATION_STATUS } from '../interfaces/constants';
+import { CHALLENGE_STYLE, CHALLENGE_STATUS, CHALLENGE_PARTICIPATION_STATUS } from '../interfaces/constants';
+import { CHALLENGES_COLLECTION, CHALLENGE_PARTICIPANTS_SUBCOLLECTION } from './collections.jsx'
 
-const CHALLENGES_COLLECTION = 'challenges';
-const CHALLENGE_PARTICIPANTS_COLLECTION = 'challenge_participants';
 
 /**
  * Creates a new challenge
@@ -27,7 +26,7 @@ const createChallenge = async (creatorId, challengeData) => {
             endDate: challengeData.endDate,
             creatorId: creatorId,
             rewardPoints: challengeData.rewardPoints || 0,
-            challengeType: challengeData.challengeType || CHALLENGE_TYPE.INDIVIDUAL,
+            challengeType: challengeData.challengeType || CHALLENGE_STYLE.INDIVIDUAL,
             targetExerciseId: challengeData.targetExerciseId || null,
             targetValue: challengeData.targetValue,
             participants: [],
@@ -37,7 +36,7 @@ const createChallenge = async (creatorId, challengeData) => {
             throw new Error('Invalid challenge data provided');
         }
 
-        await FirebaseManager.createDocument(CHALLENGES_COLLECTION, challengeId, challenge.toJSON(), true);
+        await FirebaseManager.createDocument(CHALLENGES_COLLECTION, challenge.toJSON(), true);
         joinChallenge(challengeId, creatorId);
         
         return await getChallenge(challengeId);
@@ -163,7 +162,7 @@ const finishChallenge = async (challengeId, userId) => {
             console.warn('Challenge is being finished before end date');
         }
 
-        if (challenge.challengeType === CHALLENGE_TYPE.TOURNAMENT) {
+        if (challenge.challengeType === CHALLENGE_STYLE.TOURNAMENT) {
             await RewardSystem.awardTournamentRewards(challengeId);
         } else {
             await RewardSystem.awardChallengeRewards(challengeId);
@@ -214,7 +213,7 @@ const joinChallenge = async (challengeId, userId) => {
             throw new Error('Invalid participant data');
         }
 
-        await FirebaseManager.createDocument(CHALLENGE_PARTICIPANTS_COLLECTION, participantId, participant.toJSON(), true);
+        await FirebaseManager.createDocument(CHALLENGE_PARTICIPANTS_SUBCOLLECTION, participant.toJSON(), true);
 
         challenge.addParticipant(participant);
         await FirebaseManager.updateDocument(CHALLENGES_COLLECTION, challengeId, { 
@@ -286,7 +285,7 @@ const withdrawFromChallenge = async (challengeId, userId) => {
         }
 
         await FirebaseManager.updateDocument(
-            CHALLENGE_PARTICIPANTS_COLLECTION,
+            CHALLENGE_PARTICIPANTS_SUBCOLLECTION,
             participant.participantId,
             { status: CHALLENGE_PARTICIPATION_STATUS.WITHDRAWN },
             true
@@ -344,7 +343,7 @@ const updateChallengeProgress = async (challengeId, userId, progress) => {
         };
 
         await FirebaseManager.updateDocument(
-            CHALLENGE_PARTICIPANTS_COLLECTION,
+            CHALLENGE_PARTICIPANTS_SUBCOLLECTION,
             participant.participantId,
             updateData,
             true
@@ -377,7 +376,7 @@ const updateChallengeProgress = async (challengeId, userId, progress) => {
 const getChallengeParticipant = async (challengeId, userId) => {
     try {
         const participantId = `${challengeId}_${userId}`;
-        const data = await FirebaseManager.readDocument(CHALLENGE_PARTICIPANTS_COLLECTION, participantId);
+        const data = await FirebaseManager.readDocument(CHALLENGE_PARTICIPANTS_SUBCOLLECTION, participantId);
         if (!data) return null;
         
         return ChallengeParticipant.fromJSON(data);
@@ -395,7 +394,7 @@ const getChallengeParticipant = async (challengeId, userId) => {
 const getChallengeParticipants = async (challengeId) => {
     try {
         const snapshot = await FirebaseManager.queryDocumentsByFieldValue(
-            CHALLENGE_PARTICIPANTS_COLLECTION,
+            CHALLENGE_PARTICIPANTS_SUBCOLLECTION,
             'challengeId',
             challengeId
         );
@@ -441,7 +440,7 @@ const getChallengeResults = async (challengeId) => {
         const participants = await getChallengeParticipants(challengeId);
         
         let sortedParticipants;
-        if (challenge.challengeType === CHALLENGE_TYPE.TOURNAMENT) {
+        if (challenge.challengeType === CHALLENGE_STYLE.TOURNAMENT) {
             sortedParticipants = participants.sort((a, b) => {
                 return (b.progress || 0) - (a.progress || 0);
             });
@@ -537,7 +536,7 @@ const getAvailableChallenges = async (userId) => {
 const getUserChallengeHistory = async (userId) => {
     try {
         const snapshot = await FirebaseManager.queryDocumentsByFieldValue(
-            CHALLENGE_PARTICIPANTS_COLLECTION,
+            CHALLENGE_PARTICIPANTS_SUBCOLLECTION,
             'userId',
             userId
         );
@@ -579,7 +578,7 @@ const getUserChallengeHistory = async (userId) => {
 const createTournament = async (creatorId, tournamentData) => {
     const challengeData = {
         ...tournamentData,
-        challengeType: CHALLENGE_TYPE.TOURNAMENT,
+        challengeType: CHALLENGE_STYLE.TOURNAMENT,
         rewardPoints: tournamentData.rewardPoints || 100
     };
     
@@ -593,7 +592,7 @@ const createTournament = async (creatorId, tournamentData) => {
  */
 const getTournament = async (tournamentId) => {
     const tournament = await getChallenge(tournamentId);
-    if (tournament && tournament.challengeType === CHALLENGE_TYPE.TOURNAMENT) {
+    if (tournament && tournament.challengeType === CHALLENGE_STYLE.TOURNAMENT) {
         return tournament;
     }
     return null;
@@ -673,7 +672,7 @@ const getTournamentParticipants = async (tournamentId) => {
 const getTournaments = async (filters = {}, limit = 50) => {
     return await getChallenges({
         ...filters,
-        challengeType: CHALLENGE_TYPE.TOURNAMENT
+        challengeType: CHALLENGE_STYLE.TOURNAMENT
     }, limit);
 };
 

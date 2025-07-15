@@ -26,10 +26,17 @@ export const BADGE_RARITY = {
   LEGENDARY: 'legendary'
 };
 
-export const CHALLENGE_TYPE = {
+export const CHALLENGE_STYLE = {
     TOURNAMENT: 'TOURNAMENT',
     INDIVIDUAL: 'INDIVIDUAL',
     GROUP: 'GROUP'
+};
+
+export const CHALLENGE_TYPE = {
+  STREAK: 'streak',
+  TARGET: 'target',
+  ENDURANCE: 'endurance',
+  FREQUENCY: 'frequency'
 };
 
 export const CHALLENGE_STATUS = {
@@ -45,7 +52,8 @@ export const CHALLENGE_PARTICIPATION_STATUS = {
     WITHDRAWN: 'WITHDRAWN'
 };
 
-//Added
+
+
 export const CHALLENGE_VISIBILITY = {
   PUBLIC: 'public',
   HIDDEN: 'hidden', 

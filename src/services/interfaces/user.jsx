@@ -3,7 +3,6 @@ import BaseModel from './base.jsx';
 export default class User extends BaseModel {
   constructor(data = {}) {
     super({
-      uid: '',
       email: '',
       displayName: '',
       isActive: true,

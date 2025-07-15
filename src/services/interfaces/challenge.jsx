@@ -1,18 +1,18 @@
 import { serverTimestamp } from 'firebase/firestore';
 import BaseModel from './base.jsx';
-import { CHALLENGE_TYPE, CHALLENGE_STATUS, CHALLENGE_PARTICIPATION_STATUS } from './constants.jsx';
+import { CHALLENGE_STYLE, CHALLENGE_TYPE, CHALLENGE_STATUS, CHALLENGE_PARTICIPATION_STATUS } from './constants.jsx';
 
 export class Challenge extends BaseModel {
   constructor(data = {}) {
     super({
-      challengeId: '',
       name: '',
       description: '',
       startDate: 0,
       endDate: 0,
       creatorId: '',
       rewardPoints: 0,
-      challengeType: CHALLENGE_TYPE.INDIVIDUAL,
+      challengeType: CHALLENGE_TYPE.TARGET,
+      challengeStyle: CHALLENGE_STYLE.INDIVIDUAL,
       targetExerciseId: null,
       targetValue: null,
       participants: [],
@@ -21,7 +21,6 @@ export class Challenge extends BaseModel {
     });
   }
 
-  //Added
   isPublic() {
     return this.visibility === CHALLENGE_VISIBILITY.PUBLIC;
   }
@@ -35,7 +34,7 @@ export class Challenge extends BaseModel {
   }
 
   isActive() {
-    const now = Date.now(); // serverTimestamp() 대신
+    const now = Date.now();
     return now >= this.startDate && now <= this.endDate;
   }
 
@@ -50,7 +49,6 @@ export class Challenge extends BaseModel {
   hasNotStarted() {
       return Date.now() < this.startDate;
   }
-  //bis hier
 
   getDaysRemaining() {
     const diff = this.endDate - serverTimestamp();

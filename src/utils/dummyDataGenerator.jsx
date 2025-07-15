@@ -249,7 +249,7 @@ async function createSingleDummyExerciseDefinition(exerciseData, index) {
 
     console.log('About to create with data:', newDummyExerciseDefinition); 
 
-    const docRef = await FirebaseManager.createDocumentWithAutoId('exercise_definitions', newDummyExerciseDefinition);
+    const docRef = await FirebaseManager.createDocument('exercise_definitions', newDummyExerciseDefinition);
     
     console.log('docRef result:', docRef);
     console.log(`Exercise Definition erstellt`);
@@ -358,7 +358,7 @@ async function createSingleDummyChallenge(challengeData, index, creatorId) {
       ])
     );
 
-    const docRef = await FirebaseManager.createDocumentWithAutoId('challenges', cleanedData);
+    const docRef = await FirebaseManager.createDocument('challenges', cleanedData);
     
     if (!docRef) {
       throw new Error('Challenge creation failed');

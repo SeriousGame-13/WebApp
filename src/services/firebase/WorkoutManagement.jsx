@@ -1,9 +1,8 @@
 import { Station } from '../interfaces/workout.jsx';
 import FirestoreManager from './FirestoreManager.jsx';
 import UserManagement from './UserManagementSystem.jsx';
+import { WORKOUT_COLLECTION, STATION_COLLECTION } from './collections.jsx'
 
-const WORKOUT_COLLECTION = 'workouts';
-const STATION_COLLECTION = 'stations';
 
 const createPath = (userId) => {
     return `${UserManagement.getUserDatabasePath(userId)}${WORKOUT_COLLECTION}`;
@@ -17,12 +16,12 @@ const saveWorkout = async (workout) => {
         UserManagement.addPoints(workoutData.userId, points);
 
         // Hauptdokument speichern und ID von Firebase generieren lassen
-        const workoutRef = await FirestoreManager.createDocument(`${createPath(workoutData.userId)}`, workoutData.uid, workoutData);
+        const workoutRef = await FirestoreManager.createDocument(`${createPath(workoutData.userId)}`, workoutData, workoutData.uid);
         if (!workoutRef) throw new Error('Workout konnte nicht gespeichert werden');
 
         // Stations als Subcollection speichern
         const stationSaves = stations.map(station =>
-            FirestoreManager.createDocument(`${createPath(workoutData.userId)}/${workoutRef.id}/${STATION_COLLECTION}`, station.uid, station)
+            FirestoreManager.createDocument(`${createPath(workoutData.userId)}/${workoutRef.id}/${STATION_COLLECTION}`, station, station.uid)
         );
 
         await Promise.all(stationSaves);

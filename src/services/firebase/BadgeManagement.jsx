@@ -1,9 +1,7 @@
 import FirebaseManager from './FirestoreManager.jsx';
 import { Badge } from '../interfaces/badge.jsx';
 import { BADGE_RARITY } from '../interfaces/constants.jsx';
-
-const BADGES_COLLECTION = 'badges';
-const BADGE_IMAGES_COLLECTION = 'badgeimages';
+import {BADGES_COLLECTION, BADGE_IMAGES_COLLECTION} from './collections.jsx'
 
 const generateUniqueBadgeId = async () => {
     let badgeId;
@@ -36,7 +34,7 @@ const createBadge = async (badgeData) => {
         
         const { badgeId, ...badgeDataForFirebase } = badge;
         
-        const docRef = await FirebaseManager.createDocumentWithAutoId(BADGES_COLLECTION, badgeDataForFirebase);
+        const docRef = await FirebaseManager.createDocument(BADGES_COLLECTION, badgeDataForFirebase);
         
         if (!docRef || !docRef.id) {
             throw new Error('Failed to create badge document');
@@ -80,7 +78,7 @@ const saveBadgeImage = async (base64Data, badgeId) => {
             updatedAt: Date.now()
         };
         
-        await FirebaseManager.createDocument(BADGE_IMAGES_COLLECTION, badgeId, imageData, true);
+        await FirebaseManager.createDocument(BADGE_IMAGES_COLLECTION, imageData, badgeId, true);
         
         return {
             success: true,

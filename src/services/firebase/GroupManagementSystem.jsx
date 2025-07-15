@@ -1,14 +1,9 @@
-import {v4 as uuidv4} from 'uuid';
 import FirebaseManager from './FirestoreManager.jsx';
 import FireAuthManager from './FirebaseAuthenticationManager.jsx';
 import { Group, GroupMember } from '../interfaces/group.jsx';
 import { GROUP_ROLE } from '../interfaces/constants.jsx';
-import UserManagement from './UserManagementSystem.jsx';
+import {GROUPS_COLLECTION, GROUP_MEMBERS_COLLECTION, USERS_COLLECTION } from './collections.jsx'
 
-// Collection names in Firestore
-const GROUPS_COLLECTION = 'user_groups';
-const GROUP_MEMBERS_COLLECTION = 'user_group_members';
-const USERS_COLLECTION = 'users';
 
 const generateUniqueGroupId = async () => {
     let groupId;
@@ -63,7 +58,7 @@ const createGroup = async (userId, name, description, maxMembers = 50, isPrivate
         });
         
         const { members, ...groupDataForFirebase } = group;
-        await FirebaseManager.createDocument(GROUPS_COLLECTION, groupId, groupDataForFirebase, true);
+        await FirebaseManager.createDocument(GROUPS_COLLECTION, groupDataForFirebase, true);
         
         await addGroupMember(groupId, userId, GROUP_ROLE.ADMIN);
         
@@ -294,7 +289,7 @@ const addGroupMember = async (groupId, userId, role = GROUP_ROLE.MEMBER) => {
             joinedAt: Date.now()
         });        
 
-        await FirebaseManager.createDocument(GROUP_MEMBERS_COLLECTION, membershipId, membership, true);
+        await FirebaseManager.createDocument(GROUP_MEMBERS_COLLECTION, membership, true);
 
         return membership;
     } catch (error) {

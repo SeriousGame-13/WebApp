@@ -1,24 +1,22 @@
 import { serverTimestamp } from 'firebase/firestore';
 import BaseModel from './base.jsx';
-import { CHALLENGE_TYPE, CHALLENGE_VISIBILITY } from './constants.jsx';
+import { CHALLENGE_TYPE, CHALLENGE_STATUS, CHALLENGE_PARTICIPATION_STATUS } from './constants.jsx';
 
 export class Challenge extends BaseModel {
   constructor(data = {}) {
     super({
+      challengeId: '',
       name: '',
       description: '',
-      startDate: serverTimestamp(),
+      startDate: 0,
       endDate: 0,
       creatorId: '',
       rewardPoints: 0,
-      challengeType: CHALLENGE_TYPE.TARGET,
+      challengeType: CHALLENGE_TYPE.INDIVIDUAL,
       targetExerciseId: null,
       targetValue: null,
       participants: [],
-      creator: null,
-      targetExercise: null,
-      visibility: CHALLENGE_VISIBILITY.PUBLIC, // PUBLIC, HIDDEN, GROUP
-      groupId: null, // Only if group-challenge
+      status: CHALLENGE_STATUS.OPEN,
       ...data
     });
   }
@@ -113,7 +111,8 @@ export class ChallengeParticipant extends BaseModel {
       userId: '',
       joinedAt: Date.now(),
       completedAt: null,
-      user: null,
+      currentValue: 0,
+      status: CHALLENGE_PARTICIPATION_STATUS.ACTIVE,
       ...data
     });
   }

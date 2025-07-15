@@ -27,10 +27,22 @@ export const BADGE_RARITY = {
 };
 
 export const CHALLENGE_TYPE = {
-  STREAK: 'streak',
-  TARGET: 'target',
-  ENDURANCE: 'endurance',
-  FREQUENCY: 'frequency'
+    TOURNAMENT: 'TOURNAMENT',
+    INDIVIDUAL: 'INDIVIDUAL',
+    GROUP: 'GROUP'
+};
+
+export const CHALLENGE_STATUS = {
+    OPEN: 'OPEN',
+    RUNNING: 'RUNNING',
+    FINISHED: 'FINISHED',
+    CANCELLED: 'CANCELLED'
+};
+
+export const CHALLENGE_PARTICIPATION_STATUS = {
+    ACTIVE: 'ACTIVE',
+    COMPLETED: 'COMPLETED',
+    WITHDRAWN: 'WITHDRAWN'
 };
 
 //Added

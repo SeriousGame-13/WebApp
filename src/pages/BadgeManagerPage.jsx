@@ -4,7 +4,7 @@ import { BADGE_RARITY } from '../services/interfaces/constants';
 import BadgeImageElements from '../utils/BadgeImageUploader';
 import '../components/styles/LayoutElements.css';
 import { Badge } from '../services/interfaces/badge';
-import { awardBadges } from '../services/firebase/AwardManager';
+import RewardSystem from '../services/firebase/RewardSystem';
 
 function CreateBadgePopup({ onCreateBadge, onCancel, isCreating }) {
     let dummyBadge = new Badge();
@@ -512,7 +512,7 @@ function BadgeManagerPage({ user }) {
     };
 
     const awardBadgesF = async (userId) => {
-        awardBadges(userId);
+        RewardSystem.awardBadges(userId);
     }
 
     return (

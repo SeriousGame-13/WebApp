@@ -203,7 +203,7 @@ function Page({ data }) {
                                     fontSize: '14px', 
                                     marginLeft: 'auto' 
                                 }}>
-                                    Level {ranking.level || 1}
+                                    {' '} Level {ranking.level || 1}
                                 </span>
                             </div>
                             <div className='GroupExerciseContents'>

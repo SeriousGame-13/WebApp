@@ -5,7 +5,6 @@ export const BLOCKS_COLLECTION = 'user_blocks';
 export const GROUPS_COLLECTION = 'user_groups';
 export const GROUP_MEMBERS_COLLECTION = 'user_group_members';
 
-export const RANKINGS_COLLECTION = 'user_rankings';
 
 export const CHALLENGES_COLLECTION = 'challenges';
 export const CHALLENGE_PARTICIPANTS_SUBCOLLECTION = 'participants';

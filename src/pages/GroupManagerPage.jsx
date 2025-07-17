@@ -193,7 +193,7 @@ function AddMemberPopup({ group, onClose, onMemberAdded }) {
     const loadAllUsers = async () => {
         try {
             setIsLoading(true);
-            const users = await UserManagement.getAllUsers();
+            const users = await UserManagement.getAllActiveUsers();
             
             const currentMemberIds = group.members.map(member => member.userId);
             const availableUsers = users.filter(user => !currentMemberIds.includes(user.uid));

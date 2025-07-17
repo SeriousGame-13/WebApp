@@ -473,24 +473,18 @@ const getUserDatabasePath = (userId) => {
     return `${USERS_COLLECTION}/${userId}/`;
 }
 
-const getAllUsers = async (limit = 100) => {
+// All means ALL
+const getAllActiveUsers = async () => {
     try {
         const snapshot = await FirebaseManager.getAllDocuments(USERS_COLLECTION);
-        
         const users = [];
-        let count = 0;
-        
         snapshot.forEach(doc => {
-            if (count < limit) {
-                const userData = doc.data();
-                // 활성 유저만 포함 (isActive가 true인 유저들)
-                if (userData.isActive !== false) {
-                    users.push({
-                        uid: doc.id,
-                        ...userData
-                    });
-                    count++;
-                }
+            const userData = doc.data();
+            if (userData.isActive !== false) {
+                users.push({
+                    uid: doc.id,
+                    ...userData
+                });
             }
         });
         
@@ -503,7 +497,7 @@ const getAllUsers = async (limit = 100) => {
 
 const searchUsers = async (searchTerm, limit = 50) => {
     try {
-        const allUsers = await getAllUsers();
+        const allUsers = await getAllActiveUsers();
         
         const searchLower = searchTerm.toLowerCase();
         const matchingUsers = allUsers.filter(user => 
@@ -519,7 +513,7 @@ const searchUsers = async (searchTerm, limit = 50) => {
 };
 
 const UserManagement = {
-    getAllUsers,
+    getAllActiveUsers,
     searchUsers,
     getUserDatabasePath,
     loginUser,

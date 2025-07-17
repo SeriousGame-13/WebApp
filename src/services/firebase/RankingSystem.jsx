@@ -1,6 +1,22 @@
 import FirebaseManager from './FirestoreManager';
 import UserManagement from './UserManagementSystem.jsx'
 
+/**
+ * Retrieves the top points rankings
+ * @returns {Promise<object|null>} The ranking data for the users with highest points
+ */
+const getUserPointsRank = async (userid) => {
+    try {
+        const users = await UserManagement.getAllActiveUsers();
+        users.sort((a, b) => b.points - a.points);
+        return users.findIndex(user => user.uid === userid) + 1;
+    } catch (error) {
+        console.error('Failed to get top workout rankings:', error);
+        return [];
+    }
+};
+
+
 
 /**
  * Retrieves the top points rankings
@@ -8,7 +24,7 @@ import UserManagement from './UserManagementSystem.jsx'
  */
 const getTopUsersPointsRankings = async (limit = 10) => {
     try {
-        const users = await UserManagement.getAllUsers();
+        const users = await UserManagement.getAllActiveUsers();
         users.sort((a, b) => b.points - a.points);
         return users.slice(0, limit);
     } catch (error) {
@@ -24,7 +40,7 @@ const getTopUsersPointsRankings = async (limit = 10) => {
  */
 const getTopUsersLevelRankings = async (limit = 10) => {
     try {
-        const users = await UserManagement.getAllUsers();
+        const users = await UserManagement.getAllActiveUsers();
         users.sort((a, b) => b.level - a.level);
         return users.slice(0, limit);
     } catch (error) {
@@ -34,6 +50,7 @@ const getTopUsersLevelRankings = async (limit = 10) => {
 };
 
 const RankingSystem = {
+    getUserPointsRank,
     getTopUsersPointsRankings,
     getTopUsersLevelRankings,
 }

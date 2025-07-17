@@ -34,7 +34,7 @@ const createChallenge = async (challengeData) => {
         if (challenge.visibility === CHALLENGE_VISIBILITY.PUBLIC || 
             challenge.visibility === CHALLENGE_VISIBILITY.HIDDEN) {
             
-            const allUsers = await UserManagement.getAllUsers();
+            const allUsers = await UserManagement.getAllActiveUsers();
             for (const user of allUsers) {
                 await joinChallenge(challenge.challengeId, user.uid);
             }

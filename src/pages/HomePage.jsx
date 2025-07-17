@@ -4,6 +4,7 @@ import IconElements from '../components/ui/IconElements';
 import ChallengeManagement from '../services/firebase/ChallengeManagement';
 import GroupManagement from '../services/firebase/GroupManagementSystem';
 import UserManagement from '../services/firebase/UserManagementSystem';
+import RankingSystem from '../services/firebase/RankingSystem';
 
 import '../components/styles/HomePage.css';
 
@@ -17,8 +18,23 @@ function Page({ data }) {
     const [activeChallenges, setActiveChallenges] = useState([]);
     const [groupNames, setGroupNames] = useState({});
     const [isLoadingChallenges, setIsLoadingChallenges] = useState(true);
+    const [rank, setRank] = useState('--');
 
     const time = userData.formatDuration(userData.getTotalTrainingTime());
+    
+    useEffect(() => {
+        const fetchUserRank = async () => {
+            try {
+                const userRank = await RankingSystem.getUserPointsRank(userData.uid);
+                setRank(userRank);
+            } catch (error) {
+                console.error('Failed to fetch user rank:', error);
+                setRank('--');
+            }
+        };
+        
+        fetchUserRank();
+    }, [userData.uid]);
 
     useEffect(() => {
         loadUserActiveChallenges();
@@ -111,7 +127,7 @@ function Page({ data }) {
                                 style={{ color: 'var(--main-color)' }}>
                                 <IconElements.RankingIcon />
                                 <div className='HomeInfoName'>
-                                    11
+                                    {rank}
                                 </div>
                                 <p style={{ textAlign: 'center' }}>Place</p>
                             </div>

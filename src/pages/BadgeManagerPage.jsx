@@ -6,147 +6,104 @@ import '../components/styles/LayoutElements.css';
 import { Badge } from '../services/interfaces/badge';
 import RewardSystem from '../services/firebase/RewardSystem';
 
-function CreateBadgePopup({ onCreateBadge, onCancel, isCreating }) {
-    let dummyBadge = new Badge();
-    const [badgeName, setBadgeName] = useState('');
-    const [badgeDescription, setBadgeDescription] = useState('');
-    const [rarity, setRarity] = useState(BADGE_RARITY.COMMON);
-    const [rewardPoints, setRewardPoints] = useState(0);
-    const [badgeImageData, setBadgeImageData] = useState(null);
-    const [badgeStructure, setBadgeStructure] = useState(dummyBadge.structure);
-    const [badgeQuery, setBadgeQuery] = useState(dummyBadge.query);
-    const [badgeMapping, setBadgeMapping] = useState(dummyBadge.mapping);
-    const [badgeConditions, setBadgeConditions] = useState(dummyBadge.conditions);
+// Shared Badge Form Component
+function BadgeForm({ badge = null, onSubmit, onCancel, isProcessing, submitText }) {
+    const dummyBadge = new Badge();
+    const [formData, setFormData] = useState({
+        name: badge?.name || '',
+        description: badge?.description || '',
+        rarity: badge?.rarity || BADGE_RARITY.COMMON,
+        rewardPoints: badge?.rewardPoints || 0,
+        structure: badge?.structure || dummyBadge.structure,
+        mapping: badge?.mapping || dummyBadge.mapping,
+        query: badge?.query || dummyBadge.query,
+        conditions: badge?.conditions || dummyBadge.conditions,
+        imageData: null
+    });
 
-    const handleImageUpload = (imageResult) => {
-        setBadgeImageData(imageResult.base64Data);
+    const handleInputChange = (field, value) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
     };
 
-    const handleConfirm = async () => {
-        if (badgeName.trim() && rewardPoints >= 0) {
-            const badgeData = {
-                name: badgeName.trim(),
-                description: badgeDescription.trim(),
-                rarity: rarity,
-                rewardPoints: parseInt(rewardPoints),
-                imageData: badgeImageData
+    const handleImageUpload = (imageResult) => {
+        handleInputChange('imageData', imageResult.base64Data);
+    };
+
+    const handleSubmit = () => {
+        if (formData.name.trim() && formData.rewardPoints >= 0) {
+            const submitData = {
+                ...formData,
+                name: formData.name.trim(),
+                description: formData.description.trim(),
+                rewardPoints: parseInt(formData.rewardPoints)
             };
-
-            onCreateBadge(badgeData);
+            onSubmit(submitData);
         }
     };
 
-    if (isCreating) {
+    const isValid = formData.name.trim() && formData.rewardPoints >= 0;
+
+    if (isProcessing) {
         return (
             <div className='PopupBackground'>
                 <div className='PopupContainer'>
-                    <h2>Creating Badge...</h2>
+                    <h2>{badge ? 'Updating' : 'Creating'} Badge...</h2>
                 </div>
             </div>
         );
     }
 
+    const inputFields = [
+        { key: 'name', label: 'Badge Name', type: 'text', maxLength: 50, placeholder: 'Enter badge name' },
+        { key: 'description', label: 'Description', type: 'text', maxLength: 200, placeholder: 'Enter badge description' },
+        { key: 'rewardPoints', label: 'Reward Points', type: 'number', min: 0, placeholder: 'Points awarded when earned' },
+        { key: 'structure', label: 'Firebase Structure', type: 'textarea', rows: 4, placeholder: 'Enter Firebase Structure' },
+        { key: 'mapping', label: 'Firebase Mapping', type: 'textarea', rows: 4, placeholder: 'Enter Firebase Mapping' },
+        { key: 'query', label: 'Query', type: 'textarea', rows: 4, placeholder: 'Enter Query' },
+        { key: 'conditions', label: 'Conditions', type: 'textarea', rows: 4, placeholder: 'Enter Conditions' }
+    ];
+
     return (
         <div className='PopupBackground'>
             <div className='LargePopupContainer'>
-                <h2 style={{ margin: '20px 0', textAlign: 'center' }}>Create New Badge</h2>
+                <h2 style={{ margin: '20px 0', textAlign: 'center' }}>
+                    {badge ? 'Edit' : 'Create New'} Badge
+                </h2>
 
                 <div className='BadgeCreateContent'>
                     <div className='BadgeInputSection'>
-                        <div className='BadgeInputGroup'>
-                            <label className='BadgeInputLabel'>Badge Name</label>
-                            <input
-                                className='Input'
-                                type="text"
-                                value={badgeName}
-                                onChange={(e) => setBadgeName(e.target.value)}
-                                placeholder="Enter badge name"
-                                maxLength={50}
-                            />
-                        </div>
-
-                        <div className='BadgeInputGroup'>
-                            <label className='BadgeInputLabel'>Description</label>
-                            <input
-                                className='Input'
-                                type="text"
-                                value={badgeDescription}
-                                onChange={(e) => setBadgeDescription(e.target.value)}
-                                placeholder="Enter badge description"
-                                maxLength={200}
-                            />
-                        </div>
-
-                        <div className='BadgeInputGroup'>
-                            <label className='BadgeInputLabel'>Reward Points</label>
-                            <input
-                                className='Input'
-                                type="number"
-                                value={rewardPoints}
-                                onChange={(e) => setRewardPoints(e.target.value)}
-                                placeholder="Points awarded when earned"
-                                min="0"
-                            />
-                        </div>
-
-                        <div className='BadgeInputGroup'>
-                            <label className='BadgeInputLabel'>Firebase Structure</label>
-                            <textarea
-                                className='Input'
-                                type="text"
-                                value={badgeStructure}
-                                onChange={(e) => setBadgeStructure(e.target.value)}
-                                placeholder="Enter Firebase Structure"
-                                rows={4}
-                                style={{ resize: 'vertical' }}
-                            />
-                        </div>
-
-                        <div className='BadgeInputGroup'>
-                            <label className='BadgeInputLabel'>Firebase Mapping</label>
-                            <textarea
-                                className='Input'
-                                type="text"
-                                value={badgeMapping}
-                                onChange={(e) => setBadgeMapping(e.target.value)}
-                                placeholder="Enter Firebase Mapping"
-                                rows={4}
-                                style={{ resize: 'vertical' }}
-                            />
-                        </div>
-
-                        <div className='BadgeInputGroup'>
-                            <label className='BadgeInputLabel'>Query</label>
-                            <textarea
-                                className='Input'
-                                type="text"
-                                value={badgeQuery}
-                                onChange={(e) => setBadgeQuery(e.target.value)}
-                                placeholder="Enter Query"
-                                rows={4}
-                                style={{ resize: 'vertical' }}
-                            />
-                        </div>
-
-                        <div className='BadgeInputGroup'>
-                            <label className='BadgeInputLabel'>Conditions</label>
-                            <textarea
-                                className='Input'
-                                type="text"
-                                value={badgeConditions}
-                                onChange={(e) => setBadgeConditions(e.target.value)}
-                                placeholder="Enter Query"
-                                rows={4}
-                                style={{ resize: 'vertical' }}
-                            />
-                        </div>
+                        {inputFields.map(field => (
+                            <div key={field.key} className='BadgeInputGroup'>
+                                <label className='BadgeInputLabel'>{field.label}</label>
+                                {field.type === 'textarea' ? (
+                                    <textarea
+                                        className='Input'
+                                        value={formData[field.key]}
+                                        onChange={(e) => handleInputChange(field.key, e.target.value)}
+                                        placeholder={field.placeholder}
+                                        rows={field.rows}
+                                        style={{ resize: 'vertical' }}
+                                    />
+                                ) : (
+                                    <input
+                                        className='Input'
+                                        type={field.type}
+                                        value={formData[field.key]}
+                                        onChange={(e) => handleInputChange(field.key, e.target.value)}
+                                        placeholder={field.placeholder}
+                                        maxLength={field.maxLength}
+                                        min={field.min}
+                                    />
+                                )}
+                            </div>
+                        ))}
 
                         <div className='BadgeInputGroup'>
                             <label className='BadgeInputLabel'>Rarity Level</label>
                             <select
                                 className='Input'
-                                value={rarity}
-                                onChange={(e) => setRarity(e.target.value)}
+                                value={formData.rarity}
+                                onChange={(e) => handleInputChange('rarity', e.target.value)}
                             >
                                 <option value={BADGE_RARITY.COMMON}>Common</option>
                                 <option value={BADGE_RARITY.UNCOMMON}>Uncommon</option>
@@ -162,7 +119,7 @@ function CreateBadgePopup({ onCreateBadge, onCancel, isCreating }) {
                             Badge Image
                         </div>
                         <BadgeImageElements.BadgeImageUploader
-                            badgeId={null}
+                            badgeId={badge?.badgeId || null}
                             onUploadComplete={handleImageUpload}
                             disabled={false}
                         />
@@ -177,134 +134,10 @@ function CreateBadgePopup({ onCreateBadge, onCancel, isCreating }) {
                         </button>
                         <button
                             className='ConfirmButton'
-                            onClick={handleConfirm}
-                            disabled={!badgeName.trim() || rewardPoints < 0}
+                            onClick={handleSubmit}
+                            disabled={!isValid}
                         >
-                            Create Badge
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-function EditBadgePopup({ badge, onUpdateBadge, onCancel, isUpdating }) {
-    const [badgeName, setBadgeName] = useState(badge.name);
-    const [badgeDescription, setBadgeDescription] = useState(badge.description || '');
-    const [rarity, setRarity] = useState(badge.rarity);
-    const [rewardPoints, setRewardPoints] = useState(badge.rewardPoints);
-    const [badgeImageData, setBadgeImageData] = useState(null);
-
-    const handleImageUpload = (imageResult) => {
-        setBadgeImageData(imageResult.base64Data);
-    };
-
-    const handleConfirm = () => {
-        if (badgeName.trim() && rewardPoints >= 0) {
-            onUpdateBadge({
-                name: badgeName.trim(),
-                description: badgeDescription.trim(),
-                rarity: rarity,
-                rewardPoints: parseInt(rewardPoints),
-                imageData: badgeImageData
-            });
-        }
-    };
-
-    if (isUpdating) {
-        return (
-            <div className='PopupBackground'>
-                <div className='PopupContainer'>
-                    <h2>Updating Badge...</h2>
-                </div>
-            </div>
-        );
-    }
-
-    return (
-        <div className='PopupBackground'>
-            <div className='LargePopupContainer'>
-                <h2 style={{ margin: '20px 0', textAlign: 'center' }}>Edit Badge</h2>
-
-                <div className='BadgeCreateContent'>
-                    <div className='BadgeInputSection'>
-                        <div className='BadgeInputGroup'>
-                            <label className='BadgeInputLabel'>Badge Name</label>
-                            <input
-                                className='Input'
-                                type="text"
-                                value={badgeName}
-                                onChange={(e) => setBadgeName(e.target.value)}
-                                placeholder="Enter badge name"
-                                maxLength={50}
-                            />
-                        </div>
-
-                        <div className='BadgeInputGroup'>
-                            <label className='BadgeInputLabel'>Description</label>
-                            <input
-                                className='Input'
-                                type="text"
-                                value={badgeDescription}
-                                onChange={(e) => setBadgeDescription(e.target.value)}
-                                placeholder="Enter badge description"
-                                maxLength={200}
-                            />
-                        </div>
-
-                        <div className='BadgeInputGroup'>
-                            <label className='BadgeInputLabel'>Reward Points</label>
-                            <input
-                                className='Input'
-                                type="number"
-                                value={rewardPoints}
-                                onChange={(e) => setRewardPoints(e.target.value)}
-                                placeholder="Points awarded when earned"
-                                min="0"
-                            />
-                        </div>
-
-                        <div className='BadgeInputGroup'>
-                            <label className='BadgeInputLabel'>Rarity Level</label>
-                            <select
-                                className='Input'
-                                value={rarity}
-                                onChange={(e) => setRarity(e.target.value)}
-                            >
-                                <option value={BADGE_RARITY.COMMON}>Common</option>
-                                <option value={BADGE_RARITY.UNCOMMON}>Uncommon</option>
-                                <option value={BADGE_RARITY.RARE}>Rare</option>
-                                <option value={BADGE_RARITY.EPIC}>Epic</option>
-                                <option value={BADGE_RARITY.LEGENDARY}>Legendary</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className='BadgeImageSection'>
-                        <div className="GuideText" style={{ textAlign: 'center', marginBottom: '16px' }}>
-                            Badge Image
-                        </div>
-                        <BadgeImageElements.BadgeImageUploader
-                            badgeId={badge.badgeId}
-                            onUploadComplete={handleImageUpload}
-                            disabled={false}
-                        />
-                    </div>
-                </div>
-
-                <div className='BadgeCreateFooter'>
-                    <div className='Line'></div>
-                    <div className='Buttonfield'>
-                        <button className='CancelButton' onClick={onCancel}>
-                            Cancel
-                        </button>
-                        <button
-                            className='ConfirmButton'
-                            onClick={handleConfirm}
-                            disabled={!badgeName.trim() || rewardPoints < 0}
-                        >
-                            Update Badge
+                            {submitText}
                         </button>
                     </div>
                 </div>
@@ -361,7 +194,11 @@ function AdminBadgeDetailPopup({ badge, onClose, onBadgeUpdated }) {
                 name: badgeData.name,
                 description: badgeData.description,
                 rarity: badgeData.rarity,
-                rewardPoints: badgeData.rewardPoints
+                rewardPoints: badgeData.rewardPoints,
+                structure: badgeData.structure,
+                mapping: badgeData.mapping,
+                query: badgeData.query,
+                conditions: badgeData.conditions
             });
 
             if (badgeData.imageData) {
@@ -379,8 +216,7 @@ function AdminBadgeDetailPopup({ badge, onClose, onBadgeUpdated }) {
     };
 
     const formatDate = (timestamp) => {
-        const date = new Date(timestamp);
-        return date.toLocaleDateString('en-US', {
+        return new Date(timestamp).toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'short',
             day: 'numeric'
@@ -396,18 +232,11 @@ function AdminBadgeDetailPopup({ badge, onClose, onBadgeUpdated }) {
                     <div className='BadgeDetailHeader'>
                         <div className='BadgeImageContainer'>
                             {imageLoading ? (
-                                <div className='ProfileImageAlt'>
-                                    <div>Loading...</div>
-                                </div>
+                                <div className='ProfileImageAlt'>Loading...</div>
                             ) : badgeImage ? (
-                                <img className='BadgeDetailImage'
-                                    src={badgeImage}
-                                    alt="Badge Image"
-                                />
+                                <img className='BadgeDetailImage' src={badgeImage} alt="Badge" />
                             ) : (
-                                <div className='ProfileImageAlt'>
-                                    <div>No Image</div>
-                                </div>
+                                <div className='ProfileImageAlt'>No Image</div>
                             )}
                         </div>
                         <div className='BadgeInfoContainer'>
@@ -423,6 +252,7 @@ function AdminBadgeDetailPopup({ badge, onClose, onBadgeUpdated }) {
                     <div className='GroupDetailDescription' style={{ textAlign: 'left' }}>
                         {badge.description || 'No description available.'}
                     </div>
+                    
                     <div className='GroupDetailInfo' style={{ textAlign: 'left' }}>
                         <div>Badge ID: {badge.badgeId}</div>
                         <div>Reward Points: {badge.rewardPoints}</div>
@@ -450,17 +280,16 @@ function AdminBadgeDetailPopup({ badge, onClose, onBadgeUpdated }) {
 
                 <div className='Line'></div>
                 <div className='Buttonfield'>
-                    <button className='CancelButton' onClick={onClose}>
-                        Close
-                    </button>
+                    <button className='CancelButton' onClick={onClose}>Close</button>
                 </div>
 
                 {showEditPopup && (
-                    <EditBadgePopup
+                    <BadgeForm
                         badge={badge}
-                        onUpdateBadge={handleUpdateBadge}
+                        onSubmit={handleUpdateBadge}
                         onCancel={() => setShowEditPopup(false)}
-                        isUpdating={isUpdatingBadge}
+                        isProcessing={isUpdatingBadge}
+                        submitText="Update Badge"
                     />
                 )}
             </div>
@@ -511,9 +340,37 @@ function BadgeManagerPage({ user }) {
         }
     };
 
-    const awardBadgesF = async (userId) => {
+    const awardBadges = async (userId) => {
         RewardSystem.awardBadges(userId);
-    }
+    };
+
+    const renderBadgeList = () => {
+        if (isLoadingBadges) {
+            return <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>Loading...</div>;
+        }
+
+        if (allBadges.length === 0) {
+            return <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>No Badges Found</div>;
+        }
+
+        return allBadges.map(badge => (
+            <div
+                key={badge.badgeId || `badge-${Math.random()}`}
+                className="GroupExerciseContainer"
+                onClick={() => setSelectedBadge(badge)}
+            >
+                <div className="GroupExerciseHeader" style={{ color: 'var(--main-color)' }}>
+                    {badge.name} <span style={{ fontSize: '12px', color: badge.getRarityColor() }}>({badge.rarity})</span>
+                </div>
+                <div className="GroupExerciseContents">
+                    {badge.description || 'No description available.'}
+                </div>
+                <div style={{ margin: '0 16px 16px 16px', fontSize: '12px', color: '#A0A0A0' }}>
+                    Badge ID: {badge.badgeId} | Reward Points: {badge.rewardPoints}
+                </div>
+            </div>
+        ));
+    };
 
     return (
         <div className="AppContents">
@@ -521,34 +378,8 @@ function BadgeManagerPage({ user }) {
 
             <div className="AdminGroupContainer">
                 <div className="GuideText">All Badges</div>
-
-                {isLoadingBadges ? (
-                    <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>
-                        Loading...
-                    </div>
-                ) : allBadges.length === 0 ? (
-                    <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>
-                        No Badges Found
-                    </div>
-                ) : (
-                    allBadges.map(badge => (
-                        <div
-                            key={badge.badgeId || `badge-${Math.random()}`}
-                            className="GroupExerciseContainer"
-                            onClick={() => setSelectedBadge(badge)}
-                        >
-                            <div className="GroupExerciseHeader" style={{ color: 'var(--main-color)' }}>
-                                {badge.name} <span style={{ fontSize: '12px', color: badge.getRarityColor() }}>({badge.rarity})</span>
-                            </div>
-                            <div className="GroupExerciseContents">
-                                {badge.description || 'No description available.'}
-                            </div>
-                            <div style={{ margin: '0 16px 16px 16px', fontSize: '12px', color: '#A0A0A0' }}>
-                                Badge ID: {badge.badgeId} | Reward Points: {badge.rewardPoints}
-                            </div>
-                        </div>
-                    ))
-                )}
+                
+                {renderBadgeList()}
 
                 <button
                     className="AdminActionButton"
@@ -559,17 +390,18 @@ function BadgeManagerPage({ user }) {
 
                 <button
                     className="AdminActionButton"
-                    onClick={() => awardBadgesF(user.uid)}
+                    onClick={() => awardBadges(user.uid)}
                 >
                     Award Badges
                 </button>
             </div>
 
             {showCreateBadgePopup && (
-                <CreateBadgePopup
-                    onCreateBadge={handleBadgeCreation}
+                <BadgeForm
+                    onSubmit={handleBadgeCreation}
                     onCancel={() => setShowCreateBadgePopup(false)}
-                    isCreating={isCreatingBadge}
+                    isProcessing={isCreatingBadge}
+                    submitText="Create Badge"
                 />
             )}
 

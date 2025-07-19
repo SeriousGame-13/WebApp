@@ -41,9 +41,9 @@ function AdminHeader({ user, onPageSelect, currentPage }) {
                     Logout
                 </button>
             </div>
-            
+
             <div className='AdminDropdownContainer'>
-                <button 
+                <button
                     className={`AdminDropdownButton ${showDropdown ? 'open' : ''}`}
                     onClick={handleDropdownToggle}
                 >
@@ -51,23 +51,29 @@ function AdminHeader({ user, onPageSelect, currentPage }) {
                 </button>
                 {showDropdown && (
                     <div className='AdminDropdownMenu'>
-                        <div 
+                        <div
                             className='AdminDropdownItem'
                             onClick={() => handlePageSelect('Group Manager')}
                         >
                             Group Manager
                         </div>
-                        <div 
+                        <div
                             className='AdminDropdownItem'
                             onClick={() => handlePageSelect('Challenge Manager')}
                         >
                             Challenge Manager
                         </div>
-                        <div 
+                        <div
                             className='AdminDropdownItem'
                             onClick={() => handlePageSelect('Badge Manager')}
                         >
                             Badge Manager
+                        </div>
+                        <div
+                            className='AdminDropdownItem'
+                            onClick={() => handlePageSelect('Workout Manager')}
+                        >
+                            Workout Manager
                         </div>
                     </div>
                 )}

@@ -6,10 +6,10 @@ import {
 export class Workout extends BaseModel {
   constructor(data = {}) {
     super({
-      userId: '',
-      startTime: serverTimestamp(),
-      endTime: null,
-      stations: [],
+      userId: data.userId || '',
+      startTime: data.startTime || serverTimestamp(),
+      endTime: data.endTime || null,
+      stations: data.stations || [],
       ...data
     });
   }

@@ -1,5 +1,6 @@
 // Base Model Klasse
 import { v4 as uuidv4 } from 'uuid';
+import { Timestamp } from 'firebase/firestore';
 
 export default class BaseModel {
   constructor(data = {}) {
@@ -40,6 +41,9 @@ export default class BaseModel {
   }
 
   getDurationMs(startTime, endTime) {
+
+    if(startTime == null || endTime == null)
+      return 0;
     let start;
     let end;
 

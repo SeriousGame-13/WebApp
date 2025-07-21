@@ -180,7 +180,7 @@ function AddExerciseForm({ onSubmit, onCancel, isProcessing, submitText }) {
         <div className='PopupBackground'>
             <div className='LargePopupContainer'>
                 <h2 style={{ margin: '20px 0', textAlign: 'center' }}>
-                    Add New <Exercise></Exercise>
+                    Add New Exercise
                 </h2>
                 <div className='BadgeCreateContent'>
                     <div className='BadgeInputSection'>

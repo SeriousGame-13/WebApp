@@ -10,12 +10,6 @@ import '../components/styles/LoginPage.css';
 
 //temp
 //For Test - Hyunu P.
-import { Workout } from '../services/interfaces/workout.jsx';
-import { getDummyWorkout, createAllDummyUsers, getDummyBadges } from '../utils/dummyDataGenerator.jsx';
-import UserModel from '../services/interfaces/user.jsx';
-import { GROUP_ROLE } from '../services/interfaces/constants.jsx';
-import WorkoutManager from './../services/firebase/WorkoutManagement.jsx';
-import BadgeManager from '../services/firebase/BadgeManagement.jsx';
 
 function AppLogin() {
     const [showLoginPopup, setShowLoginPopup] = useState(false);

@@ -6,10 +6,10 @@ import {
 export class Workout extends BaseModel {
   constructor(data = {}) {
     super({
-      userId: '',
-      startTime: serverTimestamp(),
-      endTime: null,
-      stations: [],
+      userId: data.userId || '',
+      startTime: data.startTime || serverTimestamp(),
+      endTime: data.endTime || null,
+      stations: data.stations || [],
       ...data
     });
   }
@@ -76,6 +76,7 @@ export class Station extends BaseModel {
       heartRateAvg: null,
       calories: 0,
       userId: "",
+      createdAt: data.createdAt || serverTimestamp(), // Hinzugefügt: Stellt sicher, dass ein Erstellungsdatum vorhanden ist
       ...data
     });
   }

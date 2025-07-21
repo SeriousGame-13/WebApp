@@ -4,6 +4,7 @@ import GroupManagerPage from './GroupManagerPage';
 import BadgeManagerPage from './BadgeManagerPage';
 import ChallengeManagerPage from './ChallengeManagerPage';
 import '../components/styles/LayoutElements.css';
+import WorkoutManagerPage from './WorkoutManagerPage';
 
 function AdminPageMain({ user }) {
     const [currentPage, setCurrentPage] = useState('Group Manager');
@@ -15,7 +16,9 @@ function AdminPageMain({ user }) {
             case 'Challenge Manager':
                 return <ChallengeManagerPage />;
             case 'Badge Manager':
-                return <BadgeManagerPage  user={user} />;
+                return <BadgeManagerPage user={user} />;
+            case 'Workout Manager':
+                return <WorkoutManagerPage user={user} />;
             default:
                 return <GroupManagerPage />;
         }
@@ -23,8 +26,8 @@ function AdminPageMain({ user }) {
 
     return (
         <div className='MainContainer'>
-            <AdminHeader 
-                user={user} 
+            <AdminHeader
+                user={user}
                 onPageSelect={setCurrentPage}
                 currentPage={currentPage}
             />

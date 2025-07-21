@@ -3,8 +3,6 @@ import { useState } from 'react';
 import IconElements from '../components/ui/IconElements';
 import LoginPage from '../pages/LoginPage';
 import UserManagement from '../services/firebase/UserManagementSystem';
-import WorkoutManager from './../services/firebase/WorkoutManagement.jsx';
-import GroupManagement from '../services/firebase/GroupManagementSystem';
 import DatamanagerElements from '../utils/dataManager';
 
 import ChallengePageElements from '../pages/ChallengePage';

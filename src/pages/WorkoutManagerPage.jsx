@@ -1,36 +1,29 @@
 import { useState, useEffect } from 'react';
 import '../components/styles/LayoutElements.css';
-import RewardSystem from '../services/firebase/RewardSystem';
 import WorkoutManager from '../services/firebase/WorkoutManagement';
 
-// Shared Workout Form Component
-function BadgeForm({ badge = null, onSubmit, onCancel, isProcessing, submitText }) {
+// Form for creating/editing a Workout
+function EditWorkoutForm({ workout = null, onSubmit, onCancel, isProcessing, submitText }) {
     const [formData, setFormData] = useState({
-        name: badge?.name || '',
-        description: badge?.description || '',
-        rewardPoints: badge?.rewardPoints || 0,
-        imageData: null
+        name: workout?.name || '',
+        description: workout?.description || '',
     });
 
     const handleInputChange = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
-
-
     const handleSubmit = () => {
-        if (formData.name.trim() && formData.rewardPoints >= 0) {
-            const submitData = {
+        if (formData.name.trim()) {
+            onSubmit({
                 ...formData,
                 name: formData.name.trim(),
                 description: formData.description.trim(),
-                rewardPoints: parseInt(formData.rewardPoints)
-            };
-            onSubmit(submitData);
+            });
         }
     };
 
-    const isValid = formData.name.trim() && formData.rewardPoints >= 0;
+    const isValid = formData.name.trim() !== '';
 
     useEffect(() => {
         const handleKeyDown = (e) => {
@@ -41,7 +34,7 @@ function BadgeForm({ badge = null, onSubmit, onCancel, isProcessing, submitText 
                 }
             } else if (e.key === 'Escape') {
                 e.preventDefault();
-                onCancel(); // nur das Formular schließen
+                onCancel();
             }
         };
 
@@ -49,13 +42,11 @@ function BadgeForm({ badge = null, onSubmit, onCancel, isProcessing, submitText 
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [isValid, isProcessing, formData]);
 
-
-
     if (isProcessing) {
         return (
             <div className='PopupBackground'>
                 <div className='PopupContainer'>
-                    <h2>{badge ? 'Updating' : 'Creating'} Workout...</h2>
+                    <h2>{workout ? 'Updating' : 'Creating'} Workout...</h2>
                 </div>
             </div>
         );
@@ -63,16 +54,15 @@ function BadgeForm({ badge = null, onSubmit, onCancel, isProcessing, submitText 
 
     const inputFields = [
         { key: 'name', label: 'Name', type: 'text', maxLength: 50, placeholder: 'Enter name' },
-        { key: 'description', label: 'Description', type: 'text', maxLength: 200, placeholder: 'Enter description' },
+        { key: 'description', label: 'Description', type: 'textarea', placeholder: 'Enter description' },
     ];
 
     return (
         <div className='PopupBackground'>
             <div className='LargePopupContainer'>
                 <h2 style={{ margin: '20px 0', textAlign: 'center' }}>
-                    {badge ? 'Edit' : 'Create New'} Workout
+                    {workout ? 'Edit' : 'Create New'} Workout
                 </h2>
-
                 <div className='BadgeCreateContent'>
                     <div className='BadgeInputSection'>
                         {inputFields.map(field => (
@@ -84,7 +74,7 @@ function BadgeForm({ badge = null, onSubmit, onCancel, isProcessing, submitText 
                                         value={formData[field.key]}
                                         onChange={(e) => handleInputChange(field.key, e.target.value)}
                                         placeholder={field.placeholder}
-                                        rows={field.rows}
+                                        rows={4}
                                         style={{ resize: 'vertical' }}
                                     />
                                 ) : (
@@ -95,17 +85,12 @@ function BadgeForm({ badge = null, onSubmit, onCancel, isProcessing, submitText 
                                         onChange={(e) => handleInputChange(field.key, e.target.value)}
                                         placeholder={field.placeholder}
                                         maxLength={field.maxLength}
-                                        min={field.min}
                                     />
                                 )}
                             </div>
                         ))}
-
                     </div>
-
-
                 </div>
-
                 <div className='BadgeCreateFooter'>
                     <div className='Line'></div>
                     <div className='Buttonfield'>
@@ -126,88 +111,247 @@ function BadgeForm({ badge = null, onSubmit, onCancel, isProcessing, submitText 
     );
 }
 
-function AdminBadgeDetailPopup({ badge: object, onClose, onBadgeUpdated, user }) {
-    const [isProcessing, setIsProcessing] = useState(false);
-    const [showEditPopup, setShowEditPopup] = useState(false);
-    const [isUpdatingBadge, setIsUpdatingBadge] = useState(false);
+// Component for adding a station
+function AddStationForm({ onSubmit, onCancel, isProcessing, submitText }) {
+    const [formData, setFormData] = useState({
+        name: '',
+        description: '',
+        points: 0,
+        calories: 0,
+        heartRateAvg: 0
+    });
+
+    const handleInputChange = (field, value) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
+    };
+
+    const handleSubmit = () => {
+        if (formData.name.trim()) {
+            const submitData = {
+                ...formData,
+                name: formData.name.trim(),
+                description: formData.description.trim(),
+                points: parseInt(formData.points, 10) || 0,
+                calories: parseInt(formData.calories, 10) || 0,
+                heartRateAvg: parseInt(formData.heartRateAvg, 10) || 0
+            };
+            onSubmit(submitData);
+        }
+    };
+
+    const isValid = formData.name.trim() !== '';
 
     useEffect(() => {
-        if (showEditPopup) return;
-
         const handleKeyDown = (e) => {
-            if (e.key === 'Escape') {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
                 e.preventDefault();
-                onClose(); // gesamtes Popup schließen
+                if (isValid && !isProcessing) {
+                    handleSubmit();
+                }
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                onCancel();
             }
         };
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [showEditPopup]);
+    }, [isValid, isProcessing, formData]);
 
+    if (isProcessing) {
+        return (
+            <div className='PopupBackground'>
+                <div className='PopupContainer'>
+                    <h2>Adding Station...</h2>
+                </div>
+            </div>
+        );
+    }
 
+    const inputFields = [
+        { key: 'name', label: 'Name', type: 'text', maxLength: 50, placeholder: 'Enter station name' },
+        { key: 'description', label: 'Description', type: 'textarea', placeholder: 'Enter description' },
+        { key: 'points', label: 'Points', type: 'number', min: 0, placeholder: 'Enter points for completing' },
+        { key: 'calories', label: 'Calories', type: 'number', min: 0, placeholder: 'Enter calories' },
+        { key: 'heartRateAvg', label: 'Heartrate Avg', type: 'number', min: 0, placeholder: 'Enter heartRateAvg' },
+    ];
 
+    return (
+        <div className='PopupBackground'>
+            <div className='LargePopupContainer'>
+                <h2 style={{ margin: '20px 0', textAlign: 'center' }}>
+                    Add New Station
+                </h2>
+                <div className='BadgeCreateContent'>
+                    <div className='BadgeInputSection'>
+                        {inputFields.map(field => (
+                            <div key={field.key} className='BadgeInputGroup'>
+                                <label className='BadgeInputLabel'>{field.label}</label>
+                                {field.type === 'textarea' ? (
+                                    <textarea
+                                        className='Input'
+                                        value={formData[field.key]}
+                                        onChange={(e) => handleInputChange(field.key, e.target.value)}
+                                        placeholder={field.placeholder}
+                                        rows={4}
+                                        style={{ resize: 'vertical' }}
+                                    />
+                                ) : (
+                                    <input
+                                        className='Input'
+                                        type={field.type}
+                                        value={formData[field.key]}
+                                        onChange={(e) => handleInputChange(field.key, e.target.value)}
+                                        placeholder={field.placeholder}
+                                        maxLength={field.maxLength}
+                                        min={field.min}
+                                    />
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+                <div className='BadgeCreateFooter'>
+                    <div className='Line'></div>
+                    <div className='Buttonfield'>
+                        <button className='CancelButton' onClick={onCancel}>
+                            Cancel
+                        </button>
+                        <button
+                            className='ConfirmButton'
+                            onClick={handleSubmit}
+                            disabled={!isValid}
+                        >
+                            {submitText}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
 
+// Popup to show workout details and stations
+function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user }) {
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [showEditPopup, setShowEditPopup] = useState(false);
+    const [isUpdatingWorkout, setIsUpdatingWorkout] = useState(false);
+    const [showAddStationPopup, setShowAddStationPopup] = useState(false);
+    const [isAddingStation, setIsAddingStation] = useState(false);
 
+    useEffect(() => {
+        if (showEditPopup || showAddStationPopup) return;
 
-    const handleDeleteBadge = async () => {
-        const confirmDelete = confirm(`Are you sure you want to delete the badge "${object.name}"? This action cannot be undone.`);
-        if (!confirmDelete) return;
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                onClose();
+            }
+        };
 
-        setIsProcessing(true);
-        try {
-            await WorkoutManager.deleteWorkout(user.uid, object.uid);
-            onBadgeUpdated();
-            onClose();
-        } catch (error) {
-            console.error('Failed to delete badge:', error);
-            alert('Failed to delete badge: ' + error.message);
-        } finally {
-            setIsProcessing(false);
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [showEditPopup, showAddStationPopup, onClose]);
+
+    const handleDeleteWorkout = async () => {
+        if (confirm(`Are you sure you want to delete the workout "${workout.name}"? This action cannot be undone.`)) {
+            setIsProcessing(true);
+            try {
+                await WorkoutManager.deleteWorkout(user.uid, workout.uid);
+                onWorkoutUpdated();
+                onClose();
+            } catch (error) {
+                console.error('Failed to delete workout:', error);
+                alert('Failed to delete workout: ' + error.message);
+            } finally {
+                setIsProcessing(false);
+            }
         }
     };
 
-    const handleUpdateBadge = async (updates) => {
-        setIsUpdatingBadge(true);
+    const handleUpdateWorkout = async (updates) => {
+        setIsUpdatingWorkout(true);
         try {
             await WorkoutManager.update({
-                uid: object.uid,
+                uid: workout.uid,
                 name: updates.name,
                 description: updates.description,
                 userId: user.uid
             });
-
             setShowEditPopup(false);
-            onBadgeUpdated();
-            onClose();
+            onWorkoutUpdated();
         } catch (error) {
-            console.error('Failed to update badge:', error);
-            alert('Failed to update badge: ' + error.message);
+            console.error('Failed to update workout:', error);
+            alert('Failed to update workout: ' + error.message);
         } finally {
-            setIsUpdatingBadge(false);
+            setIsUpdatingWorkout(false);
         }
     };
+
+    const handleAddStation = async (stationData) => {
+        setIsAddingStation(true);
+        try {
+            await WorkoutManager.addStation(user.uid, workout.uid, stationData);
+            setShowAddStationPopup(false);
+            onWorkoutUpdated();
+        } catch (error) {
+            console.error('Failed to add station:', error);
+            alert('Failed to add station: ' + error.message);
+        } finally {
+            setIsAddingStation(false);
+        }
+    };
+
     return (
         <div className='PopupBackground'>
             <div className='LargePopupContainer'>
-                <h2 style={{ textAlign: 'center' }}>Editing</h2>
-
+                <h2 style={{ textAlign: 'center' }}>Workout Details</h2>
                 <div className='GroupDetailContainer'>
                     <div className='BadgeDetailHeader'>
                         <div className='BadgeInfoContainer'>
                             <div className='BadgeDetailTitle' style={{ color: 'var(--main-color)' }}>
-                                {object.name}
+                                {workout.name}
                             </div>
                         </div>
                     </div>
-
                     <div className='GroupDetailDescription' style={{ textAlign: 'left' }}>
-                        {object.description || 'No description available.'}
+                        {workout.description || 'No description available.'}
+                    </div>
+                    <div className='GroupDetailInfo' style={{ textAlign: 'left' }}>
+                        <div>Workout ID: {workout.uid}</div>
+                        {workout.startTime && <div>Created: {workout.startTime.toDate().toLocaleString()}</div>}
                     </div>
 
-                    <div className='GroupDetailInfo' style={{ textAlign: 'left' }}>
-                        <div>Workout ID: {object.uid}</div>
-                        <div>StartTime: {object.startTime.toDate().toLocaleDateString()} {object.startTime.toDate().toLocaleTimeString()}</div>
+                    <div className="StationsSection" style={{ marginTop: '20px', textAlign: 'left' }}>
+                        <h3 style={{ color: 'var(--main-color)', marginBottom: '10px' }}>Stations</h3>
+                        <div className="StationList" style={{ maxHeight: '200px', overflowY: 'auto', paddingRight: '10px' }}>
+                            {workout.stations && workout.stations.length > 0 ? (
+                                [...workout.stations]
+                                    .sort((a, b) => {
+                                        // Sortiert die Stationen, neueste zuerst.
+                                        const dateA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
+                                        const dateB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
+                                        return dateB - dateA;
+                                    })
+                                    .map(station => (
+                                    <div key={station.uid} className="StationItem" style={{ border: '1px solid #444', borderRadius: '8px', padding: '10px', marginBottom: '10px', background: '#2C2C2C' }}>
+                                        <strong style={{ color: '#E5E5E5' }}>{station.name}</strong>
+                                        <p style={{ margin: '5px 0', color: '#A0A0A0' }}>{station.description || 'No description.'}</p>
+                                        <div style={{ fontSize: '12px', color: '#A0A0A0' }}>Points: {station.points || 0}</div>
+                                    </div>
+                                ))
+                            ) : (
+                                <p style={{ color: '#A0A0A0' }}>No stations have been added to this workout yet.</p>
+                            )}
+                        </div>
+                        <button
+                            className='AdminActionButton'
+                            style={{ marginTop: '10px' }}
+                            onClick={() => setShowAddStationPopup(true)}
+                            disabled={isProcessing}
+                        >
+                            Add New Station
+                        </button>
                     </div>
 
                     <div className="GroupActionButtons" style={{ marginTop: '40px' }}>
@@ -216,30 +360,38 @@ function AdminBadgeDetailPopup({ badge: object, onClose, onBadgeUpdated, user })
                             onClick={() => setShowEditPopup(true)}
                             disabled={isProcessing}
                         >
-                            Edit Workout
+                            Edit Workout Info
                         </button>
                         <button
                             className='GroupActionButton'
-                            onClick={handleDeleteBadge}
+                            onClick={handleDeleteWorkout}
                             disabled={isProcessing}
                         >
                             {isProcessing ? 'Deleting...' : 'Delete Workout'}
                         </button>
                     </div>
                 </div>
-
                 <div className='Line'></div>
                 <div className='Buttonfield'>
                     <button className='CancelButton' onClick={onClose}>Close</button>
                 </div>
 
                 {showEditPopup && (
-                    <BadgeForm
-                        badge={object}
-                        onSubmit={handleUpdateBadge}
+                    <EditWorkoutForm
+                        workout={workout}
+                        onSubmit={handleUpdateWorkout}
                         onCancel={() => setShowEditPopup(false)}
-                        isProcessing={isUpdatingBadge}
+                        isProcessing={isUpdatingWorkout}
                         submitText="Update Workout"
+                    />
+                )}
+
+                {showAddStationPopup && (
+                    <AddStationForm
+                        onSubmit={handleAddStation}
+                        onCancel={() => setShowAddStationPopup(false)}
+                        isProcessing={isAddingStation}
+                        submitText="Add Station"
                     />
                 )}
             </div>
@@ -248,39 +400,50 @@ function AdminBadgeDetailPopup({ badge: object, onClose, onBadgeUpdated, user })
 }
 
 function WorkoutManagerPage({ user }) {
-    const [allObjs, setAll] = useState([]);
+    const [workouts, setWorkouts] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [selectedObject, setSelected] = useState(null);
+    const [selectedWorkout, setSelectedWorkout] = useState(null);
     const [showCreatePopup, setShowCreatePopup] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
 
-    useEffect(() => {
-        loadAll();
-    }, []);
-
-    const loadAll = async () => {
+    const loadWorkouts = async () => {
+        setIsLoading(true);
         try {
-            setIsLoading(true);
             const data = await WorkoutManager.loadWorkouts(user.uid);
-            setAll(data);
+            setWorkouts(data);
+
+            if (selectedWorkout) {
+                const updatedSelectedWorkout = data.find(w => w.uid === selectedWorkout.uid);
+                if (updatedSelectedWorkout) {
+                    setSelectedWorkout(updatedSelectedWorkout);
+                } else {
+                    setSelectedWorkout(null);
+                }
+            }
         } catch (error) {
-            console.error('Failed to load all:', error);
-            setAll([]);
+            console.error('Failed to load workouts:', error);
+            setWorkouts([]);
         } finally {
             setIsLoading(false);
         }
     };
 
-    const handleBadgeCreation = async (data) => {
+    useEffect(() => {
+        if (user?.uid) {
+            loadWorkouts();
+        }
+    }, [user]);
+
+    const handleWorkoutCreation = async (data) => {
         setIsCreating(true);
         try {
             data.userId = user.uid;
             await WorkoutManager.saveWorkout(data);
             setShowCreatePopup(false);
-            await loadAll();
+            await loadWorkouts();
         } catch (error) {
-            console.error('Failed to create badge:', error);
-            alert('Failed to create badge: ' + error.message);
+            console.error('Failed to create workout:', error);
+            alert('Failed to create workout: ' + error.message);
         } finally {
             setIsCreating(false);
         }
@@ -288,27 +451,27 @@ function WorkoutManagerPage({ user }) {
 
     const renderList = () => {
         if (isLoading) {
-            return <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>Loading...</div>;
+            return <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>Loading Workouts...</div>;
         }
 
-        if (allObjs.length === 0) {
-            return <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>No Badges Found</div>;
+        if (workouts.length === 0) {
+            return <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>No Workouts Found. Create one to get started!</div>;
         }
 
-        return allObjs.map(object => (
+        return workouts.map(workout => (
             <div
-                key={object.uid || `badge-${Math.random()}`}
+                key={workout.uid}
                 className="GroupExerciseContainer"
-                onClick={() => setSelected(object)}
+                onClick={() => setSelectedWorkout(workout)}
             >
                 <div className="GroupExerciseHeader" style={{ color: 'var(--main-color)' }}>
-                    {object.name} <span style={{ fontSize: '12px' }}>({object.rarity})</span>
+                    {workout.name}
                 </div>
                 <div className="GroupExerciseContents">
-                    {object.description || 'No description available.'}
+                    {workout.description || 'No description available.'}
                 </div>
                 <div style={{ margin: '0 16px 16px 16px', fontSize: '12px', color: '#A0A0A0' }}>
-                    Workout ID: {object.uid} | Reward Points: {object.rewardPoints}
+                    Stations: {workout.stations?.length || 0}
                 </div>
             </div>
         ));
@@ -317,12 +480,9 @@ function WorkoutManagerPage({ user }) {
     return (
         <div className="AppContents">
             <h2 style={{ color: '#E5E5E5', margin: '0 0 20px 0' }}>Workout Manager</h2>
-
             <div className="AdminGroupContainer">
-                <div className="GuideText">All Badges</div>
-
+                <div className="GuideText">All Workouts</div>
                 {renderList()}
-
                 <button
                     className="AdminActionButton"
                     onClick={() => setShowCreatePopup(true)}
@@ -332,19 +492,19 @@ function WorkoutManagerPage({ user }) {
             </div>
 
             {showCreatePopup && (
-                <BadgeForm
-                    onSubmit={handleBadgeCreation}
+                <EditWorkoutForm
+                    onSubmit={handleWorkoutCreation}
                     onCancel={() => setShowCreatePopup(false)}
                     isProcessing={isCreating}
                     submitText="Create Workout"
                 />
             )}
 
-            {selectedObject && (
-                <AdminBadgeDetailPopup
-                    badge={selectedObject}
-                    onClose={() => setSelected(null)}
-                    onBadgeUpdated={loadAll}
+            {selectedWorkout && (
+                <WorkoutDetailPopup
+                    workout={selectedWorkout}
+                    onClose={() => setSelectedWorkout(null)}
+                    onWorkoutUpdated={loadWorkouts}
                     user={user}
                 />
             )}

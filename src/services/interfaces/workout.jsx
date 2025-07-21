@@ -76,6 +76,7 @@ export class Station extends BaseModel {
       heartRateAvg: null,
       calories: 0,
       userId: "",
+      createdAt: data.createdAt || serverTimestamp(), // Hinzugefügt: Stellt sicher, dass ein Erstellungsdatum vorhanden ist
       ...data
     });
   }

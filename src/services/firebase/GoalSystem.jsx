@@ -374,21 +374,21 @@ const getGoalRecommendations = async (userId) => {
         const exerciseStats = {};
 
         user.workouts.forEach(workout => {
-            workout.stations.forEach(station => {
-                if (station.exerciseDefId) {
-                    if (!exerciseStats[station.exerciseDefId]) {
-                        exerciseStats[station.exerciseDefId] = {
+            workout.exercises.forEach(exercise => {
+                if (exercise.exerciseDefId) {
+                    if (!exerciseStats[exercise.exerciseDefId]) {
+                        exerciseStats[exercise.exerciseDefId] = {
                             count: 0,
                             bestScore: 0,
                             totalPoints: 0
                         };
                     }
-                    exerciseStats[station.exerciseDefId].count++;
-                    exerciseStats[station.exerciseDefId].bestScore = Math.max(
-                        exerciseStats[station.exerciseDefId].bestScore,
-                        station.points || 0
+                    exerciseStats[exercise.exerciseDefId].count++;
+                    exerciseStats[exercise.exerciseDefId].bestScore = Math.max(
+                        exerciseStats[exercise.exerciseDefId].bestScore,
+                        exercise.points || 0
                     );
-                    exerciseStats[station.exerciseDefId].totalPoints += station.points || 0;
+                    exerciseStats[exercise.exerciseDefId].totalPoints += exercise.points || 0;
                 }
             });
         });

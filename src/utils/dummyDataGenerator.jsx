@@ -1,4 +1,4 @@
-import { Workout, Station } from '../services/interfaces/workout.jsx';
+import { Workout, Exercise } from '../services/interfaces/workout.jsx';
 import {
   Timestamp
 } from 'firebase/firestore';
@@ -25,27 +25,27 @@ function getRandomTimeStampIn2025() {
   return Timestamp.fromDate(new Date(year, month, day, hour, minute));
 }
 
-function getDummyStationEntry(userId) {
+function getDummyExerEntry(userId) {
   const startTime = getRandomTimeStampIn2025();
   const durationMinutes = getRandomInt(10, 90);
   var time = startTime.toDate()
   time.setTime(time.getTime() + durationMinutes * 60000);
   const endTime = Timestamp.fromDate(new Date(time));
-  const station = new Station();
-  station.startTime = startTime;
-  station.endTime = endTime;
-  station.points = getRandomInt(500, 2000);
-  station.heartRateAvg = getRandomInt(110, 220);
-  station.calories = getRandomInt(200, 1200);
-  station.userId = userId;
-  return station;
+  const exer = new Exercise();
+  exer.startTime = startTime;
+  exer.endTime = endTime;
+  exer.points = getRandomInt(500, 2000);
+  exer.heartRateAvg = getRandomInt(110, 220);
+  exer.calories = getRandomInt(200, 1200);
+  exer.userId = userId;
+  return exer;
 }
 
 export function getDummyWorkout(uid, numberOfSessions = 20) {
   const workout = new Workout();
   workout.userId = uid;
   for (let i = 0; i < numberOfSessions; i++) {
-    workout.addStation(getDummyStationEntry(uid));
+    workout.addExercise(getDummyExerEntry(uid));
   }
   return workout;
 }

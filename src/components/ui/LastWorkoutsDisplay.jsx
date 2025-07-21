@@ -15,22 +15,22 @@ const LastWorkoutsDisplay = ({ userData }) => {
     };
 
     const getWorkoutSummary = (workout) => {
-        if (!workout.stations) return { totalCalories: 0, totalTime: 0, stationCount: 0, totalPoints: 0 };
+        if (!workout.exercises) return { totalCalories: 0, totalTime: 0, exerCount: 0, totalPoints: 0 };
 
-        const totalCalories = workout.stations.reduce((total, station) => total + (station.calories || 0), 0);
-        const totalPoints = workout.stations.reduce((total, station) => total + (station.points || 0), 0);
-        const stationCount = workout.stations.length;
+        const totalCalories = workout.exercises.reduce((total, exercise) => total + (exercise.calories || 0), 0);
+        const totalPoints = workout.exercises.reduce((total, exercise) => total + (exercise.points || 0), 0);
+        const exerCount = workout.exercises.length;
 
         // Calculate total time from first start to last end
         let totalTime = 0;
-        if (workout.stations.length > 0) {
-            const sortedStations = [...workout.stations].sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
-            const firstStart = sortedStations[0].startTime;
-            const lastEnd = sortedStations[sortedStations.length - 1].endTime;
+        if (workout.exercises.length > 0) {
+            const sortedExers = [...workout.exercises].sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+            const firstStart = sortedExers[0].startTime;
+            const lastEnd = sortedExers[sortedExers.length - 1].endTime;
             totalTime = workout.getDurationMinutes(firstStart, lastEnd)
         }
 
-        return { totalCalories, totalTime, stationCount, totalPoints };
+        return { totalCalories, totalTime, exerCount, totalPoints };
     };
 
     const formatTime = (minutes) => {
@@ -136,10 +136,10 @@ const LastWorkoutsDisplay = ({ userData }) => {
                                             </div>
                                             <div className="stat-item">
                                                 <div className="stat-value">
-                                                    {summary.stationCount}
+                                                    {summary.exerCount}
                                                 </div>
                                                 <div className="stat-label">
-                                                    Stationen
+                                                    Exercises
                                                 </div>
                                             </div>
                                         </div>
@@ -158,16 +158,16 @@ const LastWorkoutsDisplay = ({ userData }) => {
                                     {/* Expanded Details View */}
                                     {isExpanded && (
                                         <div className="workout-details">
-                                            {workout.stations && workout.stations.length === 0 && (
+                                            {workout.exercises && workout.exercises.length === 0 && (
                                                 <p className="no-stations-message">
-                                                    Keine Stationen in diesem Workout.
+                                                    Keine Übungen in diesem Workout.
                                                 </p>
                                             )}
 
-                                            {workout.stations && workout.stations.map((station, stationIndex) => (
-                                                <div key={stationIndex} className="station-item">
+                                            {workout.exercises && workout.exercises.map((exercise, exerIndex) => (
+                                                <div key={exerIndex} className="station-item">
                                                     <div className="station-title">
-                                                        Station {stationIndex + 1} {station.name && `- ${station.name}`}
+                                                        Übung {exerIndex + 1} {exercise.name && `- ${exercise.name}`}
                                                     </div>
                                                     <div className="station-detail">
                                                         <span className="label">User:</span>
@@ -175,23 +175,23 @@ const LastWorkoutsDisplay = ({ userData }) => {
                                                     </div>
                                                     <div className="station-detail">
                                                         <span className="label">Start:</span>
-                                                        {new Date(station.start).toLocaleString('de-DE')}
+                                                        {new Date(exercise.start).toLocaleString('de-DE')}
                                                     </div>
                                                     <div className="station-detail">
                                                         <span className="label">Ende:</span>
-                                                        {new Date(station.end).toLocaleString('de-DE')}
+                                                        {new Date(exercise.end).toLocaleString('de-DE')}
                                                     </div>
                                                     <div className="station-detail">
                                                         <span className="label">Punkte:</span>
-                                                        {station.points}
+                                                        {exercise.points}
                                                     </div>
                                                     <div className="station-detail">
                                                         <span className="label">Kalorien:</span>
-                                                        {station.calories}
+                                                        {exercise.calories}
                                                     </div>
                                                     <div className="station-detail">
                                                         <span className="label">Ø Herzfrequenz:</span>
-                                                        {station.heartRateAvg}
+                                                        {exercise.heartRateAvg}
                                                     </div>
                                                 </div>
                                             ))}
@@ -202,8 +202,8 @@ const LastWorkoutsDisplay = ({ userData }) => {
                                                     Workout Summary:
                                                 </div>
                                                 <div className="station-detail">
-                                                    <span className="label">Total Stations:</span>
-                                                    {summary.stationCount}
+                                                    <span className="label">Total exercises:</span>
+                                                    {summary.exerCount}
                                                 </div>
                                                 <div className="station-detail">
                                                     <span className="label">Total Points:</span>

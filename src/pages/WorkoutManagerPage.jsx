@@ -111,8 +111,8 @@ function EditWorkoutForm({ workout = null, onSubmit, onCancel, isProcessing, sub
     );
 }
 
-// Component for adding a station
-function AddStationForm({ onSubmit, onCancel, isProcessing, submitText }) {
+// Component for adding a Exercise
+function AddExerciseForm({ onSubmit, onCancel, isProcessing, submitText }) {
     const [formData, setFormData] = useState({
         name: '',
         description: '',
@@ -162,14 +162,14 @@ function AddStationForm({ onSubmit, onCancel, isProcessing, submitText }) {
         return (
             <div className='PopupBackground'>
                 <div className='PopupContainer'>
-                    <h2>Adding Station...</h2>
+                    <h2>Adding Exercise...</h2>
                 </div>
             </div>
         );
     }
 
     const inputFields = [
-        { key: 'name', label: 'Name', type: 'text', maxLength: 50, placeholder: 'Enter station name' },
+        { key: 'name', label: 'Name', type: 'text', maxLength: 50, placeholder: 'Enter Übungs name' },
         { key: 'description', label: 'Description', type: 'textarea', placeholder: 'Enter description' },
         { key: 'points', label: 'Points', type: 'number', min: 0, placeholder: 'Enter points for completing' },
         { key: 'calories', label: 'Calories', type: 'number', min: 0, placeholder: 'Enter calories' },
@@ -180,7 +180,7 @@ function AddStationForm({ onSubmit, onCancel, isProcessing, submitText }) {
         <div className='PopupBackground'>
             <div className='LargePopupContainer'>
                 <h2 style={{ margin: '20px 0', textAlign: 'center' }}>
-                    Add New Station
+                    Add New <Exercise></Exercise>
                 </h2>
                 <div className='BadgeCreateContent'>
                     <div className='BadgeInputSection'>
@@ -231,16 +231,16 @@ function AddStationForm({ onSubmit, onCancel, isProcessing, submitText }) {
     );
 }
 
-// Popup to show workout details and stations
+// Popup to show workout details and exercises
 function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user }) {
     const [isProcessing, setIsProcessing] = useState(false);
     const [showEditPopup, setShowEditPopup] = useState(false);
     const [isUpdatingWorkout, setIsUpdatingWorkout] = useState(false);
-    const [showAddStationPopup, setShowAddStationPopup] = useState(false);
-    const [isAddingStation, setIsAddingStation] = useState(false);
+    const [showAddPopup, setShowAddPopup] = useState(false);
+    const [isAdding, setIsAdding] = useState(false);
 
     useEffect(() => {
-        if (showEditPopup || showAddStationPopup) return;
+        if (showEditPopup || showAddPopup) return;
 
         const handleKeyDown = (e) => {
             if (e.key === 'Escape') {
@@ -251,7 +251,7 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user }) {
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [showEditPopup, showAddStationPopup, onClose]);
+    }, [showEditPopup, showAddPopup, onClose]);
 
     const handleDeleteWorkout = async () => {
         if (confirm(`Are you sure you want to delete the workout "${workout.name}"? This action cannot be undone.`)) {
@@ -288,17 +288,17 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user }) {
         }
     };
 
-    const handleAddStation = async (stationData) => {
-        setIsAddingStation(true);
+    const handleAddExercise = async (exerData) => {
+        setIsAdding(true);
         try {
-            await WorkoutManager.addStation(user.uid, workout.uid, stationData);
-            setShowAddStationPopup(false);
+            await WorkoutManager.addExercise(user.uid, workout.uid, exerData);
+            setShowAddPopup(false);
             onWorkoutUpdated();
         } catch (error) {
-            console.error('Failed to add station:', error);
-            alert('Failed to add station: ' + error.message);
+            console.error('Failed to add Exercise:', error);
+            alert('Failed to add Exercise: ' + error.message);
         } finally {
-            setIsAddingStation(false);
+            setIsAdding(false);
         }
     };
 
@@ -323,34 +323,34 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user }) {
                     </div>
 
                     <div className="StationsSection" style={{ marginTop: '20px', textAlign: 'left' }}>
-                        <h3 style={{ color: 'var(--main-color)', marginBottom: '10px' }}>Stations</h3>
+                        <h3 style={{ color: 'var(--main-color)', marginBottom: '10px' }}>exercises</h3>
                         <div className="StationList" style={{ maxHeight: '200px', overflowY: 'auto', paddingRight: '10px' }}>
-                            {workout.stations && workout.stations.length > 0 ? (
-                                [...workout.stations]
+                            {workout.exercises && workout.exercises.length > 0 ? (
+                                [...workout.exercises]
                                     .sort((a, b) => {
-                                        // Sortiert die Stationen, neueste zuerst.
+                                        // Sortiert die exercises, neueste zuerst.
                                         const dateA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
                                         const dateB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
                                         return dateB - dateA;
                                     })
-                                    .map(station => (
-                                    <div key={station.uid} className="StationItem" style={{ border: '1px solid #444', borderRadius: '8px', padding: '10px', marginBottom: '10px', background: '#2C2C2C' }}>
-                                        <strong style={{ color: '#E5E5E5' }}>{station.name}</strong>
-                                        <p style={{ margin: '5px 0', color: '#A0A0A0' }}>{station.description || 'No description.'}</p>
-                                        <div style={{ fontSize: '12px', color: '#A0A0A0' }}>Points: {station.points || 0}</div>
+                                    .map(exercise => (
+                                    <div key={exercise.uid} className="StationItem" style={{ border: '1px solid #444', borderRadius: '8px', padding: '10px', marginBottom: '10px', background: '#2C2C2C' }}>
+                                        <strong style={{ color: '#E5E5E5' }}>{exercise.name}</strong>
+                                        <p style={{ margin: '5px 0', color: '#A0A0A0' }}>{exercise.description || 'No description.'}</p>
+                                        <div style={{ fontSize: '12px', color: '#A0A0A0' }}>Points: {exercise.points || 0}</div>
                                     </div>
                                 ))
                             ) : (
-                                <p style={{ color: '#A0A0A0' }}>No stations have been added to this workout yet.</p>
+                                <p style={{ color: '#A0A0A0' }}>No exercises have been added to this workout yet.</p>
                             )}
                         </div>
                         <button
                             className='AdminActionButton'
                             style={{ marginTop: '10px' }}
-                            onClick={() => setShowAddStationPopup(true)}
+                            onClick={() => setShowAddPopup(true)}
                             disabled={isProcessing}
                         >
-                            Add New Station
+                            Add New Exercise
                         </button>
                     </div>
 
@@ -386,12 +386,12 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user }) {
                     />
                 )}
 
-                {showAddStationPopup && (
-                    <AddStationForm
-                        onSubmit={handleAddStation}
-                        onCancel={() => setShowAddStationPopup(false)}
-                        isProcessing={isAddingStation}
-                        submitText="Add Station"
+                {showAddPopup && (
+                    <AddExerciseForm
+                        onSubmit={handleAddExercise}
+                        onCancel={() => setShowAddPopup(false)}
+                        isProcessing={isAdding}
+                        submitText="Add Exercise"
                     />
                 )}
             </div>
@@ -471,7 +471,7 @@ function WorkoutManagerPage({ user }) {
                     {workout.description || 'No description available.'}
                 </div>
                 <div style={{ margin: '0 16px 16px 16px', fontSize: '12px', color: '#A0A0A0' }}>
-                    Stations: {workout.stations?.length || 0}
+                    exercises: {workout.exercises?.length || 0}
                 </div>
             </div>
         ));

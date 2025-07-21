@@ -11,11 +11,11 @@ import { createWorkoutAnalytics } from '../utils/FirestoreAnalytics.jsx';
 function Page({ data }) {
     const userData = data;
 
-    const [workout, setStations] = useState(new Workout());
+    const [workout, setWorkout] = useState(new Workout());
 
     const handleGenerate = () => {
         const newData = getDummyWorkout(userData.uid, 30);
-        setStations(newData);
+        setWorkout(newData);
     };
 
     const handleSave = async () => {
@@ -74,12 +74,12 @@ function Page({ data }) {
                 color: '#a0ff78',
                 fontFamily: 'sans-serif'
             }}>
-                {workout.stations.length === 0 && (
+                {workout.exercises.length === 0 && (
                     <p style={{ textAlign: 'center', color: '#aaa' }}>
                         Noch keine Trainings-Daten generiert.
                     </p>
                 )}
-                {workout.stations.map((entry, index) => (
+                {workout.exercises.map((entry, index) => (
                     <div key={index} style={{
                         marginBottom: '1rem',
                         paddingBottom: '0.75rem',

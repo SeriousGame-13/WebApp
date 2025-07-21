@@ -9,7 +9,7 @@ export class Workout extends BaseModel {
       userId: data.userId || '',
       startTime: data.startTime || serverTimestamp(),
       endTime: data.endTime || null,
-      stations: data.stations || [],
+      exercises: data.exercises || [],
       ...data
     });
   }
@@ -29,12 +29,12 @@ export class Workout extends BaseModel {
     return Math.floor(this.getDuration() / (1000 * 60 * 60));
   }
 
-  addStation(station) {
-    this.stations.push(station);
+  addExercise(exercise) {
+    this.exercises.push(exercise);
   }
 
-  removeStation(stationId) {
-    this.stations = this.stations.filter(st => st.stationId !== stationId);
+  removeExercise(exerciseId) {
+    this.exercises = this.exercises.filter(st => st.exerciseId !== exerciseId);
   }
 
   validate() {
@@ -43,31 +43,31 @@ export class Workout extends BaseModel {
 
   // Berechne Gesamtpunkte des Workouts
   getTotalPoints() {
-    return this.stations.reduce((total, station) => {
-      return total + (station.points ? station.points : 0);
+    return this.exercises.reduce((total, exercise) => {
+      return total + (exercise.points ? exercise.points : 0);
     }, 0);
   }
 
   getTotalTime() {
-    if (!this.stations || this.stations.length === 0) return 0;
+    if (!this.exercises || this.exercises.length === 0) return 0;
 
-    return (this.stations.reduce((total, station) => {
-      if (station.startTime && station.endTime) {
-        return total + station.getDurationMs(station.startTime, station.endTime);
+    return (this.exercises.reduce((total, exercise) => {
+      if (exercise.startTime && exercise.endTime) {
+        return total + exercise.getDurationMs(exercise.startTime, exercise.endTime);
       }
       return total;
     }, 0));
   }
 
   getCalories() {
-    if (!this.stations || this.stations.length === 0) return 0;
-    return (this.stations.reduce((total, station) => {
-      return total + station.calories;
+    if (!this.exercises || this.exercises.length === 0) return 0;
+    return (this.exercises.reduce((total, exer) => {
+      return total + exer.calories;
     }, 0));
   }
 }
 
-export class Station extends BaseModel {
+export class Exercise extends BaseModel {
   constructor(data = {}) {
     super({
       points: 0,

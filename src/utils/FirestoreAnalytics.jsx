@@ -18,7 +18,7 @@ class FirestoreAnalytics {
      * Structure format: [
      *   { name: 'users', idField: 'uid' },
      *   { name: 'workouts', idField: 'uid' },
-     *   { name: 'stations', idField: 'uid' }
+     *   { name: 'exercises', idField: 'uid' }
      * ]
      */
     setStructure(structure) {
@@ -33,7 +33,7 @@ class FirestoreAnalytics {
      * Format: {
      *   0: ['uid', 'userName'], // fields at users level
      *   1: ['uid', 'workoutDate', 'duration'], // fields at workouts level
-     *   2: ['uid', 'calories', 'points', 'heartRateAvg'] // fields at stations level
+     *   2: ['uid', 'calories', 'points', 'heartRateAvg'] // fields at exercises level
      * }
      */
     setFieldMappings(mappings) {
@@ -397,7 +397,7 @@ function createWorkoutAnalytics() {
     analytics.setStructure([
         { name: 'users', idField: 'uid' },
         { name: 'workouts', idField: 'uid' },
-        { name: 'stations', idField: 'uid' }
+        { name: 'exercises', idField: 'uid' }
     ]);
 
     // Define field mappings
@@ -426,7 +426,7 @@ function createCustomAnalytics(structure, fieldMappings) {
 // Create workout analytics
 const analytics = createWorkoutAnalytics();
 
-// Get total calories from all users (depth 2 = stations)
+// Get total calories from all users (depth 2 = exercises)
 const totalCalories = await analytics.query({
     targetDepth: 2,
     sumField: 'calories'
@@ -439,7 +439,7 @@ const userCalories = await analytics.query({
     filterPath: ['specificUserId']
 });
 
-// Query high-intensity stations with heart rate > 150
+// Query high-intensity exercises with heart rate > 150
 const highIntensity = await analytics.query({
     targetDepth: 2,
     conditions: [

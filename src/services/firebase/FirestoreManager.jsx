@@ -97,7 +97,7 @@ const setDocument = async (documentReference, documentData, merge = true) => {
 const updateDocument = async (collectionName, docId, data, addTimestamp = true) => {
     try {
         const docRef = getDocumentReference(collectionName, docId);
-        
+        delete data.createdAt;
         // Add timestamp if requested
         const documentData = addTimestamp 
             ? { ...data, 

@@ -1,9 +1,13 @@
-import { Exercise, Workout } from '../interfaces/workout.jsx';
 import FirestoreManager from './FirestoreManager.jsx';
+import { WORKOUT_COLLECTION, EXERCISE_COLLECTION } from './collections.jsx';
+
+import { Exercise } from '../interfaces/exercise.jsx';
+import { Workout } from '../interfaces/workout.jsx';
 import UserManagement from './UserManagementSystem.jsx';
-import { WORKOUT_COLLECTION, EXERCISE_COLLECTION as EXERCISE_COLLECTION } from './collections.jsx'
+import StationManager from './StationManagement.jsx';
+import HighscoreManager from './HighscoreManager.jsx';
 
-
+// ... (saveWorkout, loadWorkouts, etc. - no changes needed here)
 const createPath = (userId) => {
     return `${UserManagement.getUserDatabasePath(userId)}${WORKOUT_COLLECTION}`;
 }
@@ -14,17 +18,14 @@ const saveWorkout = async (workout) => {
     }
     try {
         const { exercises = [], ...workoutData } = workout;
-        //TODO check uid
         let points = workout.getTotalPoints();
         if (points > 0) {
             UserManagement.addPoints(workoutData.userId, points);
         }
 
-        // Save the main document and let Firebase generate the ID
         const workoutRef = await FirestoreManager.createDocument(`${createPath(workoutData.userId)}`, workoutData, workoutData.uid);
         if (!workoutRef) throw new Error('Could not save workout');
 
-        // Save exercises as a subcollection
         const exerSaves = exercises.map(exercise =>
             FirestoreManager.createDocument(`${createPath(workoutData.userId)}/${workoutRef.id}/${EXERCISE_COLLECTION}`, exercise, exercise.uid)
         );
@@ -38,13 +39,11 @@ const saveWorkout = async (workout) => {
     }
 }
 
-// Load all workouts (without exercises initially)
 const loadWorkouts = async (userId) => {
     try {
         const snapshot = await FirestoreManager.getAllDocuments(`${createPath(userId)}`);
         const workouts = snapshot.docs.map(doc => ({ ...doc.data() }));
-        
-        // For each workout, load its exercises
+
         for (const workout of workouts) {
             const exerSnap = await FirestoreManager.getAllDocuments(`${createPath(userId)}/${workout.uid}/${EXERCISE_COLLECTION}`);
             const exercises = exerSnap.docs.map(doc => Exercise.fromJSON(doc.data()));
@@ -58,7 +57,6 @@ const loadWorkouts = async (userId) => {
     }
 }
 
-// Load a single workout (including exercises)
 const loadWorkoutById = async (userId, idWorkout) => {
     try {
         const data = await FirestoreManager.readDocument(`${createPath(userId)}`, idWorkout);
@@ -76,13 +74,11 @@ const loadWorkoutById = async (userId, idWorkout) => {
 
 const deleteWorkout = async (userId, idWorkout) => {
     try {
-        // Delete all exercises in the subcollection first
         const exerSnap = await FirestoreManager.getAllDocuments(`${createPath(userId)}/${idWorkout}/${EXERCISE_COLLECTION}`);
         for (let doc of exerSnap.docs) {
             await FirestoreManager.deleteDocument(`${createPath(userId)}/${idWorkout}/${EXERCISE_COLLECTION}`, doc.id);
         }
 
-        // Delete the main workout document
         await FirestoreManager.deleteDocument(`${createPath(userId)}`, idWorkout);
     } catch (error) {
         console.error('Error deleting workout:', error);
@@ -92,28 +88,52 @@ const deleteWorkout = async (userId, idWorkout) => {
 
 const update = async (workout) => {
     try {
-        const { exercises = [], ...workoutData } = workout;
-        // Note: This function only updates the main workout document.
-        // exercises updates would need a separate mechanism if required.
+        const { ...workoutData } = workout;
         await FirestoreManager.updateDocument(`${createPath(workoutData.userId)}`, workoutData.uid, workoutData, true);
-
     } catch (error) {
         console.error('Error updating workout:', error);
         throw error;
     }
 }
 
-// New function to add a exercises to an existing workout
 const addExercise = async (userId, workoutId, exerData) => {
     try {
-        const exercise = new Exercise(exerData); // Create a new exercises instance to get default values and a new uid
+        const exercise = new Exercise({ ...exerData, userId }); // Ensure userId is set
         await FirestoreManager.createDocument(
             `${createPath(userId)}/${workoutId}/${EXERCISE_COLLECTION}`,
             exercise,
             exercise.uid
         );
+        if (exercise.stationId) {
+            await HighscoreManager.create(exercise);
+        }
     } catch (error) {
         console.error('Error adding exercise:', error);
+        throw error;
+    }
+};
+
+const updateExercise = async (userId, workoutId, exerciseData) => {
+    try {
+        const exercisePath = `${createPath(userId)}/${workoutId}/${EXERCISE_COLLECTION}`;
+        const dataToUpdate = { ...exerciseData };
+        delete dataToUpdate.uid;
+        await FirestoreManager.updateDocument(exercisePath, exerciseData.uid, dataToUpdate);
+        
+        exerciseData.userId = userId;
+        await HighscoreManager.create(exerciseData);
+    } catch (error) {
+        console.error('Error updating exercise:', error);
+        throw error;
+    }
+};
+
+const deleteExercise = async (userId, workoutId, exerciseId) => {
+    try {
+        const exercisePath = `${createPath(userId)}/${workoutId}/${EXERCISE_COLLECTION}`;
+        await FirestoreManager.deleteDocument(exercisePath, exerciseId);
+    } catch (error) {
+        console.error('Error deleting exercise:', error);
         throw error;
     }
 };
@@ -125,6 +145,8 @@ const WorkoutManager = {
     loadWorkouts,
     deleteWorkout,
     update,
-    addExercise // Export the new function
+    addExercise,
+    updateExercise,
+    deleteExercise,
 }
 export default WorkoutManager;

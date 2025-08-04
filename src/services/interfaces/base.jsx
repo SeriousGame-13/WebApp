@@ -1,13 +1,13 @@
 // Base Model Klasse
 import { v4 as uuidv4 } from 'uuid';
-import { Timestamp } from 'firebase/firestore';
+import { serverTimestamp, Timestamp } from 'firebase/firestore';
 
 export default class BaseModel {
   constructor(data = {}) {
-    this.uid = data.uid || uuidv4();
-    this.createdAt = data.createdAt;
-    this.updatedAt = data.updatedAt;
     Object.assign(this, data);
+    this.uid = data.uid || uuidv4();
+    this.createdAt = data.createdAt || serverTimestamp();
+    this.updatedAt = data.updatedAt || serverTimestamp();
   }
 
   toJSON() {
@@ -42,7 +42,7 @@ export default class BaseModel {
 
   getDurationMs(startTime, endTime) {
 
-    if(startTime == null || endTime == null)
+    if (startTime == null || endTime == null)
       return 0;
     let start;
     let end;

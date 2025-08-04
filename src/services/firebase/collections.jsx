@@ -13,6 +13,8 @@ export const BADGES_COLLECTION = 'badges';
 export const BADGE_IMAGES_COLLECTION = 'badgeimages';
 
 export const WORKOUT_COLLECTION = 'workouts';
+export const STATION_COLLECTION = 'stations';
+export const HIGHSCORE_COLLECTION = 'station_highscores'
 export const EXERCISE_COLLECTION = 'exercises';
 
 export const GOALS_COLLECTION = 'goals';

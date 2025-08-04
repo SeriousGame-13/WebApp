@@ -1,7 +1,7 @@
 import FirestoreManager from "./FirestoreManager";
 import { HIGHSCORE_COLLECTION } from "./collections";
-import { Station } from "../interfaces/station";
 import { Highscore } from "../interfaces/highscore";
+import UserManagement from "./UserManagementSystem";
 
 const create = async (exercise) => {
     try {
@@ -49,7 +49,42 @@ const create = async (exercise) => {
     }
 };
 
+const loadHighscoresForStation = async (stationId) => {
+    try {
+        const snapshot = await FirestoreManager.queryDocumentsByFieldValue(HIGHSCORE_COLLECTION, 'stationId', stationId);
+        let highscores = {};
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            if (!(data.metric in highscores)) {
+                highscores[data.metric] = data
+            } else {
+                let max = highscores[data.metric];
+                if (data.score > max.score) {
+                    highscores[data.metric] = data
+                }
+            }
+        });
+        highscores = Object.values(highscores);
+
+        const users = await UserManagement.getAllActiveUsers();
+        const indexUsers = {};
+        users.map(user => {
+            indexUsers[user.uid] = user;
+        });
+        for (let i = 0; i < highscores.length; i++) {
+            const userId = highscores[i].userId;
+            highscores[i].userName = indexUsers[userId].displayName;
+        }
+
+        return highscores;
+    } catch (error) {
+        console.error('Failed to load highscores for station:', error);
+        return [];
+    }
+};
+
 const HighscoreManager = {
     create,
+    loadHighscoresForStation,
 }
 export default HighscoreManager;

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import '../components/styles/LayoutElements.css';
 import StationManager from '../services/firebase/StationManagement';
-import UserManagement from '../services/firebase/UserManagementSystem'; // Added for fetching user names
+import HighscoreManager from '../services/firebase/HighscoreManager';
 
 // Renamed from EditForm to EditStationForm for clarity
 function EditStationForm({ station = null, onSubmit, onCancel, isProcessing, submitText }) {
@@ -105,36 +105,29 @@ function EditStationForm({ station = null, onSubmit, onCancel, isProcessing, sub
     );
 }
 
-// Added: New component to display station details and high scores
 function StationDetailPopup({ station, onClose, onStationUpdated }) {
     const [isProcessing, setIsProcessing] = useState(false);
     const [showEditPopup, setShowEditPopup] = useState(false);
-    const [highscoreUsers, setHighscoreUsers] = useState({});
+    const [highscores, setHighscores] = useState({});
 
-    // Fetch user data for highscore holders
     useEffect(() => {
-        const fetchUsers = async () => {
-            if (!station?.highscores) return;
-
-            const userIds = new Set();
-            Object.values(station.highscores).forEach(score => {
-                if (score.userId) userIds.add(score.userId);
-            });
-
-            if (userIds.size === 0) return;
-
-            const userPromises = Array.from(userIds).map(uid => UserManagement.getUser(uid));
-            const users = await Promise.all(userPromises);
-
-            const userMap = {};
-            users.forEach(user => {
-                if (user) userMap[user.uid] = user;
-            });
-            setHighscoreUsers(userMap);
-        };
-
-        fetchUsers();
+        if (station?.uid) {
+            const fetchHighscores = async () => {
+                const data = await HighscoreManager.loadHighscoresForStation(station.uid);
+                setHighscores(Object.values(data));
+            };
+            fetchHighscores();
+        }
     }, [station]);
+
+    const formatMetricName = (metric) => {
+        switch (metric) {
+            case 'points': return 'Top Points';
+            case 'calories': return 'Top Calories';
+            case 'heartRateAvg': return 'Top Avg. Heart Rate';
+            default: return metric;
+        }
+    };
 
     const handleDeleteStation = async () => {
         if (confirm(`Are you sure you want to delete the station "${station.name}"? This action cannot be undone.`)) {
@@ -169,22 +162,6 @@ function StationDetailPopup({ station, onClose, onStationUpdated }) {
         }
     };
 
-    const HighscoreRow = ({ label, score }) => {
-        const user = highscoreUsers[score?.userId];
-        const value = score?.points || score?.calories || score?.heartRateAvg || 0;
-
-        if (value === 0) {
-            return <div><strong>{label}:</strong> No record yet.</div>;
-        }
-
-        return (
-            <div>
-                <strong>{label}:</strong> {value.toLocaleString('de-DE')}
-                <em style={{ color: '#A0A0A0' }}> by {user?.displayName || 'Unknown User'}</em>
-            </div>
-        );
-    };
-
     return (
         <div className='PopupBackground'>
             <div className='LargePopupContainer'>
@@ -199,9 +176,16 @@ function StationDetailPopup({ station, onClose, onStationUpdated }) {
                     <div className="HighscoresSection" style={{ marginTop: '20px', textAlign: 'left' }}>
                         <h3 style={{ color: 'var(--main-color)', marginBottom: '10px' }}>Highscores</h3>
                         <div style={{ paddingLeft: '10px', display: 'grid', gap: '8px' }}>
-                            <HighscoreRow label="Top Points" score={station.highscores.points} />
-                            <HighscoreRow label="Top Calories" score={station.highscores.calories} />
-                            <HighscoreRow label="Top Avg. Heart Rate" score={station.highscores.heartRateAvg} />
+                            {highscores.length > 0 ? (
+                                highscores.map(score => (
+                                    <div key={score.metric}>
+                                        <strong>{formatMetricName(score.metric)}:</strong> {score.score.toLocaleString('de-DE')}
+                                        <em style={{ color: '#A0A0A0' }}> by {score.userName || 'Unknown User'}</em>
+                                    </div>
+                                ))
+                            ) : (
+                                <p style={{ color: '#A0A0A0' }}>No records yet for this station.</p>
+                            )}
                         </div>
                     </div>
 

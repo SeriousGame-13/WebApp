@@ -1,5 +1,5 @@
 import FirestoreManager from './FirestoreManager.jsx';
-import { STATION_COLLECTION } from './collections.jsx';
+import { HIGHSCORE_COLLECTION, STATION_COLLECTION } from './collections.jsx';
 
 import { Station } from '../interfaces/station.jsx';
 import HighscoreManager from './HighscoreManager.jsx';
@@ -60,8 +60,8 @@ const loadAll = async () => {
 
 const StationManager = {
     save: saveStation,
-    update, // Added
-    delete: deleteStation, // Added
+    update, 
+    delete: deleteStation, 
     loadAll,
 }
 export default StationManager;

@@ -138,7 +138,7 @@ const ImageSelector = ({ userId, onImageProcessed, onError }) => {
       />
 
       {/* Selection button */}
-      <button className='UploadButton'
+      <button className='ButtonSmall'
         onClick={handleButtonClick}
         disabled={processing || !userId || imageLoading}
       >

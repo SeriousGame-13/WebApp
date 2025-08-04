@@ -79,10 +79,6 @@ function UserInfoHeaderContainer({ user }) {
             <div className='SeyHello'>
                 <div className='UserName'>{name}</div>
             </div>
-            <button className='LogoutButton'
-                onClick={UserManagement.logoutUser}>
-                Logout
-            </button>
         </div>
     )
 }
@@ -144,7 +140,13 @@ function HomePage() {
             <header className="AppHeader">
 
                 <UserInfoHeaderContainer user={userData} />
+                {/*
                 <IconContainer />
+                */}
+                <button className='LogoutButton'
+                    onClick={UserManagement.logoutUser}>
+                    Logout
+                </button>
             </header>
             <div className='Line' />
             {renderCurrentPage()}

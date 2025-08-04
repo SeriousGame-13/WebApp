@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ExpElements from '../components/ui/ExpBar';
 import IconElements from '../components/ui/IconElements';
 import UserManagement from '../services/firebase/UserManagementSystem';
@@ -7,6 +7,7 @@ import ChallengeManagement from '../services/firebase/ChallengeManagement';
 import { CHALLENGE_TYPE } from '../services/interfaces/constants';
 
 import '../components/styles/LayoutElements.css'
+import '../components/styles/GroupPage.css'
 
 function CreateGroupPopup({ onCreateGroup, onCancel, isCreating }) {
     const [groupName, setGroupName] = useState('');
@@ -36,7 +37,7 @@ function CreateGroupPopup({ onCreateGroup, onCancel, isCreating }) {
     return (
         <div className='PopupBackground'>
             <div className='PopupContainer'>
-                <h2>Create New Group</h2>
+                <h2>Create Group</h2>
                 <div className='Inputfield'>
                     <input 
                         className='Input'
@@ -602,7 +603,7 @@ function JoinedGroupDetailPopup({ group, onClose, onGroupLeft }) {
                                 </div>
                             ))}
                             
-                            <div className="GroupActionButtons">
+                            <div className="CancelButtons">
                                 {isAdmin && (
                                     <button 
                                         className='AdminActionButton'
@@ -615,7 +616,7 @@ function JoinedGroupDetailPopup({ group, onClose, onGroupLeft }) {
                                 
                                 {isCreator && (
                                     <button 
-                                        className='GroupActionButton'
+                                        className='CancelButton'
                                         onClick={handleDeleteGroup}
                                         disabled={isProcessing}
                                     >
@@ -623,7 +624,7 @@ function JoinedGroupDetailPopup({ group, onClose, onGroupLeft }) {
                                     </button>
                                 )}
                                 <button 
-                                    className='GroupActionButton'
+                                    className='CancelButton'
                                     onClick={handleLeaveGroup}
                                     disabled={isProcessing}
                                 >
@@ -653,9 +654,63 @@ function JoinedGroupDetailPopup({ group, onClose, onGroupLeft }) {
         </div>
     );
 }
+// GroupCardItem
+function GroupCardItem({ group, onClick }) {
+    const [groupImage, setGroupImage] = useState('');
+    const [imageLoading, setImageLoading] = useState(true);
+
+    useEffect(() => {
+        const loadGroupImage = async () => {
+            setImageLoading(true);
+            try {
+                const existingImageBase64 = await DatamanagerElements.getExistingImage(group.groupId);
+                setGroupImage(existingImageBase64 || '');
+            } catch (error) {
+                console.error('Failed to load group image:', error);
+                setGroupImage('');
+            } finally {
+                setImageLoading(false);
+            }
+        };
+
+        if (group.groupId) {
+            loadGroupImage();
+        }
+    }, [group.groupId]);
+
+    return (
+        <div className="CardContainer" onClick={onClick}>
+            <div className="CardContainerOut">
+                <div className="ProfileImageForCard">
+                    {imageLoading ? (
+                        <div className='ProfileImageForCardAlt'>
+                            <div>Loading...</div>
+                        </div>
+                    ) : groupImage ? (
+                        <img className='ProfileImageForCard'
+                            src={groupImage} 
+                            alt="Group Profile" 
+                        />
+                    ) : (
+                        <div className='ProfileImageForCardAlt'>
+                            <div>No Image</div>
+                        </div>
+                    )}
+                </div>
+                <div className="CardContainerIn">
+                    <div className="CardHeader">
+                        {group.name} {group.isPrivate && <span style={{ fontSize: '12px', color: '#A0A0A0' }}>(Private)</span>}
+                    </div>
+                    <div className="CardContents">
+                        {group.getActiveMemberCount()}/{group.maxMembers} Members
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
 
 function Page ({data}) {
-
     const userData = data;
     const [groupName, setGroupName] = useState('');
     const [memberId, setMemberId] = useState('');
@@ -726,19 +781,19 @@ function Page ({data}) {
     };
 
     const handleJoinById = async (groupId) => {
-    setIsJoiningGroup(true);
-    try {
-        const currentUser = await UserManagement.getCurrentUser();
-        await GroupManagement.addGroupMember(groupId, currentUser.uid);
-        setShowJoinByIdPopup(false);
-        await loadUserGroups();
-    } catch (error) {
-        console.error('Failed to join group:', error);
-        alert('Failed to join group: ' + error.message);
-    } finally {
-        setIsJoiningGroup(false);
-    }
-};
+        setIsJoiningGroup(true);
+        try {
+            const currentUser = await UserManagement.getCurrentUser();
+            await GroupManagement.addGroupMember(groupId, currentUser.uid);
+            setShowJoinByIdPopup(false);
+            await loadUserGroups();
+        } catch (error) {
+            console.error('Failed to join group:', error);
+            alert('Failed to join group: ' + error.message);
+        } finally {
+            setIsJoiningGroup(false);
+        }
+    };
 
     const handleAddMember = async () => {
         const user = await UserManagement.getCurrentUser();
@@ -762,7 +817,8 @@ function Page ({data}) {
         <div className="AppContents">
             <div className="GroupContents">
                 <div className="GroupContainer">
-                    <div className="GuideText">Joined Groups</div>
+                    <div className="GuideTitle">Groups</div>
+                    <div className="GuideText">My Groups</div>
 
                     {isLoadingGroups ? (
                         <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>
@@ -774,31 +830,29 @@ function Page ({data}) {
                         </div>
                     ) : (
                         userGroups.map(group => (
-                            <div 
+                            <GroupCardItem 
                                 key={group.groupId} 
-                                className="GroupExerciseContainer"
+                                group={group}
                                 onClick={() => setSelectedJoinedGroup(group)}
-                            >
-                                <div className="GroupExerciseHeader">
-                                    {group.name} {group.isPrivate && <span style={{ fontSize: '12px', color: '#A0A0A0' }}>(Private)</span>}
-                                </div>
-                                <div className="GroupExerciseContents">
-                                    {group.description || 'No description available.'}
-                                </div>
-                                <div style={{ margin: '0 16px 16px 16px', fontSize: '12px', color: '#A0A0A0' }}>
-                                    Group ID: {group.groupId} | Members: {group.getActiveMemberCount()}/{group.maxMembers}
-                                </div>
-                            </div>
+                            />
                         ))
                     )}
                 </div>
 
-                <div className="AddGroupButtonContainer">
+                <div className="GroupButtonContainer">
                     <button 
-                        className="AddGroupButton"
+                        className='ButtonMediumFilled CreateGroupButton'
+                        onClick={handleCreateGroup}
+                    >
+                        <div className='ButtonIcon'>+</div>
+                        <div className='ButtonText'>Create Group</div>
+                    </button>
+                    <button 
+                        className="ButtonMedium JoinGroupButton"
                         onClick={() => setShowActionPopup(true)}
                     >
-                        <span className="PlusIcon">+</span>
+                        <div className='ButtonIcon'>▷</div>
+                        <div className='ButtonText'>Find Group</div>
                     </button>
                 </div>
 
@@ -806,7 +860,6 @@ function Page ({data}) {
 
             {showActionPopup && (
                 <ActionSelectionPopup
-                    onCreateGroup={handleCreateGroup}
                     onJoinGroup={handleJoinGroup}
                     onJoinGroupViaId={handleJoinGroupViaId}
                     onCancel={() => setShowActionPopup(false)}
@@ -850,28 +903,21 @@ function ActionSelectionPopup({ onCreateGroup, onJoinGroup, onJoinGroupViaId, on
     return (
         <div className='PopupBackground'>
             <div className='PopupContainer'>
-                <h2>Group Management</h2>
-                <div className='ActionButtonContainer'>
+                <h2>Find Group</h2>
+                <div className='GroupButtonContainer'>
                     <button 
-                        className='ActionButton CreateGroupButton'
-                        onClick={onCreateGroup}
-                    >
-                        <div className='ActionIcon'>+</div>
-                        <div className='ActionText'>Create New Group</div>
-                    </button>
-                    <button 
-                        className='ActionButton JoinGroupButton'
+                        className='ButtonMediumFilled JoinGroupButton'
                         onClick={onJoinGroup}
                     >
-                        <div className='ActionIcon'>▷</div>
-                        <div className='ActionText'>Join Group</div>
+                        <div className='ButtonIcon'>▷</div>
+                        <div className='ButtonText'>Join Group</div>
                     </button>
                     <button 
-                        className='ActionButton JoinGroupViaIdButton'
+                        className='ButtonMediumFilled JoinGroupViaIdButton'
                         onClick={onJoinGroupViaId}
                     >
-                        <div className='ActionIcon'>▷</div>
-                        <div className='ActionText'>Join Group via ID</div>
+                        <div className='ButtonIcon'>▷</div>
+                        <div className='ButtonText'>Join Group via ID</div>
                     </button>
                 </div>
                 <div className='Line' style={{ margin: '20px 0 0 0' }}></div>

@@ -50,7 +50,7 @@ Passen Sie x- und y-Offsets in px an, um die Richtung des Schattens zu steuern. 
     --line-height: 2px;
     --gaps: 4px; /* Gesamter Zeilenabstand */
     --main-color: #00FF94;
-    --main-color-hover: #00E085;
+    --main-color-button: #77b671ab;
     --light-color: #E5E5E5;
     --text-secondary: #A0A0A0;
     --background-default: rgba(30, 30, 30, 0.85);
@@ -60,6 +60,8 @@ Passen Sie x- und y-Offsets in px an, um die Richtung des Schattens zu steuern. 
     --background-red: #FF4757;
     --border-glass: rgba(255, 255, 255, 0.2);
     --shadow-modern: 0 0px 10px rgba(0, 0, 0, 0.3);
+
+    --main-color-hover: #00E085;
     --shadow-hover: 0 0px 10px rgba(0, 255, 148, 0.2);
 }
 
@@ -71,6 +73,8 @@ body, html {
     font-family: Arial, Helvetica, sans-serif;
     overflow: hidden; /* Gesamtes Seiten-Scrollen verhindern */
 }
+
+
 
 .MainContainer {
     display: grid;
@@ -98,8 +102,9 @@ body, html {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    padding-left: 20px;
-    padding-right: 20px;
+    align-items: center;
+    padding-left: 25px;
+    padding-right: 25px;
     background: var(--background-glass);
     backdrop-filter: blur(20px);
     border-bottom: 1px solid var(--border-glass);
@@ -115,8 +120,8 @@ body, html {
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    padding-left: 20px;
-    padding-right: 20px;
+    padding-left: 25px;
+    padding-right: 25px;
     background: var(--background-glass);
     backdrop-filter: blur(20px);
     border-top: 1px solid var(--border-glass);
@@ -124,12 +129,430 @@ body, html {
     position: relative;
 }
 
+
+
+.HeaderIconcontainer {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+}
+
+.HeaderIconbox {
+    margin: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.FooterIconbox {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 80px;
+    justify-content: center;
+    align-items: center; 
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.IconName {
+    font-size: 10px;
+    font-weight: bold;
+    margin-top: 4px;
+    text-align: center;
+}
+
+
+
+
+
+.UserName {
+    color: var(--main-color);
+    font-size: medium;
+    font-weight: bold;
+}
+
+.SeyHelloContainer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    color: var(--light-color);
+}
+
+.SeyHello {
+    display: flex;
+    flex-direction: row; 
+    margin-right: 20px;
+}
+
+.LogoutButton {
+    height: 30px;
+    padding: 5px 10px;
+    border: 0px;
+    border-radius: 12px;
+    background-color: var(--light-color);
+    color: var(--background-default);
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.ButtonSmall {
+    padding: 5px 10px;
+    border: 0px;
+    border-radius: 12px;
+    background: var(--main-color-button);
+    color: var(--background-dark);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+
+.ButtonCircle {    
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--main-color);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: var(--shadow-modern);
+    margin: 10px;
+}
+
+.ButtonMedium, .ButtonMediumFilled {
+    padding: 20px;
+    border-radius: 16px;
+    backdrop-filter: blur(20px);
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 250px;
+}
+
+.ButtonMedium {
+    border: 1px solid var(--main-color-button);
+    background: transparent;
+    color: var(--main-color-button);
+}
+
+.ButtonMediumFilled {
+    border: 1px solid var(--main-color-button);
+    background: var(--main-color-button);
+    color: var(--light-color);
+}
+
+.ButtonIcon {
+    font-size: 20px;
+    margin-right: 16px;
+    width: 20px;
+    text-align: center;
+}
+
+.ButtonText {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.Buttonfield {
+    display: flex;
+    height: auto;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    flex-direction: row;
+}
+
+.CancelButton {
+    display: flex;
+    height: 40px;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    flex-direction: row;
+    background-color: var(--background-red);
+    border-radius: 16px;
+    border: 0px;
+    color: var(--light-color);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    margin-right: 8px;
+}
+
+.ConfirmButton {
+    display: flex;
+    height: 40px;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    flex-direction: row;
+    background: linear-gradient(135deg, var(--main-color) 0%, var(--main-color-hover) 100%);
+    border: 0px;
+    border-radius: 16px;
+    color: var(--background-dark);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    font-weight: 600;
+    margin-left: 8px;
+}
+
+
+
+.CardContainer {
+   position: relative;
+   display: flex;
+   flex-direction: column;
+   width: 100%;
+   height: auto;
+   min-height: auto;
+   background: var(--background-glass);
+   backdrop-filter: blur(20px);
+   border: 0px solid var(--border-glass);
+   text-align: left;
+   margin-bottom: 8px;
+   border-radius: 10px;
+   box-shadow: var(--shadow-modern);
+   cursor: pointer;
+   z-index: 1;
+   flex-shrink: 0;
+   padding: 16px;
+   box-sizing: border-box;
+}
+
+.CardHeader {
+   font-size: large;
+   color: var(--main-color);
+   margin: 8px 0 8px 0;
+}
+
+.CardContents {
+   color: var(--text-secondary);
+   margin: 0 0 8px 0;
+   line-height: 1.4;
+   font-size: medium;
+}
+
+
+
+
+.ProfileImage, .ProfileImageAlt {
+    height: 100px;
+    width: 100px;
+    border-radius: 50%;
+    padding: 20px;
+}
+
+.ProfileImageAlt {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--light-color);
+    color: var(--background-default);
+}
+
+.ProfileImageForHeader {
+    height: 38px;
+    width: 38px;
+    border-radius: 50%;
+    padding: 0%;
+    margin-right: 10px;
+    border: 2px solid var(--main-color);
+}
+
+.ProfileImageForHeaderAlt {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--light-color);
+    color: var(--background-default);
+}
+
+.ProfileImageForCard {
+   aspect-ratio: 1/1;
+   height: 100%;
+   border-radius: 50%;
+   margin: 8px;
+}
+
+.ProfileImageForCardAlt {
+    height: 100%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--light-color);
+    color: var(--background-default);
+}
+
+
+
+
+
+.PopupBackground {
+    position: fixed;
+    inset: 0px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(5px);
+    z-index: 20;
+}
+
+.PopupContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    background: var(--background-card);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border-glass);
+    border-radius: 20px;
+    box-shadow: var(--shadow-modern);
+    overflow: hidden;
+    color: var(--main-color);
+    width: auto;
+    height: auto;
+    padding: 25px;
+}
+
+.LargePopupContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    background: var(--background-card);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border-glass);
+    border-radius: 20px;
+    box-shadow: var(--shadow-modern);
+    overflow: hidden;
+    color: var(--main-color);
+    width: 90%;
+    height: 90%;
+    max-width: 800px;
+    max-height: 800px;
+}
+
+
+
+
+.Input {
+    width: 200px;
+    padding: 12px;
+    margin: 10px;
+    background: var(--background-glass);
+    backdrop-filter: blur(20px);
+    border-radius: 12px;
+    border: 1px solid var(--border-glass);
+    color: var(--light-color);
+    transition: all 0.2s ease;
+}
+
+input:focus {
+    outline: 2px solid var(--main-color);
+    color: var(--main-color);
+    background: var(--background-card);
+    transform: scale(1.02);
+}
+
+.Inputfield {
+    display: flex;
+    height: auto;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    padding: 20px;
+}
+
+.GuideText {
+    font-size: medium;
+    font-weight: bold;
+    color: var(--light-color);
+    margin: 10px 0 8px 0;
+    width: 100%;
+    text-align: left;
+    flex-shrink: 0;
+}
+
+.GuideTitle {
+    color: var(--main-color);
+    font-size: xx-large;
+    font-weight: bold;
+    display: flex;
+    width: 100%;
+    justify-content: left;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.CardContainerOut {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    justify-content: left;
+}
+
+.CardContainerIn {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    margin-left: 20px;
+    justify-content: center;
+}
+
+
+
+
+
+
+
+
+/* User Setting */
+.EditImageContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+
+
+
+
+
+
 /* AppContents - Gesamter Container */
 .AppContents {
     height: 100%;
     display: flex;
     flex-direction: column;
-    padding: 20px;
+    padding: 25px;
     overflow: hidden;
     box-sizing: border-box;
 }
@@ -216,124 +639,6 @@ body, html {
     max-width: 300px;
 }
 
-.HeaderIconcontainer {
-    position: relative;
-    display: flex;
-    flex-direction: row;
-}
-
-.HeaderIconbox {
-    margin: 10px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.FooterIconbox {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    width: 80px;
-    justify-content: center;
-    align-items: center; 
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.FooterIconbox:hover {
-    transform: scale(1.05);
-}
-
-.IconName {
-    font-size: 10px;
-    font-weight: bold;
-    margin-top: 4px;
-    text-align: center;
-}
-
-.UserName {
-    color: var(--main-color);
-    font-size: medium;
-    font-weight: bold;
-}
-
-.SeyHelloContainer {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    color: var(--light-color);
-}
-
-.SeyHello {
-    display: flex;
-    flex-direction: row; 
-    margin-right: 20px;
-}
-
-.LogoutButton {
-    padding: 5px 10px;
-    border: 0px;
-    border-radius: 12px;
-    background-color: var(--light-color);
-    color: var(--background-default);
-    transition: all 0.2s ease;
-    cursor: pointer;
-}
-
-.LogoutButton:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0px 10px rgba(229, 229, 229, 0.3);
-}
-
-.UploadButton {
-    padding: 5px 10px;
-    border: 0px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, var(--main-color) 0%, var(--main-color-hover) 100%);
-    color: var(--background-dark);
-    transition: all 0.2s ease;
-    cursor: pointer;
-    font-weight: 600;
-}
-
-.UploadButton:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0px 10px rgba(0, 255, 148, 0.4);
-}
-
-.ProfileImage, .ProfileImageAlt {
-    height: 100px;
-    width: 100px;
-    border-radius: 50%;
-    padding: 20px;
-}
-
-.ProfileImageAlt {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: var(--light-color);
-    color: var(--background-default);
-}
-
-.EditImageContainer {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-}
-
-.ProfileImageForHeader {
-    height: 38px;
-    width: 38px;
-    border-radius: 50%;
-    padding: 0%;
-    margin-right: 10px;
-    border: 2px solid var(--main-color);
-}
-
 .HelloText {
     font-size: clamp(1.2rem, 4vw, 2rem);
     font-weight: bold;
@@ -388,57 +693,7 @@ body, html {
     transform: translateY(-2px);
 }
 
-.GuideText {
-    font-size: medium;
-    font-weight: bold;
-    color: var(--light-color);
-    margin: 10px 0 8px 0;
-    width: 100%;
-    text-align: left;
-    flex-shrink: 0;
-}
 
-.GroupExerciseContainer {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    height: auto;
-    min-height: auto;
-    background: var(--background-card);
-    backdrop-filter: blur(20px);
-    border: 2px solid var(--border-glass);
-    text-align: left;
-    margin-bottom: 12px;
-    border-radius: 16px;
-    box-shadow: var(--shadow-modern);
-    cursor: pointer;
-    z-index: 1;
-    flex-shrink: 0;
-}
-
-.GroupExerciseContainer:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 0px 10px rgba(0, 0, 0, 0.4);
-    border-color: rgba(0, 255, 148, 0.3);
-}
-
-.GroupExerciseHeader {
-    font-size: medium;
-    color: var(--main-color);
-    margin: 16px 16px 8px 16px;
-}
-
-.GroupExerciseContents {
-    color: var(--text-secondary);
-    margin: 0 16px 12px 16px;
-    line-height: 1.4;
-    font-size: 13px;
-}
-
-.GroupExpContainer {
-    margin: 0 16px 16px 16px;
-}
 
 .HomeInfoName {
     color: var(--main-color);
@@ -477,75 +732,8 @@ body, html {
     color: var(--light-color);
 }
 
-.GroupContainer {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    overflow: hidden;
-    gap: 12px;
-    padding: 10px;
-}
 
-.AddGroupButtonContainer {
-    position: relative;
-    display: flex;
-    flex-direction: row-reverse;
-    z-index: 10;
-}
 
-.AddGroupButton {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background: var(--main-color);
-    border: none;
-    cursor: pointer;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    box-shadow: var(--shadow-modern);
-    margin: 10px;
-}
-
-.PlusIcon {
-    font-size: 28px;
-    font-weight: bold;
-    color: var(--background-dark);
-    line-height: 1;
-}
-
-.ActionButtonContainer {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    padding: 20px;
-    width: 300px;
-}
-
-.ActionButton {
-    display: flex;
-    align-items: center;
-    padding: 20px;
-    border-radius: 16px;
-    border: 1px solid var(--border-glass);
-    background: var(--background-glass);
-    backdrop-filter: blur(20px);
-    cursor: pointer;
-    color: var(--light-color);
-}
-
-.ActionIcon {
-    font-size: 20px;
-    margin-right: 16px;
-    width: 20px;
-    text-align: center;
-}
-
-.ActionText {
-    font-size: 16px;
-    font-weight: 600;
-}
 
 .PrivacySelector {
     display: flex;
@@ -570,173 +758,11 @@ body, html {
     margin: 0;
 }
 
-.GroupContents {
-    display: flex;
-    justify-content: space-between;
-    flex-direction: column;
-    width: 100%;
-    height: 100%;
-}
 
-.LargePopupContainer {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    background: var(--background-card);
-    backdrop-filter: blur(20px);
-    border: 1px solid var(--border-glass);
-    border-radius: 20px;
-    box-shadow: var(--shadow-modern);
-    overflow: hidden;
-    color: var(--main-color);
-    width: 90%;
-    height: 90%;
-    max-width: 800px;
-    max-height: 800px;
-}
 
-.GroupListContainer {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    overflow: hidden;
-    gap: 12px;
-    padding: 10px;
-    width: 100%;
-    height: 100%;
-    box-sizing: border-box;
-}
 
-.GroupListItem {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    height: auto;
-    min-height: auto;
-    background: var(--background-card);
-    backdrop-filter: blur(20px);
-    border: 2px solid var(--border-glass);
-    text-align: left;
-    margin-bottom: 12px;
-    border-radius: 16px;
-    box-shadow: var(--shadow-modern);
-    cursor: pointer;
-    z-index: 1;
-    flex-shrink: 0;
-}
 
-.GroupListHeader {
-    font-size: medium;
-    color: var(--main-color);
-    margin: 16px 16px 8px 16px;
-}
 
-.GroupListDescription {
-    color: var(--text-secondary);
-    margin: 0 16px 12px 16px;
-    line-height: 1.4;
-    font-size: 13px;
-}
-
-.GroupListInfo {
-    color: var(--text-secondary);
-    margin: 0 16px 16px 16px;
-    font-size: 12px;
-}
-
-.GroupDetailContainer {
-    flex: 1;
-    width: 100%;
-    padding: 20px;
-    overflow-y: auto;
-    box-sizing: border-box;
-}
-
-.GroupDetailHeader {
-    font-size: 24px;
-    font-weight: bold;
-    color: var(--main-color);
-    margin-bottom: 16px;
-}
-
-.GroupDetailDescription {
-    font-size: 16px;
-    color: var(--light-color);
-    margin-bottom: 20px;
-    line-height: 1.5;
-}
-
-.GroupDetailInfo {
-    font-size: 14px;
-    color: var(--text-secondary);
-}
-
-.GroupDetailInfo > div {
-    margin-bottom: 8px;
-}
-
-.MemberListContainer {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    overflow-y: auto;
-    overflow-x: hidden;
-    gap: 12px;
-    padding: 10px;
-    width: 100%;
-    height: 100%;
-    box-sizing: border-box;
-}
-
-.GroupJoinItem {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    height: auto;
-    min-height: auto;
-    background: var(--background-card);
-    backdrop-filter: blur(20px);
-    border: 2px solid var(--border-glass);
-    text-align: left;
-    margin-bottom: 12px;
-    border-radius: 16px;
-    box-shadow: var(--shadow-modern);
-    cursor: pointer;
-    z-index: 1;
-    flex-shrink: 0;
-}
-
-.GroupActionButtons {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    width: 100%;
-    margin-top: 20px;
-}
-
-.GroupActionButton {
-    display: flex;
-    height: 40px;
-    width: 100%;
-    justify-content: center;
-    align-items: center;
-    background-color: var(--background-red);
-    border: 0px;
-    color: var(--light-color);
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 600;
-}
-
-.GroupActionButton:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
 
 .AdminDropdownContainer {
     position: relative;

@@ -2,29 +2,59 @@ import { useState, useEffect } from 'react';
 import '../components/styles/LayoutElements.css';
 import WorkoutManager from '../services/firebase/WorkoutManagement';
 import StationManager from '../services/firebase/StationManagement';
+import BaseModel from '../services/interfaces/base';
+import { Workout } from '../services/interfaces/workout';
 
 
 function EditWorkoutForm({ workout = null, onSubmit, onCancel, isProcessing, submitText }) {
-    const [formData, setFormData] = useState({
-        name: workout?.name || '',
-        description: workout?.description || '',
+    // This array is now the single source of truth for the form's structure.
+    const inputFields = [
+        { key: 'name', label: 'Name', type: 'text', maxLength: 50, placeholder: 'Enter name' },
+        { key: 'description', label: 'Description', type: 'textarea', placeholder: 'Enter description' },
+        { key: 'startTime', label: 'Start Time', type: 'datetime-local' },
+        { key: 'endTime', label: 'End Time', type: 'datetime-local' },
+        { key: 'heartRateMax', label: 'Max Heart Rate', type: 'number', min: 0, placeholder: 'Enter max heart rate' },
+        { key: 'heartRateMin', label: 'Min Heart Rate', type: 'number', min: 0, placeholder: 'Enter min heart rate' },
+    ];
+
+    // The initial state is generated dynamically from the inputFields array.
+    const [formData, setFormData] = useState(() => {
+        return inputFields.reduce((acc, field) => {
+            const sourceValue = workout?.[field.key];
+            if (field.type === 'datetime-local' && sourceValue?.toDate) {
+                acc[field.key] = sourceValue.toDate().toISOString().slice(0, 16);
+            } else {
+                acc[field.key] = sourceValue ?? (field.type === 'number' ? 0 : '');
+            }
+            return acc;
+        }, {});
     });
 
     const handleInputChange = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
+    // The submission data is generated dynamically from the inputFields array.
     const handleSubmit = () => {
-        if (formData.name.trim()) {
-            onSubmit({
-                ...formData,
-                name: formData.name.trim(),
-                description: formData.description.trim(),
-            });
+        if (formData.name && formData.name.trim()) {
+            const submitData = inputFields.reduce((acc, field) => {
+                const value = formData[field.key];
+                if (field.type === 'number') {
+                    acc[field.key] = parseInt(value, 10) || 0;
+                } else if (field.type === 'datetime-local') {
+                    acc[field.key] = value ? new Date(value) : null;
+                } else if (typeof value === 'string') {
+                    acc[field.key] = value.trim();
+                } else {
+                    acc[field.key] = value;
+                }
+                return acc;
+            }, {});
+            onSubmit(submitData);
         }
     };
 
-    const isValid = formData.name.trim() !== '';
+    const isValid = formData.name?.trim() !== '';
 
     useEffect(() => {
         const handleKeyDown = (e) => {
@@ -53,18 +83,13 @@ function EditWorkoutForm({ workout = null, onSubmit, onCancel, isProcessing, sub
         );
     }
 
-    const inputFields = [
-        { key: 'name', label: 'Name', type: 'text', maxLength: 50, placeholder: 'Enter name' },
-        { key: 'description', label: 'Description', type: 'textarea', placeholder: 'Enter description' },
-    ];
-
     return (
         <div className='PopupBackground'>
             <div className='LargePopupContainer'>
                 <h2 style={{ margin: '20px 0', textAlign: 'center' }}>
                     {workout ? 'Edit' : 'Create New'} Workout
                 </h2>
-                <div className='BadgeCreateContent'>
+                <div className='BadgeCreateContent' style={{ maxHeight: '60vh', overflowY: 'auto', paddingRight: '15px' }}>
                     <div className='BadgeInputSection'>
                         {inputFields.map(field => (
                             <div key={field.key} className='BadgeInputGroup'>
@@ -86,6 +111,7 @@ function EditWorkoutForm({ workout = null, onSubmit, onCancel, isProcessing, sub
                                         onChange={(e) => handleInputChange(field.key, e.target.value)}
                                         placeholder={field.placeholder}
                                         maxLength={field.maxLength}
+                                        disabled={field.disabled || false}
                                     />
                                 )}
                             </div>
@@ -121,45 +147,55 @@ function ExerciseForm({
     submitText,
     stations
 }) {
-    const [formData, setFormData] = useState({
-        name: '',
-        description: '',
-        points: 0,
-        calories: 0,
-        heartRateAvg: 0,
-        stationId: '',
-    });
+    // This array is the single source of truth for the exercise form.
+    const inputFields = [
+        { key: 'name', label: 'Name', type: 'text', maxLength: 50, placeholder: 'Enter exercise name' },
+        { key: 'stationId', label: 'Station', type: 'select', placeholder: 'Select Station...' },
+        { key: 'startTime', label: 'Start Time', type: 'datetime-local' },
+        { key: 'endTime', label: 'End Time', type: 'datetime-local' },
+        { key: 'points', label: 'Points', type: 'number', min: 0, placeholder: 'Enter points for completing' },
+        { key: 'calories', label: 'Calories', type: 'number', min: 0, placeholder: 'Enter calories' },
+        { key: 'heartRateAvg', label: 'Avg Heart Rate', type: 'number', min: 0, placeholder: 'Enter avg heart rate' },
+        { key: 'heartRateMax', label: 'Max Heart Rate', type: 'number', min: 0, placeholder: 'Enter max heart rate' },
+        { key: 'heartRateMin', label: 'Min Heart Rate', type: 'number', min: 0, placeholder: 'Enter min heart rate' },
+    ];
 
-    
-    useEffect(() => {
-        if (exerciseToEdit) {
-            setFormData({
-                name: exerciseToEdit.name || '',
-                description: exerciseToEdit.description || '',
-                points: exerciseToEdit.points || 0,
-                calories: exerciseToEdit.calories || 0,
-                heartRateAvg: exerciseToEdit.heartRateAvg || 0,
-                stationId: exerciseToEdit.stationId || '',
-            });
-        }
-    }, [exerciseToEdit]);
+    // The initial state is generated dynamically from the inputFields array.
+    const [formData, setFormData] = useState(() => {
+        return inputFields.reduce((acc, field) => {
+            const sourceValue = exerciseToEdit?.[field.key];
+            if (field.type === 'datetime-local' && sourceValue?.toDate) {
+                acc[field.key] = sourceValue.toDate().toISOString().slice(0, 16);
+            } else {
+                acc[field.key] = sourceValue ?? (field.type === 'number' ? 0 : '');
+            }
+            return acc;
+        }, {});
+    });
 
 
     const handleInputChange = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
+    // The submission data is generated dynamically from the inputFields array.
     const handleSubmit = () => {
-        if (formData.name.trim()) {
-            const submitData = {
-                ...formData,
-                name: formData.name.trim(),
-                description: formData.description.trim(),
-                points: parseInt(formData.points, 10) || 0,
-                calories: parseInt(formData.calories, 10) || 0,
-                heartRateAvg: parseInt(formData.heartRateAvg, 10) || 0,
-                stationId: formData.stationId || null,
-            };
+        if (formData.name && formData.name.trim()) {
+            const submitData = inputFields.reduce((acc, field) => {
+                const value = formData[field.key];
+                if (field.type === 'number') {
+                    acc[field.key] = parseInt(value, 10) || 0;
+                } else if (field.type === 'datetime-local') {
+                    acc[field.key] = value ? new Date(value) : null;
+                } else if (field.key === 'stationId') {
+                    acc[field.key] = value || null;
+                } else if (typeof value === 'string') {
+                    acc[field.key] = value.trim();
+                } else {
+                    acc[field.key] = value;
+                }
+                return acc;
+            }, {});
             
             if (exerciseToEdit) {
                 submitData.uid = exerciseToEdit.uid;
@@ -168,7 +204,7 @@ function ExerciseForm({
         }
     };
 
-    const isValid = formData.name.trim() !== '';
+    const isValid = formData.name?.trim() !== '';
 
     useEffect(() => {
         const handleKeyDown = (e) => {
@@ -197,22 +233,13 @@ function ExerciseForm({
         );
     }
     
-    const inputFields = [
-        { key: 'name', label: 'Name', type: 'text', maxLength: 50, placeholder: 'Enter exercise name' },
-        { key: 'stationId', label: 'Station', type: 'select', placeholder: 'Select Station...' },
-        { key: 'points', label: 'Points', type: 'number', min: 0, placeholder: 'Enter points for completing' },
-        { key: 'calories', label: 'Calories', type: 'number', min: 0, placeholder: 'Enter calories' },
-        { key: 'heartRateAvg', label: 'Heartrate Avg', type: 'number', min: 0, placeholder: 'Enter heartRateAvg' },
-        { key: 'description', label: 'Description', type: 'textarea', placeholder: 'Enter description' },
-    ];
-
     return (
         <div className='PopupBackground'>
             <div className='LargePopupContainer'>
                 <h2 style={{ margin: '20px 0', textAlign: 'center' }}>
                     {exerciseToEdit ? 'Edit Exercise' : 'Add New Exercise'}
                 </h2>
-                <div className='BadgeCreateContent'>
+                <div className='BadgeCreateContent' style={{ maxHeight: '60vh', overflowY: 'auto', paddingRight: '15px' }}>
                     <div className='BadgeInputSection'>
                         {inputFields.map(field => (
                             <div key={field.key} className='BadgeInputGroup'>
@@ -279,9 +306,10 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations
     const [isProcessing, setIsProcessing] = useState(false);
     const [showEditPopup, setShowEditPopup] = useState(false);
     const [showAddExercisePopup, setShowAddExercisePopup] = useState(false);
-    
     const [editingExercise, setEditingExercise] = useState(null); 
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    workout = Workout.fromJSON(workout);
 
     useEffect(() => {
         if (showEditPopup || showAddExercisePopup || editingExercise) return;
@@ -317,9 +345,8 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations
         setIsSubmitting(true);
         try {
             await WorkoutManager.update({
+                ...updates,
                 uid: workout.uid,
-                name: updates.name,
-                description: updates.description,
                 userId: user.uid
             });
             setShowEditPopup(false);
@@ -386,6 +413,8 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations
                     <div className='GroupDetailInfo' style={{ textAlign: 'left' }}>
                         <div>Workout ID: {workout.uid}</div>
                         {workout.startTime && <div>Created: {workout.startTime.toDate().toLocaleString()}</div>}
+                        <div>Active Time: {workout.formatDuration(workout.activeTime * 1000) || 0}</div>
+                        <div>Idle Time: {workout.formatDuration(workout.idleTime * 1000) || 0}</div>
                     </div>
 
                     <div className="StationsSection" style={{ marginTop: '20px', textAlign: 'left' }}>

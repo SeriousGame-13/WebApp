@@ -1,4 +1,5 @@
-import { Workout, Exercise } from '../services/interfaces/workout.jsx';
+import { Workout } from '../services/interfaces/workout.jsx';
+import { Exercise } from '../services/interfaces/exercise.jsx';
 import {
   Timestamp
 } from 'firebase/firestore';

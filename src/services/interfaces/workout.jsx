@@ -10,6 +10,8 @@ export class Workout extends BaseModel {
       startTime: data.startTime || serverTimestamp(),
       endTime: data.endTime || null,
       exercises: data.exercises || [],
+      idleTime: data.idleTime || 0,
+      activeTime: data.activeTime || 0,
       ...data
     });
   }
@@ -67,17 +69,4 @@ export class Workout extends BaseModel {
   }
 }
 
-export class Exercise extends BaseModel {
-  constructor(data = {}) {
-    super({
-      points: 0,
-      startTime: "",
-      endTime: "",
-      heartRateAvg: null,
-      calories: 0,
-      userId: "",
-      createdAt: data.createdAt || serverTimestamp(), // Hinzugefügt: Stellt sicher, dass ein Erstellungsdatum vorhanden ist
-      ...data
-    });
-  }
-}
+

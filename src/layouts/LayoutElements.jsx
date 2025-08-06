@@ -4,7 +4,6 @@ import IconElements from '../components/ui/IconElements';
 import LoginPage from '../pages/LoginPage';
 import UserManagement from '../services/firebase/UserManagementSystem';
 import DatamanagerElements from '../utils/dataManager';
-
 import ChallengePageElements from '../pages/ChallengePage';
 import GroupPageElements from '../pages/GroupPage';
 import HomePageElements from '../pages/HomePage';

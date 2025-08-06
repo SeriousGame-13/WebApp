@@ -3,7 +3,7 @@ import '../components/styles/LayoutElements.css';
 import StationManager from '../services/firebase/StationManagement';
 import HighscoreManager from '../services/firebase/HighscoreManager';
 
-// Renamed from EditForm to EditStationForm for clarity
+
 function EditStationForm({ station = null, onSubmit, onCancel, isProcessing, submitText }) {
     const [formData, setFormData] = useState({
         name: '',
@@ -218,7 +218,7 @@ function StationDetailPopup({ station, onClose, onStationUpdated }) {
 }
 
 
-// Renamed from Overview to StationManagerPage
+
 function StationManagerPage({ user }) {
     const [stations, setStations] = useState([]);
     const [isLoading, setIsLoading] = useState(true);

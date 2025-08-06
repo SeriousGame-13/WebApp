@@ -2,29 +2,78 @@ import { useState, useEffect } from 'react';
 import '../components/styles/LayoutElements.css';
 import WorkoutManager from '../services/firebase/WorkoutManagement';
 import StationManager from '../services/firebase/StationManagement';
+import { Workout } from '../services/interfaces/workout';
+import { Timestamp } from 'firebase/firestore';
 
-// Form for creating/editing a Workout
+function localDateTimeStringToTimestamp(value) {
+    const [date, time] = value.split('T');
+    const [year, month, day] = date.split('-').map(Number);
+    const [hour, minute] = time.split(':').map(Number);
+    const localDate = new Date(year, month - 1, day, hour, minute); // interpreted in local timezone
+    return Timestamp.fromDate(localDate);
+}
+
+const localISODateTime = (date) => {
+    date = date.toDate();
+    const pad = (n) => n.toString().padStart(2, '0');
+    const y = date.getFullYear();
+    const m = pad(date.getMonth() + 1);
+    const d = pad(date.getDate());
+    const h = pad(date.getHours());
+    const min = pad(date.getMinutes());
+    return `${y}-${m}-${d}T${h}:${min}`;
+};
+
+
 function EditWorkoutForm({ workout = null, onSubmit, onCancel, isProcessing, submitText }) {
-    const [formData, setFormData] = useState({
-        name: workout?.name || '',
-        description: workout?.description || '',
+    // This array is now the single source of truth for the form's structure.
+    const inputFields = [
+        { key: 'name', label: 'Name', type: 'text', maxLength: 50, placeholder: 'Enter name' },
+        { key: 'description', label: 'Description', type: 'textarea', placeholder: 'Enter description' },
+        { key: 'startTime', label: 'Start Time', type: 'datetime-local' },
+        { key: 'endTime', label: 'End Time', type: 'datetime-local' },
+        { key: 'heartRateMax', label: 'Max Heart Rate', type: 'number', min: 0, placeholder: 'Enter max heart rate' },
+        { key: 'heartRateMin', label: 'Min Heart Rate', type: 'number', min: 0, placeholder: 'Enter min heart rate' },
+    ];
+
+    // The initial state is generated dynamically from the inputFields array.
+    const [formData, setFormData] = useState(() => {
+        return inputFields.reduce((acc, field) => {
+            const sourceValue = workout?.[field.key];
+            if (field.type === 'datetime-local' && sourceValue?.toDate) {
+                acc[field.key] = localISODateTime(sourceValue);
+            } else {
+                acc[field.key] = sourceValue ?? (field.type === 'number' ? 0 : '');
+            }
+            return acc;
+        }, {});
     });
 
     const handleInputChange = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
+    // The submission data is generated dynamically from the inputFields array.
     const handleSubmit = () => {
-        if (formData.name.trim()) {
-            onSubmit({
-                ...formData,
-                name: formData.name.trim(),
-                description: formData.description.trim(),
-            });
+        if (formData.name && formData.name.trim()) {
+            const submitData = inputFields.reduce((acc, field) => {
+                const value = formData[field.key];
+                if (field.type === 'number') {
+                    acc[field.key] = parseInt(value, 10) || 0;
+                } else if (field.type === 'datetime-local') {
+                    acc[field.key] = value ? localDateTimeStringToTimestamp(value) : null;
+                } else if (typeof value === 'string') {
+                    acc[field.key] = value.trim();
+                } else {
+                    acc[field.key] = value;
+                }
+                return acc;
+            }, {});
+            onSubmit(submitData);
         }
     };
 
-    const isValid = formData.name.trim() !== '';
+    const isValid = formData.name?.trim() !== '';
 
     useEffect(() => {
         const handleKeyDown = (e) => {
@@ -53,18 +102,13 @@ function EditWorkoutForm({ workout = null, onSubmit, onCancel, isProcessing, sub
         );
     }
 
-    const inputFields = [
-        { key: 'name', label: 'Name', type: 'text', maxLength: 50, placeholder: 'Enter name' },
-        { key: 'description', label: 'Description', type: 'textarea', placeholder: 'Enter description' },
-    ];
-
     return (
         <div className='PopupBackground'>
             <div className='LargePopupContainer'>
                 <h2 style={{ margin: '20px 0', textAlign: 'center' }}>
                     {workout ? 'Edit' : 'Create New'} Workout
                 </h2>
-                <div className='BadgeCreateContent'>
+                <div className='BadgeCreateContent' style={{ maxHeight: '60vh', overflowY: 'auto', paddingRight: '15px' }}>
                     <div className='BadgeInputSection'>
                         {inputFields.map(field => (
                             <div key={field.key} className='BadgeInputGroup'>
@@ -86,6 +130,7 @@ function EditWorkoutForm({ workout = null, onSubmit, onCancel, isProcessing, sub
                                         onChange={(e) => handleInputChange(field.key, e.target.value)}
                                         placeholder={field.placeholder}
                                         maxLength={field.maxLength}
+                                        disabled={field.disabled || false}
                                     />
                                 )}
                             </div>
@@ -112,7 +157,7 @@ function EditWorkoutForm({ workout = null, onSubmit, onCancel, isProcessing, sub
     );
 }
 
-// Renamed from AddExerciseForm to ExerciseForm and adapted for both creating and editing.
+
 function ExerciseForm({
     exerciseToEdit = null,
     onSubmit,
@@ -121,46 +166,56 @@ function ExerciseForm({
     submitText,
     stations
 }) {
-    const [formData, setFormData] = useState({
-        name: '',
-        description: '',
-        points: 0,
-        calories: 0,
-        heartRateAvg: 0,
-        stationId: '',
-    });
+    // This array is the single source of truth for the exercise form.
+    const inputFields = [
+        { key: 'name', label: 'Name', type: 'text', maxLength: 50, placeholder: 'Enter exercise name' },
+        { key: 'stationId', label: 'Station', type: 'select', placeholder: 'Select Station...' },
+        { key: 'startTime', label: 'Start Time', type: 'datetime-local' },
+        { key: 'endTime', label: 'End Time', type: 'datetime-local' },
+        { key: 'points', label: 'Points', type: 'number', min: 0, placeholder: 'Enter points for completing' },
+        { key: 'calories', label: 'Calories', type: 'number', min: 0, placeholder: 'Enter calories' },
+        { key: 'heartRateAvg', label: 'Avg Heart Rate', type: 'number', min: 0, placeholder: 'Enter avg heart rate' },
+        { key: 'heartRateMax', label: 'Max Heart Rate', type: 'number', min: 0, placeholder: 'Enter max heart rate' },
+        { key: 'heartRateMin', label: 'Min Heart Rate', type: 'number', min: 0, placeholder: 'Enter min heart rate' },
+    ];
 
-    // Effect to populate form when editing an existing exercise.
-    useEffect(() => {
-        if (exerciseToEdit) {
-            setFormData({
-                name: exerciseToEdit.name || '',
-                description: exerciseToEdit.description || '',
-                points: exerciseToEdit.points || 0,
-                calories: exerciseToEdit.calories || 0,
-                heartRateAvg: exerciseToEdit.heartRateAvg || 0,
-                stationId: exerciseToEdit.stationId || '',
-            });
-        }
-    }, [exerciseToEdit]);
+    // The initial state is generated dynamically from the inputFields array.
+    const [formData, setFormData] = useState(() => {
+        return inputFields.reduce((acc, field) => {
+            const sourceValue = exerciseToEdit?.[field.key];
+            if (field.type === 'datetime-local' && sourceValue?.toDate) {
+                acc[field.key] = localISODateTime(sourceValue);
+            } else {
+                acc[field.key] = sourceValue ?? (field.type === 'number' ? 0 : '');
+            }
+            return acc;
+        }, {});
+    });
 
 
     const handleInputChange = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
+    // The submission data is generated dynamically from the inputFields array.
     const handleSubmit = () => {
-        if (formData.name.trim()) {
-            const submitData = {
-                ...formData,
-                name: formData.name.trim(),
-                description: formData.description.trim(),
-                points: parseInt(formData.points, 10) || 0,
-                calories: parseInt(formData.calories, 10) || 0,
-                heartRateAvg: parseInt(formData.heartRateAvg, 10) || 0,
-                stationId: formData.stationId || null,
-            };
-            // Include the original UID when updating an exercise.
+        if (formData.name && formData.name.trim()) {
+            const submitData = inputFields.reduce((acc, field) => {
+                const value = formData[field.key];
+                if (field.type === 'number') {
+                    acc[field.key] = parseInt(value, 10) || 0;
+                } else if (field.type === 'datetime-local') {
+                    acc[field.key] = value ? localDateTimeStringToTimestamp(value) : null;
+                } else if (field.key === 'stationId') {
+                    acc[field.key] = value || null;
+                } else if (typeof value === 'string') {
+                    acc[field.key] = value.trim();
+                } else {
+                    acc[field.key] = value;
+                }
+                return acc;
+            }, {});
+            
             if (exerciseToEdit) {
                 submitData.uid = exerciseToEdit.uid;
             }
@@ -168,7 +223,7 @@ function ExerciseForm({
         }
     };
 
-    const isValid = formData.name.trim() !== '';
+    const isValid = formData.name?.trim() !== '';
 
     useEffect(() => {
         const handleKeyDown = (e) => {
@@ -197,22 +252,13 @@ function ExerciseForm({
         );
     }
     
-    const inputFields = [
-        { key: 'name', label: 'Name', type: 'text', maxLength: 50, placeholder: 'Enter exercise name' },
-        { key: 'description', label: 'Description', type: 'textarea', placeholder: 'Enter description' },
-        { key: 'points', label: 'Points', type: 'number', min: 0, placeholder: 'Enter points for completing' },
-        { key: 'calories', label: 'Calories', type: 'number', min: 0, placeholder: 'Enter calories' },
-        { key: 'heartRateAvg', label: 'Heartrate Avg', type: 'number', min: 0, placeholder: 'Enter heartRateAvg' },
-        { key: 'stationId', label: 'Station', type: 'select', placeholder: 'Select Station...' },
-    ];
-
     return (
         <div className='PopupBackground'>
             <div className='LargePopupContainer'>
                 <h2 style={{ margin: '20px 0', textAlign: 'center' }}>
                     {exerciseToEdit ? 'Edit Exercise' : 'Add New Exercise'}
                 </h2>
-                <div className='BadgeCreateContent'>
+                <div className='BadgeCreateContent' style={{ maxHeight: '60vh', overflowY: 'auto', paddingRight: '15px' }}>
                     <div className='BadgeInputSection'>
                         {inputFields.map(field => (
                             <div key={field.key} className='BadgeInputGroup'>
@@ -274,14 +320,15 @@ function ExerciseForm({
     );
 }
 
-// Popup to show workout details and exercises
+
 function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations }) {
     const [isProcessing, setIsProcessing] = useState(false);
     const [showEditPopup, setShowEditPopup] = useState(false);
     const [showAddExercisePopup, setShowAddExercisePopup] = useState(false);
-    // State to manage editing a specific exercise.
     const [editingExercise, setEditingExercise] = useState(null); 
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    workout = Workout.fromJSON(workout);
 
     useEffect(() => {
         if (showEditPopup || showAddExercisePopup || editingExercise) return;
@@ -317,9 +364,8 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations
         setIsSubmitting(true);
         try {
             await WorkoutManager.update({
+                ...updates,
                 uid: workout.uid,
-                name: updates.name,
-                description: updates.description,
                 userId: user.uid
             });
             setShowEditPopup(false);
@@ -332,13 +378,13 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations
         }
     };
 
-    // Logic to handle both creation and updates of exercises.
+    
     const handleExerciseSubmit = async (exerciseData) => {
         setIsSubmitting(true);
         try {
-            if (editingExercise) { // This is an update
+            if (editingExercise) { 
                 await WorkoutManager.updateExercise(user.uid, workout.uid, exerciseData);
-            } else { // This is a new exercise
+            } else { 
                 await WorkoutManager.addExercise(user.uid, workout.uid, exerciseData);
             }
             setEditingExercise(null);
@@ -352,7 +398,7 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations
         }
     };
     
-    // Function to handle deleting an exercise.
+    
     const handleDeleteExercise = async (exerciseId) => {
         if (confirm('Are you sure you want to delete this exercise?')) {
             setIsProcessing(true);
@@ -386,6 +432,8 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations
                     <div className='GroupDetailInfo' style={{ textAlign: 'left' }}>
                         <div>Workout ID: {workout.uid}</div>
                         {workout.startTime && <div>Created: {workout.startTime.toDate().toLocaleString()}</div>}
+                        <div>Active Time: {workout.formatDuration(workout.activeTime * 1000) || 0}</div>
+                        <div>Idle Time: {workout.formatDuration(workout.idleTime * 1000) || 0}</div>
                     </div>
 
                     <div className="StationsSection" style={{ marginTop: '20px', textAlign: 'left' }}>
@@ -395,7 +443,7 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations
                                 [...workout.exercises]
                                     .sort((a, b) => (b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0) - (a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0))
                                     .map(exercise => {
-                                        // Find the station name from the stations list.
+                                        
                                         const station = stations.find(s => s.uid === exercise.stationId);
                                         return (
                                             <div key={exercise.uid} className="StationItem" style={{ border: '1px solid #444', borderRadius: '8px', padding: '10px', marginBottom: '10px', background: '#2C2C2C' }}>

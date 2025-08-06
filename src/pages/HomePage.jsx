@@ -3,12 +3,10 @@ import ExpElements from '../components/ui/ExpBar';
 import IconElements from '../components/ui/IconElements';
 import ChallengeManagement from '../services/firebase/ChallengeManagement';
 import GroupManagement from '../services/firebase/GroupManagementSystem';
-import UserManagement from '../services/firebase/UserManagementSystem';
 import RankingSystem from '../services/firebase/RankingSystem';
 
 import '../components/styles/HomePage.css';
 
-import LastWorkoutsDisplay from '../components/ui/LastWorkoutsDisplay';
 
 function Page({ data }) {
     const userData = data;

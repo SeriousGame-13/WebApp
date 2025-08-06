@@ -39,22 +39,38 @@ export default class BaseModel {
     const createdAtDate = this.createdAt?.toDate?.() ?? new Date(this.createdAt);
     return createdAtDate.toLocaleString();
   }
+  getDurationMinutes(startTime, endTime) {
+    try {
+      let start, end;
 
-  getDurationMs(startTime, endTime) {
+      // Handle Firestore Timestamps
+      if (startTime?.toDate && typeof startTime.toDate === 'function') {
+        start = startTime.toDate();
+      } else if (startTime instanceof Date) {
+        start = startTime;
+      } else {
+        start = new Date(startTime);
+      }
 
-    if (startTime == null || endTime == null)
+      if (endTime?.toDate && typeof endTime.toDate === 'function') {
+        end = endTime.toDate();
+      } else if (endTime instanceof Date) {
+        end = endTime;
+      } else {
+        end = new Date(endTime);
+      }
+
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        console.warn('Invalid date format:', { startTime, endTime });
+        return 0;
+      }
+
+      const durationMs = end.getTime() - start.getTime();
+      return Math.round(durationMs / (1000 * 60));
+    } catch (error) {
+      console.error('Error calculating duration:', error, { startTime, endTime });
       return 0;
-    let start;
-    let end;
-
-    if (startTime instanceof Timestamp) {
-      start = startTime.toDate();
-      end = endTime.toDate()
-    } else {
-      start = new Date(startTime);
-      end = new Date(endTime);
     }
-    return end - start;
   }
 
   formatDuration(ms) {

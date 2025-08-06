@@ -3,7 +3,7 @@ import '../components/styles/LayoutElements.css';
 import WorkoutManager from '../services/firebase/WorkoutManagement';
 import StationManager from '../services/firebase/StationManagement';
 
-// Form for creating/editing a Workout
+
 function EditWorkoutForm({ workout = null, onSubmit, onCancel, isProcessing, submitText }) {
     const [formData, setFormData] = useState({
         name: workout?.name || '',
@@ -112,7 +112,7 @@ function EditWorkoutForm({ workout = null, onSubmit, onCancel, isProcessing, sub
     );
 }
 
-// Renamed from AddExerciseForm to ExerciseForm and adapted for both creating and editing.
+
 function ExerciseForm({
     exerciseToEdit = null,
     onSubmit,
@@ -130,7 +130,7 @@ function ExerciseForm({
         stationId: '',
     });
 
-    // Effect to populate form when editing an existing exercise.
+    
     useEffect(() => {
         if (exerciseToEdit) {
             setFormData({
@@ -160,7 +160,7 @@ function ExerciseForm({
                 heartRateAvg: parseInt(formData.heartRateAvg, 10) || 0,
                 stationId: formData.stationId || null,
             };
-            // Include the original UID when updating an exercise.
+            
             if (exerciseToEdit) {
                 submitData.uid = exerciseToEdit.uid;
             }
@@ -199,11 +199,11 @@ function ExerciseForm({
     
     const inputFields = [
         { key: 'name', label: 'Name', type: 'text', maxLength: 50, placeholder: 'Enter exercise name' },
-        { key: 'description', label: 'Description', type: 'textarea', placeholder: 'Enter description' },
+        { key: 'stationId', label: 'Station', type: 'select', placeholder: 'Select Station...' },
         { key: 'points', label: 'Points', type: 'number', min: 0, placeholder: 'Enter points for completing' },
         { key: 'calories', label: 'Calories', type: 'number', min: 0, placeholder: 'Enter calories' },
         { key: 'heartRateAvg', label: 'Heartrate Avg', type: 'number', min: 0, placeholder: 'Enter heartRateAvg' },
-        { key: 'stationId', label: 'Station', type: 'select', placeholder: 'Select Station...' },
+        { key: 'description', label: 'Description', type: 'textarea', placeholder: 'Enter description' },
     ];
 
     return (
@@ -274,12 +274,12 @@ function ExerciseForm({
     );
 }
 
-// Popup to show workout details and exercises
+
 function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations }) {
     const [isProcessing, setIsProcessing] = useState(false);
     const [showEditPopup, setShowEditPopup] = useState(false);
     const [showAddExercisePopup, setShowAddExercisePopup] = useState(false);
-    // State to manage editing a specific exercise.
+    
     const [editingExercise, setEditingExercise] = useState(null); 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -332,13 +332,13 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations
         }
     };
 
-    // Logic to handle both creation and updates of exercises.
+    
     const handleExerciseSubmit = async (exerciseData) => {
         setIsSubmitting(true);
         try {
-            if (editingExercise) { // This is an update
+            if (editingExercise) { 
                 await WorkoutManager.updateExercise(user.uid, workout.uid, exerciseData);
-            } else { // This is a new exercise
+            } else { 
                 await WorkoutManager.addExercise(user.uid, workout.uid, exerciseData);
             }
             setEditingExercise(null);
@@ -352,7 +352,7 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations
         }
     };
     
-    // Function to handle deleting an exercise.
+    
     const handleDeleteExercise = async (exerciseId) => {
         if (confirm('Are you sure you want to delete this exercise?')) {
             setIsProcessing(true);
@@ -395,7 +395,7 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations
                                 [...workout.exercises]
                                     .sort((a, b) => (b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0) - (a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0))
                                     .map(exercise => {
-                                        // Find the station name from the stations list.
+                                        
                                         const station = stations.find(s => s.uid === exercise.stationId);
                                         return (
                                             <div key={exercise.uid} className="StationItem" style={{ border: '1px solid #444', borderRadius: '8px', padding: '10px', marginBottom: '10px', background: '#2C2C2C' }}>

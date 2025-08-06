@@ -7,7 +7,7 @@ import UserManagement from './UserManagementSystem.jsx';
 import StationManager from './StationManagement.jsx';
 import HighscoreManager from './HighscoreManager.jsx';
 
-// ... (saveWorkout, loadWorkouts, etc. - no changes needed here)
+
 const createPath = (userId) => {
     return `${UserManagement.getUserDatabasePath(userId)}${WORKOUT_COLLECTION}`;
 }
@@ -98,7 +98,7 @@ const update = async (workout) => {
 
 const addExercise = async (userId, workoutId, exerData) => {
     try {
-        const exercise = new Exercise({ ...exerData, userId }); // Ensure userId is set
+        const exercise = new Exercise({ ...exerData, userId }); 
         await FirestoreManager.createDocument(
             `${createPath(userId)}/${workoutId}/${EXERCISE_COLLECTION}`,
             exercise,

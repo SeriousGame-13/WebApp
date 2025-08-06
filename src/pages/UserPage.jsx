@@ -6,8 +6,6 @@ import { GROUP_ROLE } from '../services/interfaces/constants.jsx';
 import WorkoutManager from './../services/firebase/WorkoutManagement.jsx';
 import React, { useState } from 'react';
 
-import { createWorkoutAnalytics } from '../utils/FirestoreAnalytics.jsx';
-
 function Page({ data }) {
     const userData = data;
 
@@ -20,22 +18,8 @@ function Page({ data }) {
 
     const handleSave = async () => {
         WorkoutManager.saveWorkout(workout);
-
-        const analytics = createWorkoutAnalytics();
-
-        // Query with surgical precision
-        const highCalorieBurners = await analytics.query({
-            targetDepth: 2,
-            conditions: [
-                { field: 'heartRateAvg', operator: '>', value: 100, depth: 2 }
-            ],
-            sumField: 'calories'
-        });
     }
-
-
-
-
+    
     return (
         <div className="AppContents">
             <ProfileImageElements.ProfileImageUploader userId={userData.uid} />

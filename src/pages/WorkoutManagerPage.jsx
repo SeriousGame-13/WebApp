@@ -2,8 +2,27 @@ import { useState, useEffect } from 'react';
 import '../components/styles/LayoutElements.css';
 import WorkoutManager from '../services/firebase/WorkoutManagement';
 import StationManager from '../services/firebase/StationManagement';
-import BaseModel from '../services/interfaces/base';
 import { Workout } from '../services/interfaces/workout';
+import { Timestamp } from 'firebase/firestore';
+
+function localDateTimeStringToTimestamp(value) {
+    const [date, time] = value.split('T');
+    const [year, month, day] = date.split('-').map(Number);
+    const [hour, minute] = time.split(':').map(Number);
+    const localDate = new Date(year, month - 1, day, hour, minute); // interpreted in local timezone
+    return Timestamp.fromDate(localDate);
+}
+
+const localISODateTime = (date) => {
+    date = date.toDate();
+    const pad = (n) => n.toString().padStart(2, '0');
+    const y = date.getFullYear();
+    const m = pad(date.getMonth() + 1);
+    const d = pad(date.getDate());
+    const h = pad(date.getHours());
+    const min = pad(date.getMinutes());
+    return `${y}-${m}-${d}T${h}:${min}`;
+};
 
 
 function EditWorkoutForm({ workout = null, onSubmit, onCancel, isProcessing, submitText }) {
@@ -22,7 +41,7 @@ function EditWorkoutForm({ workout = null, onSubmit, onCancel, isProcessing, sub
         return inputFields.reduce((acc, field) => {
             const sourceValue = workout?.[field.key];
             if (field.type === 'datetime-local' && sourceValue?.toDate) {
-                acc[field.key] = sourceValue.toDate().toISOString().slice(0, 16);
+                acc[field.key] = localISODateTime(sourceValue);
             } else {
                 acc[field.key] = sourceValue ?? (field.type === 'number' ? 0 : '');
             }
@@ -42,7 +61,7 @@ function EditWorkoutForm({ workout = null, onSubmit, onCancel, isProcessing, sub
                 if (field.type === 'number') {
                     acc[field.key] = parseInt(value, 10) || 0;
                 } else if (field.type === 'datetime-local') {
-                    acc[field.key] = value ? new Date(value) : null;
+                    acc[field.key] = value ? localDateTimeStringToTimestamp(value) : null;
                 } else if (typeof value === 'string') {
                     acc[field.key] = value.trim();
                 } else {
@@ -165,7 +184,7 @@ function ExerciseForm({
         return inputFields.reduce((acc, field) => {
             const sourceValue = exerciseToEdit?.[field.key];
             if (field.type === 'datetime-local' && sourceValue?.toDate) {
-                acc[field.key] = sourceValue.toDate().toISOString().slice(0, 16);
+                acc[field.key] = localISODateTime(sourceValue);
             } else {
                 acc[field.key] = sourceValue ?? (field.type === 'number' ? 0 : '');
             }
@@ -186,7 +205,7 @@ function ExerciseForm({
                 if (field.type === 'number') {
                     acc[field.key] = parseInt(value, 10) || 0;
                 } else if (field.type === 'datetime-local') {
-                    acc[field.key] = value ? new Date(value) : null;
+                    acc[field.key] = value ? localDateTimeStringToTimestamp(value) : null;
                 } else if (field.key === 'stationId') {
                     acc[field.key] = value || null;
                 } else if (typeof value === 'string') {

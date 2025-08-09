@@ -105,18 +105,60 @@ function HomePage() {
         switch (currentPage) {
             case 'home':
                 console.log('Rendering GroupPage with data:', userData);
-                return <HomePageElements.Page data={userData} />
+                return (
+                <div className='MainContainer'>
+                    <HomePageElements.Page data={userData} />
+                    <div className='Line' />
+                    <Footer selectedIcon={currentPage} onIconSelect={setCurrentPage} />
+                </div>)
             case 'ranking':
-                return <RankingPageElements.Page data={userData} />
+                return (
+                <div className='MainContainer'>
+                    <RankingPageElements.Page data={userData} />
+                    <div className='Line' />
+                    <Footer selectedIcon={currentPage} onIconSelect={setCurrentPage} />
+                </div>)
             case 'challenge':
-                return <ChallengePageElements.Page data={userData} />
+                return (
+                <div className='MainContainer'>
+                    <ChallengePageElements.Page data={userData} />
+                    <div className='Line' />
+                    <Footer selectedIcon={currentPage} onIconSelect={setCurrentPage} />
+                </div>)
             case 'group':
 
-                return <GroupPageElements.Page data={userData} />
+                return (
+                <div className='MainContainer'>
+                    <GroupPageElements.Page data={userData} />
+                    <div className='Line' />
+                    <Footer selectedIcon={currentPage} onIconSelect={setCurrentPage} />
+                </div>)
             case 'user':
-                return <UserPageElements.Page data={userData} />
+                return (
+                <div className='MainContainerWithHeader'>
+                    <header className="AppHeader">
+
+                        <UserInfoHeaderContainer user={userData} />
+                        {/*
+                        <IconContainer />
+                        */}
+                        <button className='LogoutButton'
+                            onClick={UserManagement.logoutUser}>
+                            Logout
+                        </button>
+                    </header>
+                    <div className='Line' />
+                    <UserPageElements.Page data={userData} />
+                    <div className='Line' />
+                    <Footer selectedIcon={currentPage} onIconSelect={setCurrentPage} />
+                </div>)
             default:
-                return <HomePageElements.Page data={userData} />
+                return (
+                <div className='MainContainer'>
+                    <HomePageElements.Page data={userData} />
+                    <div className='Line' />
+                    <Footer selectedIcon={currentPage} onIconSelect={setCurrentPage} />
+                </div>)
         }
     }
 
@@ -135,23 +177,9 @@ function HomePage() {
     }
 
     return (
-        <div className='MainContainer'>
-            <header className="AppHeader">
-
-                <UserInfoHeaderContainer user={userData} />
-                {/*
-                <IconContainer />
-                */}
-                <button className='LogoutButton'
-                    onClick={UserManagement.logoutUser}>
-                    Logout
-                </button>
-            </header>
-            <div className='Line' />
+        <div>
             {renderCurrentPage()}
-
-            <div className='Line' />
-            <Footer selectedIcon={currentPage} onIconSelect={setCurrentPage} />
+            
         </div>
     );
 }

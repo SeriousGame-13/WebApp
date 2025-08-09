@@ -693,7 +693,7 @@ function GroupCardItem({ group, onClick }) {
                         />
                     ) : (
                         <div className='ProfileImageForCardAlt'>
-                            <div>No Image</div>
+                            <IconElements.UserIcon />
                         </div>
                     )}
                 </div>

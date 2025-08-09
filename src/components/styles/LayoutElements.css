@@ -78,6 +78,17 @@ body, html {
 
 .MainContainer {
     display: grid;
+    grid-template-rows:
+    calc(100svh - var(--footer-height) - var(--gaps)) 
+    var(--line-height)
+    var(--footer-height);
+    height: 100dvh;
+    align-content: center;
+    overflow: hidden;
+}
+
+.MainContainerWithHeader {
+    display: grid;
     grid-template-rows: 
     var(--header-height)
     var(--line-height)
@@ -308,7 +319,7 @@ body, html {
    display: flex;
    flex-direction: column;
    width: 100%;
-   height: auto;
+   height: 100px;
    min-height: auto;
    background: var(--background-glass);
    backdrop-filter: blur(20px);
@@ -516,6 +527,8 @@ input:focus {
     display: flex;
     flex-direction: row;
     justify-content: left;
+    box-sizing: border-box;
+    align-items: center;
 }
 
 .CardContainerIn {

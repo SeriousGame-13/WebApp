@@ -216,7 +216,7 @@ function Page({ data }) {
                         )}
                     </div>
                     
-                    <LastWorkoutsDisplay userData={userData} />
+                    {/*<LastWorkoutsDisplay userData={userData} />*/}
                 </div>
             </div>
         </div>

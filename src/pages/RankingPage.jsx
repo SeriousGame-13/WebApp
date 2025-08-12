@@ -12,7 +12,6 @@ function Page({ data }) {
     const [userRank, setUserRank] = useState(null);
     const [orientation, setOrientation] = useState('landscape');
 
-    // 화면 방향 감지
     useEffect(() => {
         const checkOrientation = () => {
             const isPortrait = window.innerHeight > window.innerWidth;
@@ -122,7 +121,6 @@ function Page({ data }) {
         <div className="AppContents">
             <div className={`MainContentWrapper ${orientation}`}>
                 {orientation === 'portrait' ? (
-                    // 세로 모드: 기존 레이아웃
                     <div className="RankingContents">
                         <div className='RankingContainer'>
                             <div className="GuideTitle">Ranking</div>
@@ -230,9 +228,7 @@ function Page({ data }) {
                         </div>
                     </div>
                 ) : (
-                    // 가로 모드: 좌우 분할
                     <>
-                        {/* 왼쪽: 타이틀과 컨트롤 */}
                         <div className="TopGridSection">
                             <div className="RankingActionsSectionHorizontal">
                                 <div className="GuideTitle">Ranking</div>
@@ -279,7 +275,6 @@ function Page({ data }) {
                             </div>
                         </div>
                         
-                        {/* 오른쪽: 리더보드 카드들 */}
                         <div className="BottomGridSection">
                             <div className="RankingContainer">
                                 <div className='GuideText'>

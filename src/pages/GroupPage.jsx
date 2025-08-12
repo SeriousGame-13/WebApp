@@ -726,7 +726,6 @@ function Page ({data}) {
     const [selectedJoinedGroup, setSelectedJoinedGroup] = useState(null);
     const [orientation, setOrientation] = useState('landscape');
 
-    // 화면 방향 감지
     useEffect(() => {
         const checkOrientation = () => {
             const isPortrait = window.innerHeight > window.innerWidth;
@@ -832,7 +831,6 @@ function Page ({data}) {
         GroupManagement.deleteGroup(groups[0].groupId, user.uid);
     };
 
-    // 그룹 리스트 컴포넌트
     const GroupListSection = () => (
         <div className="GroupContainer">
             <div className="GuideTitle">Groups</div>
@@ -881,7 +879,6 @@ function Page ({data}) {
         </div>
     );
 
-    // 버튼 섹션 컴포넌트
     const ButtonSection = () => (
         <div className="GroupButtonContainer">
             <button 
@@ -924,13 +921,11 @@ function Page ({data}) {
         <div className="AppContents">
             <div className={`MainContentWrapper ${orientation}`}>
                 {orientation === 'portrait' ? (
-                    // 세로 모드: 기존 레이아웃 유지
                     <div className="GroupContents">
                         <GroupListSection />
                         <ButtonSection />
                     </div>
                 ) : (
-                    // 가로 모드: 좌우 분할 레이아웃
                     <>
                         <div className="TopGridSection">
                             <div className="GroupActionsSectionHorizontal">

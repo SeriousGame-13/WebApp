@@ -12,7 +12,6 @@ import { Timestamp } from 'firebase/firestore';
 import '../components/styles/LayoutElements.css'
 import '../components/styles/UserPage.css'
 
-// 공통 유틸리티 함수들
 const WorkoutUtils = {
     localDateTimeStringToTimestamp(value) {
         const [date, time] = value.split('T');
@@ -34,7 +33,6 @@ const WorkoutUtils = {
     }
 };
 
-// 공통 폼 베이스 컴포넌트
 function FormBase({ 
     title, 
     inputFields, 
@@ -164,7 +162,6 @@ function FormBase({
     );
 }
 
-// 워크아웃 편집 폼
 function EditWorkoutForm(props) {
     const inputFields = [
         { key: 'name', label: 'Name', type: 'text', maxLength: 50, placeholder: 'Enter name' },
@@ -190,7 +187,6 @@ function EditWorkoutForm(props) {
     );
 }
 
-// 운동 편집 폼
 function ExerciseForm(props) {
     const inputFields = [
         { key: 'name', label: 'Name', type: 'text', maxLength: 50, placeholder: 'Enter exercise name' },
@@ -220,7 +216,6 @@ function ExerciseForm(props) {
     );
 }
 
-// 워크아웃 상세 팝업
 function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations }) {
     const [isProcessing, setIsProcessing] = useState(false);
     const [showEditPopup, setShowEditPopup] = useState(false);
@@ -420,7 +415,6 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations
     );
 }
 
-// 뱃지 카드 아이템
 function BadgeCardItem({ badge, onClick }) {
     const [badgeImage, setBadgeImage] = useState('');
     const [imageLoading, setImageLoading] = useState(true);
@@ -486,14 +480,12 @@ function BadgeCardItem({ badge, onClick }) {
     );
 }
 
-// 메인 페이지 컴포넌트
 function Page({ data }) {
     const userData = data;
     const [activeTab, setActiveTab] = useState('badges');
     const [badges, setBadges] = useState([]);
     const [isLoadingBadges, setIsLoadingBadges] = useState(true);
     
-    // 워크아웃 관련 state
     const [workouts, setWorkouts] = useState([]);
     const [stations, setStations] = useState([]);
     const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(false);
@@ -501,7 +493,6 @@ function Page({ data }) {
     const [showCreateWorkoutPopup, setShowCreateWorkoutPopup] = useState(false);
     const [isCreatingWorkout, setIsCreatingWorkout] = useState(false);
 
-    // 뱃지 데이터 로드
     const loadBadges = async () => {
         try {
             setIsLoadingBadges(true);
@@ -515,7 +506,6 @@ function Page({ data }) {
         }
     };
 
-    // 워크아웃 데이터 로드
     const loadWorkouts = async () => {
         try {
             setIsLoadingWorkouts(true);
@@ -550,7 +540,6 @@ function Page({ data }) {
         }
     }, [activeTab]);
 
-    // 워크아웃 생성 핸들러
     const handleWorkoutCreation = async (data) => {
         setIsCreatingWorkout(true);
         try {
@@ -566,7 +555,6 @@ function Page({ data }) {
         }
     };
 
-    // 버튼 섹션 컴포넌트
     const UserTabSection = () => (
         <div className="UserButtonContainer" style={{ 
             position: 'sticky', 
@@ -591,7 +579,6 @@ function Page({ data }) {
         </div>
     );
 
-    // 뱃지 섹션 컴포넌트
     const BadgesSection = () => (
         <div className="UserContainer">
             <div className="GuideTitle">Badges</div>
@@ -619,7 +606,6 @@ function Page({ data }) {
         </div>
     );
 
-    // 편집 섹션 컴포넌트
     const EditSection = () => (
         <div style={{ 
             flex: 1, 
@@ -643,7 +629,6 @@ function Page({ data }) {
             <div className="WorkoutSection">
                 <div className="GuideText">Workout Management</div>
                 
-                {/* 워크아웃 리스트 */}
                 <div className="WorkoutList">
                     {isLoadingWorkouts ? (
                         <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>
@@ -690,10 +675,8 @@ function Page({ data }) {
 
     return (
         <div className="AppContents">
-            {/* 상단 고정 버튼 영역 */}
             <UserTabSection />
             
-            {/* 스크롤 가능한 메인 컨텐츠 영역 */}
             <div style={{ 
                 flex: 1, 
                 overflowY: 'auto', 
@@ -702,7 +685,6 @@ function Page({ data }) {
                 {activeTab === 'badges' ? <BadgesSection /> : <EditSection />}
             </div>
 
-            {/* 워크아웃 생성 팝업 */}
             {showCreateWorkoutPopup && (
                 <EditWorkoutForm
                     onSubmit={handleWorkoutCreation}
@@ -712,7 +694,6 @@ function Page({ data }) {
                 />
             )}
 
-            {/* 워크아웃 상세 팝업 */}
             {selectedWorkout && (
                 <WorkoutDetailPopup
                     workout={selectedWorkout}

@@ -178,8 +178,6 @@
     width: 100%;
 }
 
-/* 기존 CSS에 추가할 스타일들 */
-
 .UserContents {
     height: 100%;
     display: flex;
@@ -205,7 +203,6 @@
     width: 100%;
 }
 
-/* 가로 모드 전용 스타일 */
 .UserActionsSectionHorizontal {
     width: 100%;
     max-width: 400px;
@@ -225,7 +222,6 @@
     column-gap: 12px;
 }
 
-/* 가로 모드에서 유저 리스트 섹션 스타일 조정 */
 .landscape .BottomGridSection .UserContainer {
     height: 100%;
     width: 100%;
@@ -236,12 +232,10 @@
     max-width: 350px;
 }
 
-/* 세로 모드에서는 기존 스타일 유지 */
 .portrait .UserContents {
     padding: 0;
 }
 
-/* 반응형 버튼 스타일 */
 .BadgesButton, .EditButton {
     min-height: 60px;
     font-size: 16px;
@@ -303,7 +297,6 @@
     width: 100%;
 }
 
-/* 가로 모드에서 뱃지 그리드 레이아웃 */
 @media (orientation: landscape) {
     .BadgeGrid {
         display: grid;
@@ -318,7 +311,6 @@
     }
 }
 
-/* 기존 반응형 스타일 유지 */
 @media (max-width: 768px) {
     .UserActionsSection {
         max-width: 100%;

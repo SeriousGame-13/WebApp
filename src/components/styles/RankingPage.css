@@ -1,4 +1,4 @@
-/* Ranking 페이지 전용 CSS */
+/* Ranking CSS */
 
 .RankingContents {
     height: 100%;
@@ -17,7 +17,6 @@
     padding-bottom: 20px;
 }
 
-/* 가로 모드 전용 스타일 */
 .RankingActionsSectionHorizontal {
     width: 100%;
     display: flex;
@@ -28,18 +27,15 @@
     align-items: center;
 }
 
-/* 가로 모드에서 랭킹 리스트 섹션 스타일 조정 */
 .landscape .BottomGridSection .RankingContainer {
     height: 100%;
     width: 100%;
 }
 
-/* 세로 모드에서는 기존 스타일 유지 */
 .portrait .RankingContents {
     padding: 0;
 }
 
-/* MainContentWrapper 스타일*/
 .MainContentWrapper {
     width: 100%;
     height: 100%;

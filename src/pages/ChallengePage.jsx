@@ -78,10 +78,9 @@ function Page({ data }) {
 
     return (
         <div className="AppContents">
-            <div className='GuideText'>
-                <div className='GuideText'>
-                    All Challenges
-                </div>
+            <div className='GroupContainer'>
+                <div className="GuideTitle">Challenges</div>
+                <div className="GuideText">My Challenges</div>
                 
                 {isLoadingChallenges ? (
                     <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>
@@ -93,8 +92,8 @@ function Page({ data }) {
                     </div>
                 ) : (
                     activeChallenges.map(challenge => (
-                        <div key={challenge.challengeId} className='GroupExerciseContainer'>
-                            <div className='GroupExerciseHeader'>
+                        <div key={challenge.challengeId} className='CardContainer'>
+                            <div className='CardHeader'>
                                 <span style={{ color: 'var(--main-color)' }}>
                                     {challenge.name}
                                 </span>
@@ -113,14 +112,10 @@ function Page({ data }) {
                                     (Active)
                                 </span>
                             </div>
-                            <div className='GroupExerciseContents'>
+                            <div className='CardContents'>
                                 {challenge.description || 'No description available.'}
                             </div>
-                            <div style={{ 
-                                margin: '8px 16px', 
-                                fontSize: '12px', 
-                                color: '#A0A0A0' 
-                            }}>
+                            <div className='CardContents'>
                                 Type: {challenge.challengeType} | 
                                 Target: {challenge.targetValue || 'N/A'} | 
                                 Participants: {challenge.getParticipantCount()} | 

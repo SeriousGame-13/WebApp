@@ -5,6 +5,7 @@ import UserManagement from '../services/firebase/UserManagementSystem';
 import GroupManagement from '../services/firebase/GroupManagementSystem';
 import ChallengeManagement from '../services/firebase/ChallengeManagement';
 import { CHALLENGE_TYPE } from '../services/interfaces/constants';
+import DatamanagerElements from '../utils/dataManager';
 
 import '../components/styles/LayoutElements.css'
 import '../components/styles/GroupPage.css'
@@ -252,7 +253,7 @@ function JoinGroupListPopup({ onCancel }) {
         <div className='PopupBackground'>
             <div className='LargePopupContainer'>
                 <h2>Join Public Group</h2>
-                <div className='GroupListContainer'>
+                <div className='GroupDetailContainer'>
                     {isLoadingGroups ? (
                         <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>
                             Loading groups...
@@ -723,6 +724,24 @@ function Page ({data}) {
     const [showJoinListPopup, setShowJoinListPopup] = useState(false);
     const [isJoiningGroup, setIsJoiningGroup] = useState(false);
     const [selectedJoinedGroup, setSelectedJoinedGroup] = useState(null);
+    const [orientation, setOrientation] = useState('landscape');
+
+    // 화면 방향 감지
+    useEffect(() => {
+        const checkOrientation = () => {
+            const isPortrait = window.innerHeight > window.innerWidth;
+            setOrientation(isPortrait ? 'portrait' : 'landscape');
+        };
+
+        checkOrientation();
+        window.addEventListener('resize', checkOrientation);
+        window.addEventListener('orientationchange', checkOrientation);
+
+        return () => {
+            window.removeEventListener('resize', checkOrientation);
+            window.removeEventListener('orientationchange', checkOrientation);
+        };
+    }, []);
 
     const handleCreateGroup = async () => {
         setShowActionPopup(false);
@@ -813,51 +832,121 @@ function Page ({data}) {
         GroupManagement.deleteGroup(groups[0].groupId, user.uid);
     };
 
+    // 그룹 리스트 컴포넌트
+    const GroupListSection = () => (
+        <div className="GroupContainer">
+            <div className="GuideTitle">Groups</div>
+            <div className="GuideText">My Groups</div>
+
+            {isLoadingGroups ? (
+                <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>
+                    Loading...
+                </div>
+            ) : userGroups.length === 0 ? (
+                <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>
+                    No Joined Groups
+                </div>
+            ) : (
+                userGroups.map(group => (
+                    <GroupCardItem 
+                        key={group.groupId} 
+                        group={group}
+                        onClick={() => setSelectedJoinedGroup(group)}
+                    />
+                ))
+            )}
+        </div>
+    );
+
+    const GroupListSectionHorizontal = () => (
+        <div className="GroupContainer">
+            <div className="GuideText">My Groups</div>
+            {isLoadingGroups ? (
+                <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>
+                    Loading...
+                </div>
+            ) : userGroups.length === 0 ? (
+                <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>
+                    No Joined Groups
+                </div>
+            ) : (
+                userGroups.map(group => (
+                    <GroupCardItem 
+                        key={group.groupId} 
+                        group={group}
+                        onClick={() => setSelectedJoinedGroup(group)}
+                    />
+                ))
+            )}
+        </div>
+    );
+
+    // 버튼 섹션 컴포넌트
+    const ButtonSection = () => (
+        <div className="GroupButtonContainer">
+            <button 
+                className='ButtonMediumFilled CreateGroupButton'
+                onClick={handleCreateGroup}
+            >
+                <div className='ButtonIcon'>+</div>
+                <div className='ButtonText'>Create Group</div>
+            </button>
+            <button 
+                className="ButtonMedium JoinGroupButton"
+                onClick={() => setShowActionPopup(true)}
+            >
+                <div className='ButtonIcon'>▷</div>
+                <div className='ButtonText'>Find Group</div>
+            </button>
+        </div>
+    );
+
+    const ButtonSectionHorizontal = () => (
+        <div className="GroupButtonContainerHorizontal">
+            <button 
+                className='ButtonMediumFilled CreateGroupButton'
+                onClick={handleCreateGroup}
+            >
+                <div className='ButtonIcon'>+</div>
+                <div className='ButtonText'>Create Group</div>
+            </button>
+            <button 
+                className="ButtonMedium JoinGroupButton"
+                onClick={() => setShowActionPopup(true)}
+            >
+                <div className='ButtonIcon'>▷</div>
+                <div className='ButtonText'>Find Group</div>
+            </button>
+        </div>
+    );
+
     return (
         <div className="AppContents">
-            <div className="GroupContents">
-                <div className="GroupContainer">
-                    <div className="GuideTitle">Groups</div>
-                    <div className="GuideText">My Groups</div>
-
-                    {isLoadingGroups ? (
-                        <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>
-                            Loading...
+            <div className={`MainContentWrapper ${orientation}`}>
+                {orientation === 'portrait' ? (
+                    // 세로 모드: 기존 레이아웃 유지
+                    <div className="GroupContents">
+                        <GroupListSection />
+                        <ButtonSection />
+                    </div>
+                ) : (
+                    // 가로 모드: 좌우 분할 레이아웃
+                    <>
+                        <div className="TopGridSection">
+                            <div className="GroupActionsSectionHorizontal">
+                                <div className="GuideTitle">Groups</div>
+                                <ButtonSectionHorizontal />
+                            </div>
                         </div>
-                    ) : userGroups.length === 0 ? (
-                        <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>
-                            No Joined Groups
+                        
+                        <div className="BottomGridSection">
+                            <GroupListSectionHorizontal />
                         </div>
-                    ) : (
-                        userGroups.map(group => (
-                            <GroupCardItem 
-                                key={group.groupId} 
-                                group={group}
-                                onClick={() => setSelectedJoinedGroup(group)}
-                            />
-                        ))
-                    )}
-                </div>
-
-                <div className="GroupButtonContainer">
-                    <button 
-                        className='ButtonMediumFilled CreateGroupButton'
-                        onClick={handleCreateGroup}
-                    >
-                        <div className='ButtonIcon'>+</div>
-                        <div className='ButtonText'>Create Group</div>
-                    </button>
-                    <button 
-                        className="ButtonMedium JoinGroupButton"
-                        onClick={() => setShowActionPopup(true)}
-                    >
-                        <div className='ButtonIcon'>▷</div>
-                        <div className='ButtonText'>Find Group</div>
-                    </button>
-                </div>
-
+                    </>
+                )}
             </div>
 
+            {/* 팝업들 */}
             {showActionPopup && (
                 <ActionSelectionPopup
                     onJoinGroup={handleJoinGroup}

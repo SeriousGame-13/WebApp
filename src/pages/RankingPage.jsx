@@ -10,6 +10,24 @@ function Page({ data }) {
     const [leaderboardType, setLeaderboardType] = useState('level');
     const [isLoading, setIsLoading] = useState(true);
     const [userRank, setUserRank] = useState(null);
+    const [orientation, setOrientation] = useState('landscape');
+
+    // 화면 방향 감지
+    useEffect(() => {
+        const checkOrientation = () => {
+            const isPortrait = window.innerHeight > window.innerWidth;
+            setOrientation(isPortrait ? 'portrait' : 'landscape');
+        };
+
+        checkOrientation();
+        window.addEventListener('resize', checkOrientation);
+        window.addEventListener('orientationchange', checkOrientation);
+
+        return () => {
+            window.removeEventListener('resize', checkOrientation);
+            window.removeEventListener('orientationchange', checkOrientation);
+        };
+    }, []);
 
     useEffect(() => {
         loadRankings();
@@ -101,125 +119,226 @@ function Page({ data }) {
     };
 
     return (
-        <div className="AppContents" style={{ 
-            height: 'calc(100vh - 140px)',
-            overflow: 'auto',
-            paddingBottom: '20px'
-        }}>
-            <div className='GuideText'>
-                <IconElements.RankingIcon />
-                <span style={{ marginLeft: '8px' }}>Leaderboards</span>
-            </div>
+        <div className="AppContents">
+            <div className={`MainContentWrapper ${orientation}`}>
+                {orientation === 'portrait' ? (
+                    // 세로 모드: 기존 레이아웃
+                    <div className="RankingContents">
+                        <div className='RankingContainer'>
+                            <div className="GuideTitle">Ranking</div>
+                            <div className='GuideText'>Leaderboard Type</div>
+                            <div className='GroupExerciseContents'>
+                                <select 
+                                    value={leaderboardType}
+                                    onChange={handleLeaderboardTypeChange}
+                                    style={{
+                                        padding: '8px 12px',
+                                        border: '1px solid var(--border-glass)',
+                                        borderRadius: '8px',
+                                        backgroundColor: 'var(--background-glass)',
+                                        color: 'var(--light-color)',
+                                        fontSize: '14px',
+                                        cursor: 'pointer',
+                                        width: '100%'
+                                    }}
+                                >
+                                    <option value="level">Level Rankings</option>
+                                    <option value="points">Total Points</option>
+                                </select>
+                            </div>
 
-            <div className='GroupExerciseContainer' style={{ marginBottom: '20px' }}>
-                <div className='GroupExerciseHeader'>
-                    <span style={{ color: 'var(--main-color)' }}>
-                        Leaderboard Type
-                    </span>
-                </div>
-                <div className='GroupExerciseContents'>
-                    <select 
-                        value={leaderboardType}
-                        onChange={handleLeaderboardTypeChange}
-                        style={{
-                            padding: '8px 12px',
-                            border: '1px solid var(--border-glass)',
-                            borderRadius: '8px',
-                            backgroundColor: 'var(--background-glass)',
-                            color: 'var(--light-color)',
-                            fontSize: '14px',
-                            cursor: 'pointer',
-                            width: '100%'
-                        }}
-                    >
-                        <option value="level">Level Rankings</option>
-                        <option value="points">Total Points</option>
-                    </select>
-                </div>
-            </div>
+                            {userRank && (
+                                <div className='CardContainer' style={{ marginBottom: '20px' }}>
+                                    <div className='CardHeader'>
+                                        <span style={{ color: 'var(--light-color)' }}>
+                                            Your Ranking
+                                        </span>
+                                        <span style={{ 
+                                            color: '#00FF94', 
+                                            fontSize: '12px', 
+                                            marginLeft: '8px' 
+                                        }}>
+                                            (Rank #{userRank.rank})
+                                        </span>
+                                    </div>
+                                    <div className='CardContents'>
+                                        Your {getScoreLabel()}: {getScoreValue(userRank).toLocaleString()}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
 
-            {userRank && (
-                <div className='GroupExerciseContainer' style={{ marginBottom: '20px' }}>
-                    <div className='GroupExerciseHeader'>
-                        <span style={{ color: 'var(--main-color)' }}>
-                            Your Ranking
-                        </span>
-                        <span style={{ 
-                            color: '#00FF94', 
-                            fontSize: '12px', 
-                            marginLeft: '8px' 
+                        <div className='GuideText'>
+                            {getLeaderboardTitle()}
+                        </div>
+                        
+                        <div style={{ 
+                            maxHeight: 'calc(100vh - 470px)',
+                            overflow: 'auto',
+                            paddingRight: '8px'
                         }}>
-                            (Rank #{userRank.rank})
-                        </span>
-                    </div>
-                    <div className='GroupExerciseContents'>
-                        Your {getScoreLabel()}: {getScoreValue(userRank).toLocaleString()}
-                    </div>
-                </div>
-            )}
-
-            <div className='GuideText'>
-                {getLeaderboardTitle()}
-            </div>
-            
-            <div style={{ 
-                maxHeight: 'calc(100vh - 380px)', // Account for footer (80px) + headers (300px)
-                overflow: 'auto',
-                paddingRight: '8px'
-            }}>
-                {isLoading ? (
-                    <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>
-                        Loading rankings...
-                    </div>
-                ) : rankings.length === 0 ? (
-                    <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>
-                        No rankings available for this category.
+                            {isLoading ? (
+                                <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>
+                                    Loading rankings...
+                                </div>
+                            ) : rankings.length === 0 ? (
+                                <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>
+                                    No rankings available for this category.
+                                </div>
+                            ) : (
+                                rankings.map((ranking) => (
+                                    <div key={`${ranking.uid}_${leaderboardType}`} className='CardContainer'>
+                                        <div className='CardHeader'>
+                                            <span style={{ 
+                                                color: ranking.rank <= 3 ? '#FFD700' : 'var(--main-color)',
+                                                fontSize: '18px',
+                                                marginRight: '8px'
+                                            }}>
+                                                {getRankIcon(ranking.rank)}
+                                            </span>
+                                            <span style={{ color: 'var(--main-color)' }}>
+                                                {ranking.displayName}
+                                            </span>
+                                            {ranking.uid === userData?.uid && (
+                                                <span style={{ 
+                                                    color: '#00FF94', 
+                                                    fontSize: '12px', 
+                                                    marginLeft: '8px' 
+                                                }}>
+                                                    (You)
+                                                </span>
+                                            )}
+                                            <span style={{ 
+                                                color: 'var(--light-color)', 
+                                                fontSize: '14px', 
+                                                marginLeft: 'auto' 
+                                            }}>
+                                                {' Level ' + (ranking.level || 1)}
+                                            </span>
+                                        </div>
+                                        <div className='CardContents'>
+                                            {getScoreLabel()}: {getScoreValue(ranking).toLocaleString()}
+                                        </div>
+                                        <div className='CardContents'>
+                                            Rank: #{ranking.rank} | 
+                                            Level: {ranking.level || 1} | 
+                                            Points: {ranking.points || 0}
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
                     </div>
                 ) : (
-                    rankings.map((ranking) => (
-                        <div key={`${ranking.uid}_${leaderboardType}`} className='GroupExerciseContainer'>
-                            <div className='GroupExerciseHeader'>
-                                <span style={{ 
-                                    color: ranking.rank <= 3 ? '#FFD700' : 'var(--main-color)',
-                                    fontSize: '18px',
-                                    marginRight: '8px'
-                                }}>
-                                    {getRankIcon(ranking.rank)}
-                                </span>
-                                <span style={{ color: 'var(--main-color)' }}>
-                                    {ranking.displayName}
-                                </span>
-                                {ranking.uid === userData?.uid && (
-                                    <span style={{ 
-                                        color: '#00FF94', 
-                                        fontSize: '12px', 
-                                        marginLeft: '8px' 
-                                    }}>
-                                        (You)
-                                    </span>
+                    // 가로 모드: 좌우 분할
+                    <>
+                        {/* 왼쪽: 타이틀과 컨트롤 */}
+                        <div className="TopGridSection">
+                            <div className="RankingActionsSectionHorizontal">
+                                <div className="GuideTitle">Ranking</div>
+                                <div className='GuideText'>Leaderboard Type</div>
+                                <div className='GroupExerciseContents'>
+                                    <select 
+                                        value={leaderboardType}
+                                        onChange={handleLeaderboardTypeChange}
+                                        style={{
+                                            padding: '8px 12px',
+                                            border: '1px solid var(--border-glass)',
+                                            borderRadius: '8px',
+                                            backgroundColor: 'var(--background-glass)',
+                                            color: 'var(--light-color)',
+                                            fontSize: '14px',
+                                            cursor: 'pointer',
+                                            width: '100%'
+                                        }}
+                                    >
+                                        <option value="level">Level Rankings</option>
+                                        <option value="points">Total Points</option>
+                                    </select>
+                                </div>
+
+                                {userRank && (
+                                    <div className='CardContainer' style={{ marginTop: '20px' }}>
+                                        <div className='CardHeader'>
+                                            <span style={{ color: 'var(--light-color)' }}>
+                                                Your Ranking
+                                            </span>
+                                            <span style={{ 
+                                                color: '#00FF94', 
+                                                fontSize: '12px', 
+                                                marginLeft: '8px' 
+                                            }}>
+                                                (Rank #{userRank.rank})
+                                            </span>
+                                        </div>
+                                        <div className='CardContents'>
+                                            Your {getScoreLabel()}: {getScoreValue(userRank).toLocaleString()}
+                                        </div>
+                                    </div>
                                 )}
-                                <span style={{ 
-                                    color: 'var(--light-color)', 
-                                    fontSize: '14px', 
-                                    marginLeft: 'auto' 
-                                }}>
-                                    {' Level ' + (ranking.level || 1)}
-                                </span>
-                            </div>
-                            <div className='GroupExerciseContents'>
-                                {getScoreLabel()}: {getScoreValue(ranking).toLocaleString()}
-                            </div>
-                            <div style={{ 
-                                margin: '8px 16px', 
-                                fontSize: '12px', 
-                                color: '#A0A0A0' 
-                            }}>
-                                Rank: #{ranking.rank} | 
-                                Level: {ranking.level || 1} | 
-                                Points: {ranking.points || 0}
                             </div>
                         </div>
-                    ))
+                        
+                        {/* 오른쪽: 리더보드 카드들 */}
+                        <div className="BottomGridSection">
+                            <div className="RankingContainer">
+                                <div className='GuideText'>
+                                    {getLeaderboardTitle()}
+                                </div>
+                                
+                                {isLoading ? (
+                                    <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>
+                                        Loading rankings...
+                                    </div>
+                                ) : rankings.length === 0 ? (
+                                    <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>
+                                        No rankings available for this category.
+                                    </div>
+                                ) : (
+                                    rankings.map((ranking) => (
+                                        <div key={`${ranking.uid}_${leaderboardType}`} className='CardContainer'>
+                                            <div className='CardHeader'>
+                                                <span style={{ 
+                                                    color: ranking.rank <= 3 ? '#FFD700' : 'var(--main-color)',
+                                                    fontSize: '18px',
+                                                    marginRight: '8px'
+                                                }}>
+                                                    {getRankIcon(ranking.rank)}
+                                                </span>
+                                                <span style={{ color: 'var(--main-color)' }}>
+                                                    {ranking.displayName}
+                                                </span>
+                                                {ranking.uid === userData?.uid && (
+                                                    <span style={{ 
+                                                        color: '#00FF94', 
+                                                        fontSize: '12px', 
+                                                        marginLeft: '8px' 
+                                                    }}>
+                                                        (You)
+                                                    </span>
+                                                )}
+                                                <span style={{ 
+                                                    color: 'var(--light-color)', 
+                                                    fontSize: '14px', 
+                                                    marginLeft: 'auto' 
+                                                }}>
+                                                    {' Level ' + (ranking.level || 1)}
+                                                </span>
+                                            </div>
+                                            <div className='CardContents'>
+                                                {getScoreLabel()}: {getScoreValue(ranking).toLocaleString()}
+                                            </div>
+                                            <div className='CardContents'>
+                                                Rank: #{ranking.rank} | 
+                                                Level: {ranking.level || 1} | 
+                                                Points: {ranking.points || 0}
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+                    </>
                 )}
             </div>
         </div>

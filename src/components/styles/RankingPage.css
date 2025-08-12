@@ -1,0 +1,69 @@
+/* Ranking 페이지 전용 CSS */
+
+.RankingContents {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow-y: auto;
+}
+
+.RankingContainer {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+    padding-bottom: 20px;
+}
+
+/* 가로 모드 전용 스타일 */
+.RankingActionsSectionHorizontal {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    height: 100%;
+    justify-content: baseline;
+    align-items: center;
+}
+
+/* 가로 모드에서 랭킹 리스트 섹션 스타일 조정 */
+.landscape .BottomGridSection .RankingContainer {
+    height: 100%;
+    width: 100%;
+}
+
+/* 세로 모드에서는 기존 스타일 유지 */
+.portrait .RankingContents {
+    padding: 0;
+}
+
+/* MainContentWrapper 스타일*/
+.MainContentWrapper {
+    width: 100%;
+    height: 100%;
+}
+
+.MainContentWrapper.landscape {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.MainContentWrapper.portrait {
+    display: flex;
+    flex-direction: column;
+}
+
+.TopGridSection {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.BottomGridSection {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}

@@ -73,7 +73,7 @@ function AppLogin() {
     }
 
     return (
-        <div className='MainContainer'>
+        <div className='MainContainerWithHeader'>
             <header />
             <div />
             <div className="FirstContainer">

@@ -1,10 +1,12 @@
-.GroupButtonContainer {
+.UserButtonContainer {
     position: relative;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
+    justify-content: center;
     overflow: hidden;
     gap: 12px;
+    width: 100%;
 }
 
 .PlusIcon {
@@ -14,7 +16,7 @@
     line-height: 1;
 }
 
-.GroupContents {
+.UserContents {
     display: flex;
     justify-content: space-between;
     flex-direction: column;
@@ -22,7 +24,7 @@
     height: 100%;
 }
 
-.GroupContainer {
+.UserContainer {
    position: relative;
    display: flex;
    flex-direction: column;
@@ -31,7 +33,7 @@
    gap: 12px;
 }
 
-.GroupListContainer {
+.UserListContainer {
     position: relative;
     display: flex;
     flex-direction: column;
@@ -43,7 +45,7 @@
     box-sizing: border-box;
 }
 
-.GroupListItem {
+.UserListItem {
     position: relative;
     display: flex;
     flex-direction: column;
@@ -62,26 +64,26 @@
     flex-shrink: 0;
 }
 
-.GroupListHeader {
+.UserListHeader {
     font-size: medium;
     color: var(--main-color);
     margin: 16px 16px 8px 16px;
 }
 
-.GroupListDescription {
+.UserListDescription {
     color: var(--text-secondary);
     margin: 0 16px 12px 16px;
     line-height: 1.4;
     font-size: 13px;
 }
 
-.GroupListInfo {
+.UserListInfo {
     color: var(--text-secondary);
     margin: 0 16px 16px 16px;
     font-size: 12px;
 }
 
-.GroupDetailContainer {
+.UserDetailContainer {
     flex: 1;
     width: 100%;
     padding: 20px;
@@ -89,30 +91,30 @@
     box-sizing: border-box;
 }
 
-.GroupDetailHeader {
+.UserDetailHeader {
     font-size: 24px;
     font-weight: bold;
     color: var(--main-color);
     margin-bottom: 16px;
 }
 
-.GroupDetailDescription {
+.UserDetailDescription {
     font-size: 16px;
     color: var(--light-color);
     margin-bottom: 20px;
     line-height: 1.5;
 }
 
-.GroupDetailInfo {
+.UserDetailInfo {
     font-size: 14px;
     color: var(--text-secondary);
 }
 
-.GroupDetailInfo > div {
+.UserDetailInfo > div {
     margin-bottom: 8px;
 }
 
-.MemberListContainer {
+.BadgeListContainer {
     position: relative;
     display: flex;
     flex-direction: column;
@@ -126,7 +128,7 @@
     box-sizing: border-box;
 }
 
-.GroupJoinItem {
+.BadgeItem {
     position: relative;
     display: flex;
     flex-direction: column;
@@ -145,7 +147,7 @@
     flex-shrink: 0;
 }
 
-.GroupActionButtons {
+.UserActionButtons {
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -153,7 +155,7 @@
     margin-top: 20px;
 }
 
-.GroupActionButton {
+.UserActionButton {
     display: flex;
     height: 40px;
     width: 100%;
@@ -167,18 +169,18 @@
     font-weight: 600;
 }
 
-.GroupActionButton:disabled {
+.UserActionButton:disabled {
     opacity: 0.6;
     cursor: not-allowed;
 }
 
-.CreateGroupButton, .JoinGroupButton {
+.BadgesButton, .EditButton {
     width: 100%;
 }
 
 /* 기존 CSS에 추가할 스타일들 */
 
-.GroupContents {
+.UserContents {
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -186,27 +188,27 @@
     overflow-y: auto;
 }
 
-.GroupContainer {
+.UserContainer {
     flex: 1;
     display: flex;
     flex-direction: column;
-    width: 100%;
     gap: 12px;
     overflow-y: auto;
     padding-bottom: 20px;
 }
 
-.GroupButtonContainer {
+.UserButtonContainer {
     flex-shrink: 0;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     gap: 12px;
     width: 100%;
 }
 
 /* 가로 모드 전용 스타일 */
-.GroupActionsSectionHorizontal {
+.UserActionsSectionHorizontal {
     width: 100%;
+    max-width: 400px;
     display: flex;
     flex-direction: column;
     gap: 20px;
@@ -215,45 +217,118 @@
     align-items: center;
 }
 
-.GroupButtonContainerHorizontal {
+.UserButtonContainerHorizontal {
     flex-shrink: 0;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     width: 100%;
-    row-gap: 12px;
+    column-gap: 12px;
 }
 
-/* 가로 모드에서 그룹 리스트 섹션 스타일 조정 */
-.landscape .BottomGridSection .GroupContainer {
+/* 가로 모드에서 유저 리스트 섹션 스타일 조정 */
+.landscape .BottomGridSection .UserContainer {
     height: 100%;
     width: 100%;
 }
 
-.landscape .GroupButtonContainer {
+.landscape .UserButtonContainer {
     width: 100%;
+    max-width: 350px;
 }
 
 /* 세로 모드에서는 기존 스타일 유지 */
-.portrait .GroupContents {
+.portrait .UserContents {
     padding: 0;
 }
 
 /* 반응형 버튼 스타일 */
-.CreateGroupButton, .JoinGroupButton {
+.BadgesButton, .EditButton {
     min-height: 60px;
     font-size: 16px;
 }
 
+.WorkoutSection {
+    margin-top: 20px;
+    padding: 16px;
+    background: var(--background-card);
+    border-radius: 12px;
+    border: 1px solid var(--border-glass);
+}
+
+.WorkoutSection .GuideText {
+    color: var(--main-color);
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.WorkoutList {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-bottom: 10px;
+}
+
+.UserInfo {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    width: 100%;
+    margin-bottom: 20px;
+    align-items: flex-start;
+}
+
+.UserProfileSection {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.UserDetailsSection {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+.UserDetailsSection p {
+    margin: 4px 0;
+    color: var(--light-color);
+    font-size: 14px;
+}
+
+.BadgeGrid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+}
+
+/* 가로 모드에서 뱃지 그리드 레이아웃 */
+@media (orientation: landscape) {
+    .BadgeGrid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-gap: 12px;
+        width: 100%;
+    }
+    
+    .BadgeGrid .CardContainer {
+        margin-bottom: 0;
+        width: 100%;
+    }
+}
+
+/* 기존 반응형 스타일 유지 */
 @media (max-width: 768px) {
-    .GroupActionsSection {
+    .UserActionsSection {
         max-width: 100%;
     }
     
-    .GroupButtonContainer {
+    .UserButtonContainer {
         gap: 8px;
     }
     
-    .CreateGroupButton, .JoinGroupButton {
+    .BadgesButton, .EditButton {
         min-height: 50px;
         font-size: 14px;
     }

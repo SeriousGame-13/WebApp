@@ -1,3 +1,18 @@
+/**
+ * @fileoverview Goal System Module
+ * 
+ * This module provides comprehensive goal management functionality for the fitness application.
+ * It handles user goal creation, tracking, progress updates, and achievement rewards.
+ * The system supports personal fitness goals with deadlines, progress tracking, and automatic
+ * completion detection with point rewards.
+ * 
+ * Features include goal recommendations based on workout history, statistics tracking,
+ * and integration with the user management and reward systems.
+ * 
+ * @author Igor, Alexander, Hyunu, Robert
+ * @version 1.0.0
+ */
+
 import { v4 as uuidv4 } from 'uuid';
 import FirebaseManager from './FirestoreManager';
 import UserManagement from './UserManagementSystem';
@@ -6,11 +21,18 @@ import { GOALS_COLLECTION } from './collections';
 
 
 /**
- * Creates a new user goal
- * @param {string} userId - ID of user creating the goal
- * @param {object} goalData - Goal details
- * @returns {Promise<UserGoal>} Created goal object
- * @throws {Error} If creation fails
+ * Creates a new user goal with the provided goal data.
+ * Validates goal data and stores it in the database with automatic ID generation.
+ * @param {string} userId - The unique identifier of the user creating the goal
+ * @param {Object} goalData - The goal configuration data
+ * @param {string} goalData.title - The title/name of the goal
+ * @param {string} [goalData.description] - Optional description of the goal
+ * @param {number} goalData.targetValue - The target value to achieve
+ * @param {string} goalData.unit - The unit of measurement for the goal
+ * @param {string} [goalData.exerciseDefId] - Optional exercise definition ID if goal is exercise-specific
+ * @param {number} goalData.deadline - The deadline timestamp for goal completion
+ * @returns {Promise<UserGoal>} The created goal object with assigned ID
+ * @throws {Error} If goal creation fails or validation errors occur
  */
 const createGoal = async (userId, goalData) => {
     try {
@@ -43,9 +65,10 @@ const createGoal = async (userId, goalData) => {
 };
 
 /**
- * Retrieves a goal by ID
- * @param {string} goalId - ID of the goal
- * @returns {Promise<UserGoal|null>} Goal object or null if not found
+ * Retrieves a specific goal by its unique identifier.
+ * Returns the complete goal object with all its properties and current status.
+ * @param {string} goalId - The unique identifier of the goal to retrieve
+ * @returns {Promise<UserGoal|null>} The goal object if found, null if not found or on error
  */
 const getGoal = async (goalId) => {
     try {
@@ -60,12 +83,18 @@ const getGoal = async (goalId) => {
 };
 
 /**
- * Updates a goal's details
- * @param {string} goalId - ID of the goal
- * @param {string} userId - ID of user making the update
- * @param {object} updates - Fields to update
- * @returns {Promise<UserGoal>} Updated goal object
- * @throws {Error} If update fails or user doesn't have permission
+ * Updates specific fields of an existing goal.
+ * Validates user permissions and goal state before allowing modifications.
+ * Prevents modification of completed goals' target values.
+ * @param {string} goalId - The unique identifier of the goal to update
+ * @param {string} userId - The unique identifier of the user making the update
+ * @param {Object} updates - The fields to update in the goal
+ * @param {string} [updates.title] - Updated goal title
+ * @param {string} [updates.description] - Updated goal description
+ * @param {number} [updates.targetValue] - Updated target value (not allowed for completed goals)
+ * @param {number} [updates.deadline] - Updated deadline timestamp
+ * @returns {Promise<UserGoal>} The updated goal object
+ * @throws {Error} If update fails, user lacks permission, or goal state prevents updates
  */
 const updateGoal = async (goalId, userId, updates) => {
     try {
@@ -92,12 +121,14 @@ const updateGoal = async (goalId, userId, updates) => {
 };
 
 /**
- * Updates progress towards a goal
- * @param {string} goalId - ID of the goal
- * @param {string} userId - ID of the user
- * @param {number} progressValue - New progress value
- * @returns {Promise<UserGoal>} Updated goal object
- * @throws {Error} If update fails
+ * Updates the progress value for a specific goal.
+ * Automatically marks goal as completed when target is reached and awards points.
+ * Validates user permissions and goal state before allowing progress updates.
+ * @param {string} goalId - The unique identifier of the goal to update
+ * @param {string} userId - The unique identifier of the user updating progress
+ * @param {number} progressValue - The new progress value to set
+ * @returns {Promise<UserGoal>} The updated goal object with new progress
+ * @throws {Error} If update fails, user lacks permission, goal is completed, or deadline has passed
  */
 const updateGoalProgress = async (goalId, userId, progressValue) => {
     try {
@@ -141,10 +172,12 @@ const updateGoalProgress = async (goalId, userId, progressValue) => {
 };
 
 /**
- * Awards points for completing a goal
- * @param {string} userId - ID of the user
- * @param {UserGoal} goal - Completed goal
- * @returns {Promise<void>}
+ * Awards points to a user for completing a goal.
+ * Calculates points based on goal difficulty, target value, and completion timing.
+ * Provides bonus points for goals completed before deadline.
+ * @param {string} userId - The unique identifier of the user to award points to
+ * @param {UserGoal} goal - The completed goal object used for point calculation
+ * @returns {Promise<void>} Resolves when points are successfully awarded
  */
 const awardGoalCompletion = async (userId, goal) => {
     try {
@@ -161,11 +194,12 @@ const awardGoalCompletion = async (userId, goal) => {
 };
 
 /**
- * Deletes a goal
- * @param {string} goalId - ID of the goal
- * @param {string} userId - ID of user deleting the goal
- * @returns {Promise<void>}
- * @throws {Error} If deletion fails or user doesn't have permission
+ * Deletes a goal from the database.
+ * Validates user permissions before allowing deletion.
+ * @param {string} goalId - The unique identifier of the goal to delete
+ * @param {string} userId - The unique identifier of the user requesting deletion
+ * @returns {Promise<void>} Resolves when goal is successfully deleted
+ * @throws {Error} If deletion fails, goal not found, or user lacks permission
  */
 const deleteGoal = async (goalId, userId) => {
     try {
@@ -186,10 +220,15 @@ const deleteGoal = async (goalId, userId) => {
 };
 
 /**
- * Gets all goals for a user
- * @param {string} userId - ID of the user
- * @param {object} filters - Optional filters (isCompleted, exerciseDefId, etc.)
- * @returns {Promise<Array>} Array of goal objects
+ * Retrieves all goals for a specific user with optional filtering.
+ * Supports filtering by completion status, exercise type, and active status.
+ * Returns goals sorted by creation date (newest first).
+ * @param {string} userId - The unique identifier of the user whose goals to retrieve
+ * @param {Object} [filters={}] - Optional filters to apply to the goals
+ * @param {boolean} [filters.isCompleted] - Filter by completion status (true/false)
+ * @param {string} [filters.exerciseDefId] - Filter by specific exercise definition ID
+ * @param {boolean} [filters.isActive] - Filter for active goals (not completed and not expired)
+ * @returns {Promise<UserGoal[]>} Array of goal objects matching the criteria, sorted by creation date
  */
 const getUserGoals = async (userId, filters = {}) => {
     try {
@@ -225,27 +264,30 @@ const getUserGoals = async (userId, filters = {}) => {
 };
 
 /**
- * Gets active goals for a user (not completed and not expired)
- * @param {string} userId - ID of the user
- * @returns {Promise<Array>} Array of active goal objects
+ * Retrieves all active goals for a user.
+ * Active goals are those that are not completed and have not passed their deadline.
+ * @param {string} userId - The unique identifier of the user
+ * @returns {Promise<UserGoal[]>} Array of active goal objects
  */
 const getActiveGoals = async (userId) => {
     return await getUserGoals(userId, { isActive: true });
 };
 
 /**
- * Gets completed goals for a user
- * @param {string} userId - ID of the user
- * @returns {Promise<Array>} Array of completed goal objects
+ * Retrieves all completed goals for a user.
+ * Returns goals that have been successfully completed regardless of deadline.
+ * @param {string} userId - The unique identifier of the user
+ * @returns {Promise<UserGoal[]>} Array of completed goal objects
  */
 const getCompletedGoals = async (userId) => {
     return await getUserGoals(userId, { isCompleted: true });
 };
 
 /**
- * Gets expired goals for a user
- * @param {string} userId - ID of the user
- * @returns {Promise<Array>} Array of expired goal objects
+ * Retrieves all expired goals for a user.
+ * Expired goals are those that are not completed but have passed their deadline.
+ * @param {string} userId - The unique identifier of the user
+ * @returns {Promise<UserGoal[]>} Array of expired goal objects
  */
 const getExpiredGoals = async (userId) => {
     try {
@@ -258,9 +300,16 @@ const getExpiredGoals = async (userId) => {
 };
 
 /**
- * Gets goal statistics for a user
- * @param {string} userId - ID of the user
- * @returns {Promise<object>} Goal statistics
+ * Calculates and returns comprehensive goal statistics for a user.
+ * Provides insights into goal completion rates, timing, and overall progress.
+ * @param {string} userId - The unique identifier of the user
+ * @returns {Promise<Object>} Goal statistics object
+ * @returns {Promise<Object>} result.total - Total number of goals created
+ * @returns {Promise<Object>} result.completed - Number of completed goals
+ * @returns {Promise<Object>} result.active - Number of active goals
+ * @returns {Promise<Object>} result.expired - Number of expired goals
+ * @returns {Promise<Object>} result.completionRate - Percentage of goals completed (0-100)
+ * @returns {Promise<Object>} result.averageCompletionTime - Average time to complete goals in milliseconds
  */
 const getGoalStatistics = async (userId) => {
     try {
@@ -302,13 +351,15 @@ const getGoalStatistics = async (userId) => {
 };
 
 /**
- * Creates a goal from workout data automatically
- * @param {string} userId - ID of the user
- * @param {string} exerciseDefId - ID of the exercise
- * @param {number} currentBest - User's current best performance
- * @param {number} improvementPercentage - Percentage improvement target (default 10%)
- * @param {number} daysToComplete - Days to complete the goal (default 30)
- * @returns {Promise<UserGoal>} Created goal object
+ * Automatically creates a goal based on workout performance data.
+ * Generates improvement-based goals with calculated target values and deadlines.
+ * @param {string} userId - The unique identifier of the user
+ * @param {string} exerciseDefId - The unique identifier of the exercise definition
+ * @param {number} currentBest - The user's current best performance value
+ * @param {number} [improvementPercentage=10] - The percentage improvement target (default 10%)
+ * @param {number} [daysToComplete=30] - The number of days to complete the goal (default 30)
+ * @returns {Promise<UserGoal>} The created goal object with calculated target and deadline
+ * @throws {Error} If goal creation fails
  */
 const createGoalFromWorkout = async (userId, exerciseDefId, currentBest, improvementPercentage = 10, daysToComplete = 30) => {
     try {
@@ -332,11 +383,13 @@ const createGoalFromWorkout = async (userId, exerciseDefId, currentBest, improve
 };
 
 /**
- * Updates goal progress from workout completion
- * @param {string} userId - ID of the user
- * @param {string} exerciseDefId - ID of the exercise
- * @param {number} performanceValue - Performance value from workout
- * @returns {Promise<Array>} Array of updated goals
+ * Updates goal progress based on workout completion data.
+ * Automatically updates all relevant active goals when a workout is completed.
+ * Only updates goals where the new performance exceeds the current progress.
+ * @param {string} userId - The unique identifier of the user
+ * @param {string} exerciseDefId - The unique identifier of the exercise completed
+ * @param {number} performanceValue - The performance value achieved in the workout
+ * @returns {Promise<UserGoal[]>} Array of updated goal objects
  */
 const updateGoalsFromWorkout = async (userId, exerciseDefId, performanceValue) => {
     try {
@@ -359,9 +412,16 @@ const updateGoalsFromWorkout = async (userId, exerciseDefId, performanceValue) =
 };
 
 /**
- * Gets goal recommendations for a user based on their workout history
- * @param {string} userId - ID of the user
- * @returns {Promise<Array>} Array of recommended goal objects
+ * Generates personalized goal recommendations based on user workout history.
+ * Analyzes workout patterns and suggests improvement goals for frequently performed exercises.
+ * Only recommends goals for exercises without existing active goals.
+ * @param {string} userId - The unique identifier of the user
+ * @returns {Promise<Object[]>} Array of goal recommendation objects
+ * @returns {Promise<Object[]>} result[].exerciseDefId - The exercise definition ID
+ * @returns {Promise<Object[]>} result[].currentBest - The user's current best performance
+ * @returns {Promise<Object[]>} result[].recommendedTarget - The recommended target value
+ * @returns {Promise<Object[]>} result[].workoutCount - Number of times the exercise has been performed
+ * @returns {Promise<Object[]>} result[].avgPoints - Average points scored for this exercise
  */
 const getGoalRecommendations = async (userId) => {
     try {
@@ -417,6 +477,23 @@ const getGoalRecommendations = async (userId) => {
     }
 };
 
+/**
+ * Goal System
+ * 
+ * Provides comprehensive goal management functionality including:
+ * - Personal goal creation with customizable targets and deadlines
+ * - Progress tracking and automatic completion detection
+ * - Point rewards for goal completion with difficulty-based calculation
+ * - Goal statistics and analytics
+ * - Workout-based automatic goal creation and updates
+ * - Personalized goal recommendations based on workout history
+ * - Goal filtering and categorization (active, completed, expired)
+ * 
+ * The system integrates with user management for point rewards and uses
+ * workout data to provide intelligent goal suggestions and automatic progress updates.
+ * 
+ * @namespace GoalSystem
+ */
 const GoalSystem = {
     createGoal,
     getGoal,
@@ -431,6 +508,6 @@ const GoalSystem = {
     createGoalFromWorkout,
     updateGoalsFromWorkout,
     getGoalRecommendations,
-}
+};
 
-export default GoalSystem
+export default GoalSystem;

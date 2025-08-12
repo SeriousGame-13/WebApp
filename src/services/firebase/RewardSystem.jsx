@@ -1,4 +1,4 @@
-import CompetitonSystem from './CompetitionSystem';
+import CompetitonSystem from './TournamentManagement';
 import UserManagement from './UserManagementSystem';
 import BadgeManagement from "./BadgeManagement";
 import { createCustomAnalytics } from "../../utils/FirestoreAnalytics";

@@ -220,7 +220,7 @@
     row-gap: 12px;
 }
 
-.landscape .BottomGridSection .GroupContainer {
+.landscape .BottomGridSection {
     height: 100%;
     width: 100%;
 }

@@ -4,6 +4,8 @@ import { Group, GroupMember } from '../interfaces/group.jsx';
 import { GROUP_ROLE } from '../interfaces/constants.jsx';
 import {GROUPS_COLLECTION, GROUP_MEMBERS_COLLECTION, USERS_COLLECTION } from './collections.jsx'
 
+const GROUP_IMAGES_COLLECTION = 'groupimages';
+
 
 const generateUniqueGroupId = async () => {
     let groupId;
@@ -58,7 +60,7 @@ const createGroup = async (userId, name, description, maxMembers = 50, isPrivate
         });
         
         const { members, ...groupDataForFirebase } = group;
-        await FirebaseManager.createDocument(GROUPS_COLLECTION, groupDataForFirebase, true);
+        await FirebaseManager.createDocument(GROUPS_COLLECTION, groupDataForFirebase, groupId, true);
         
         await addGroupMember(groupId, userId, GROUP_ROLE.ADMIN);
         
@@ -124,6 +126,48 @@ function validateUserPermission(group, userId) {
     }
 }
 
+/**
+ * Saves group image to Firebase
+ * @param {string} base64Data - Base64 encoded image data
+ * @param {string} groupId - ID of the group
+ * @returns {Promise<Object>} Success object with group ID and size
+ * @throws {Error} If saving fails
+ */
+const saveGroupImage = async (base64Data, groupId) => {
+    try {
+        const imageData = {
+            groupId,
+            imageData: base64Data,
+            updatedAt: Date.now()
+        };
+        
+        await FirebaseManager.createDocument(GROUP_IMAGES_COLLECTION, imageData, groupId, true);
+        
+        return {
+            success: true,
+            groupId,
+            size: base64Data.length
+        };
+    } catch (error) {
+        console.error('Failed to save group image:', error);
+        throw error;
+    }
+};
+
+/**
+ * Gets group image from Firebase
+ * @param {string} groupId - ID of the group
+ * @returns {Promise<string|null>} Base64 image data or null if not found
+ */
+const getGroupImage = async (groupId) => {
+    try {
+        const imageDoc = await FirebaseManager.readDocument(GROUP_IMAGES_COLLECTION, groupId);
+        return imageDoc?.imageData || null;
+    } catch (error) {
+        console.error('Failed to get group image:', error);
+        return null;
+    }
+};
 
 /**
  * Updates group details
@@ -175,6 +219,9 @@ const deleteGroup = async (groupId, userId) => {
         for (const member of memberships) {
             await FirebaseManager.deleteDocument(GROUP_MEMBERS_COLLECTION, member.membershipId);
         }
+        
+        // 그룹과 함께 이미지도 삭제
+        await FirebaseManager.deleteDocument(GROUP_IMAGES_COLLECTION, groupId);
         
         await FirebaseManager.deleteDocument(GROUPS_COLLECTION, groupId);
     } catch (error) {
@@ -289,7 +336,7 @@ const addGroupMember = async (groupId, userId, role = GROUP_ROLE.MEMBER) => {
             joinedAt: Date.now()
         });        
 
-        await FirebaseManager.createDocument(GROUP_MEMBERS_COLLECTION, membership, true);
+        await FirebaseManager.createDocument(GROUP_MEMBERS_COLLECTION, membership, membershipId, true);
 
         return membership;
     } catch (error) {
@@ -633,11 +680,12 @@ const GroupManagementSystem = {
     canUserJoinGroup,
     rejoinGroup,
 
+    // Image operations
+    saveGroupImage,
+    getGroupImage,
+
     generateUniqueGroupId,
     changeGroupAdmin,
 };
 
 export default GroupManagementSystem;
-
-
-

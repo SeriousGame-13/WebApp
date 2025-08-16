@@ -18,3 +18,5 @@ export const HIGHSCORE_COLLECTION = 'station_highscores'
 export const EXERCISE_COLLECTION = 'exercises';
 
 export const GOALS_COLLECTION = 'goals';
+
+export const GROUP_IMAGES_COLLECTION = 'groupimages';

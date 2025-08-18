@@ -5,11 +5,14 @@
  * including user creation, authentication, profile management, and state monitoring.
  * All Firebase dependencies are mocked to enable isolated unit testing.
  * 
- * @author Fitness App Team
+ * @author Igor, Alexander, Hyunu, Robert
  * @version 1.0.0
  */
-
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
+
+const expectedUser = {"displayName": "Test User",
+                      "email": "test@example.com",
+                      "uid": "test-uid-123"}
 
 // Mock Firebase configuration
 vi.mock('../services/firebase/FirebaseAppConfiguration', () => ({
@@ -19,7 +22,10 @@ vi.mock('../services/firebase/FirebaseAppConfiguration', () => ({
 // Mock Firebase Auth module
 vi.mock('firebase/auth', () => ({
     getAuth: vi.fn(() => ({
-        currentUser: null
+        currentUser: {"displayName": "Test User",
+                      "email": "test@example.com",
+                      "uid": "test-uid-123",
+    }
     })),
     createUserWithEmailAndPassword: vi.fn(),
     signInWithEmailAndPassword: vi.fn(),
@@ -34,7 +40,10 @@ import FirebaseAuthenticationManager from '../services/firebase/FirebaseAuthenti
 describe('FirebaseAuthenticationManager', () => {
     // Get mocked functions for use in tests
     const mockAuth = {
-        currentUser: null
+        currentUser:  {"displayName": "Test User",
+                      "email": "test@example.com",
+                      "uid": "test-uid-123",
+    }
     };
 
     const mockUser = {
@@ -224,7 +233,7 @@ describe('FirebaseAuthenticationManager', () => {
 
             const result = FirebaseAuthenticationManager.getCurrentUser();
 
-            expect(result).toBeNull();
+            expect(result).toBe(expectedUser);
         });
     });
 

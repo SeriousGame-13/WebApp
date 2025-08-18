@@ -275,11 +275,12 @@ function Page({ data }) {
                             </div>
                         </div>
                         
-                        <div className="BottomGridSection">
-                            <div className="RankingContainer">
-                                <div className='GuideText'>
+                        <div className="BottomGridSection" style={{ overflow: 'auto', maxHeight: '100%' }}>
+                            <div className='GuideText'>
                                     {getLeaderboardTitle()}
-                                </div>
+                            </div>
+                            <div className="RankingContainer">
+                                
                                 
                                 {isLoading ? (
                                     <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>

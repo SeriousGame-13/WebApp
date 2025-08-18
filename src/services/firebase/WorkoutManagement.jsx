@@ -17,6 +17,7 @@ import { Exercise } from '../interfaces/exercise.jsx';
 import { Workout } from '../interfaces/workout.jsx';
 import UserManagement from './UserManagementSystem.jsx';
 import HighscoreManager from './HighscoreManager.jsx';
+import RewardSystem from './RewardSystem.jsx';
 
 /**
  * Creates the Firestore collection path for a user's workouts.
@@ -126,7 +127,8 @@ const calculateAndSaveWorkoutTimes = async (userId, workoutId) => {
 
         const workoutPath = createPath(userId);
         await FirestoreManager.updateDocument(workoutPath, workoutId, { activeTime, idleTime });
-
+        
+        
     } catch (error) {
         console.error(`Failed to calculate and save times for workout ${workoutId}:`, error);
         // Do not re-throw, as this is a background task and shouldn't fail the main operation
@@ -276,6 +278,7 @@ const addExercise = async (userId, workoutId, exerData) => {
         }
         // Recalculate and save times after adding the exercise
         await calculateAndSaveWorkoutTimes(userId, workoutId);
+        await RewardSystem.awardBadges(userId);
     } catch (error) {
         console.error('Error adding exercise:', error);
         throw error;
@@ -303,6 +306,7 @@ const updateExercise = async (userId, workoutId, exerciseData) => {
         
         // Recalculate and save times after updating the exercise
         await calculateAndSaveWorkoutTimes(userId, workoutId);
+        await RewardSystem.awardBadges(userId);
     } catch (error) {
         console.error('Error updating exercise:', error);
         throw error;

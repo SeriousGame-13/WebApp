@@ -116,4 +116,22 @@ export default class BaseModel {
     }
   }
 
+  getDurationMs(startTime, endTime) {
+    try {
+      // Handle ISO strings like '2025-05-29T13:50:00.000Z'
+      const start = startTime.toDate();
+      const end = endTime.toDate();
+
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        console.warn('Invalid date format:', { startTime, endTime });
+        return 0;
+      }
+
+      return end.getTime() - start.getTime();
+    } catch (error) {
+      console.error('Error calculating duration:', error, { startTime, endTime });
+      return 0;
+    }
+  }
+
 }

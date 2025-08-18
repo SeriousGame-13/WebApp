@@ -648,16 +648,16 @@ function GroupManagerPage() {
                     allGroups.map(group => (
                         <div 
                             key={group.groupId} 
-                            className="GroupExerciseContainer"
+                            className="CardContainer"
                             onClick={() => setSelectedGroup(group)}
                         >
-                            <div className="GroupExerciseHeader">
+                            <div className="CardHeader">
                                 {group.name} {group.isPrivate && <span style={{ fontSize: '12px', color: '#A0A0A0' }}>(Private)</span>}
                             </div>
-                            <div className="GroupExerciseContents">
+                            <div className="CardContents">
                                 {group.description || 'No description available.'}
                             </div>
-                            <div style={{ margin: '0 16px 16px 16px', fontSize: '12px', color: '#A0A0A0' }}>
+                            <div className="CardContents">
                                 Group ID: {group.groupId} | Members: {group.getActiveMemberCount()}/{group.maxMembers} | Created by: {creatorNames[group.createdBy] || 'Loading...'}
                             </div>
                         </div>

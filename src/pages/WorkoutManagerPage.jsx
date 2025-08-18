@@ -592,16 +592,16 @@ function WorkoutManagerPage({ user }) {
         return workouts.map(workout => (
             <div
                 key={workout.uid}
-                className="GroupExerciseContainer"
+                className="CardContainer"
                 onClick={() => setSelectedWorkout(workout)}
             >
-                <div className="GroupExerciseHeader" style={{ color: 'var(--main-color)' }}>
+                <div className="CardHeader" style={{ color: 'var(--main-color)' }}>
                     {workout.name}
                 </div>
-                <div className="GroupExerciseContents">
+                <div className="CardContents">
                     {workout.description || 'No description available.'}
                 </div>
-                <div style={{ margin: '0 16px 16px 16px', fontSize: '12px', color: '#A0A0A0' }}>
+                <div className="CardContents">
                     Exercises: {workout.exercises?.length || 0}
                 </div>
             </div>

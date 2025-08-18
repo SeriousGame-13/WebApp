@@ -389,7 +389,7 @@ body, html {
 
 .ProfileImageForCard {
    aspect-ratio: 1/1;
-   height: 100%;
+   height: 80px;
    border-radius: 50%;
 }
 

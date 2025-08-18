@@ -1,50 +1,157 @@
-.HomeInfoName {
+/* Main content container for vertical centering */
+.home-content-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    box-sizing: border-box;
+    gap: 0;
+}
+/* Experience bar container */
+.exp-container {
+    width: 70%;
+    max-width: 300px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.MainContentWrapper {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 0;
-  font-size: 0.85rem;
-  font-weight: bold;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  max-width: 100%;
+  justify-content: space-around;
 }
 
-.HomeInfoContainer {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-  gap: 0.75rem;
-  width: 100%;
-  padding: 0.5rem;
+.MainContentWrapper.landscape {
+  flex-direction: row;
+  height: 100vh;
 }
 
-.HomeInfo {
-  min-width: 80px;
+.MainContentWrapper.portrait {
+  flex-direction: column;
 }
 
-.HomeInfoItemContainer {
-  padding: 0.75rem;
-  min-width: 0;
-  width: 100%;
-  box-sizing: border-box;
+.MainContentWrapper.landscape .TopGridSection {
+  width: 50%;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   align-items: center;
-  gap: 0.25rem;
+  padding: 20px;
 }
 
-/* For smaller screens, allow 2 columns */
+.MainContentWrapper.landscape .BottomGridSection {
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 20px;
+}
+/* User Name Display */
+.user-name-display {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 50px;
+    font-weight: bold;
+    color: var(--main-color);
+}
+/* Last Workout Section */
+.last-workout-title {
+    color: var(--light-color);
+    font-size: xx-large;
+    font-weight: bold;
+    display: flex;
+    width: 100%;
+    justify-content: left;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+.last-workout-container {
+    width: 100%;
+    margin: 10px 0;
+    background: var(--background-glass);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+.last-workout-loading,
+.last-workout-empty {
+    color: #A0A0A0;
+    text-align: center;
+    padding: 20px;
+    font-size: 14px;
+}
+.last-workout-content {
+    padding: 20px;
+}
+.last-workout-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 10px;
+    width: 100%;
+    position: relative;
+}
+.GuideText {
+  color: var(--text-secondary);
+}
+.last-workout-grid::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: var(--text-secondary);
+    transform: translateY(-50%);
+}
+.last-workout-grid::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 2px;
+    background-color: var(--text-secondary);
+    transform: translateX(-50%);
+}
+.last-workout-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 10px;
+    gap: 5px;
+}
+.last-workout-label {
+    font-size: 20px;
+    color: var(--main-color);
+    margin: 0;
+}
+.last-workout-value {
+    font-size: 22px;
+    font-weight: bold;
+    color: var(--light-color);
+    min-height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+/* Responsive adjustments */
 @media (max-width: 480px) {
-  .HomeInfoContainer {
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-    gap: 0.5rem;
-  }
-}
-
-/* For very small screens, stack vertically */
-@media (max-width: 320px) {
-  .HomeInfoContainer {
-    grid-template-columns: 1fr;
-    gap: 0.5rem;
-  }
+    .last-workout-grid {
+        gap: 8px;
+    }
+   
+    .last-workout-item {
+        padding: 8px;
+        gap: 6px;
+    }
+    .last-workout-value {
+        font-size: 16px;
+    }
+   
+    .last-workout-label {
+        font-size: 11px;
+    }
 }

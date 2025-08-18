@@ -14,13 +14,34 @@ function CreateGroupPopup({ onCreateGroup, onCancel, isCreating }) {
     const [groupName, setGroupName] = useState('');
     const [groupDescription, setGroupDescription] = useState('');
     const [isPrivate, setIsPrivate] = useState(false);
+    const [imageData, setImageData] = useState(null);
+    const [imagePreview, setImagePreview] = useState('');
+    const fileInputRef = useRef(null);
+
+    const handleImageUpload = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const base64Data = e.target.result;
+                setImageData(base64Data);
+                setImagePreview(base64Data);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleImageButtonClick = () => {
+        fileInputRef.current?.click();
+    };
 
     const handleConfirm = () => {
         if (groupName.trim()) {
             onCreateGroup({
                 name: groupName.trim(),
                 description: groupDescription.trim(),
-                isPrivate: isPrivate
+                isPrivate: isPrivate,
+                imageData: imageData
             });
         }
     };
@@ -37,58 +58,126 @@ function CreateGroupPopup({ onCreateGroup, onCancel, isCreating }) {
 
     return (
         <div className='PopupBackground'>
-            <div className='PopupContainer'>
+            <div className='LargePopupContainer'>
                 <h2>Create Group</h2>
-                <div className='Inputfield'>
-                    <input 
-                        className='Input'
-                        type="text"
-                        value={groupName}
-                        onChange={(e) => setGroupName(e.target.value)}
-                        placeholder="Group Name"
-                        maxLength={50}
-                    />
-                    <input 
-                        className='Input'
-                        type="text"
-                        value={groupDescription}
-                        onChange={(e) => setGroupDescription(e.target.value)}
-                        placeholder="Group Description (Optional)"
-                        maxLength={200}
-                    />
-                    <div className='PrivacySelector'>
-                        <label className='PrivacyOption'>
-                            <input
-                                type="radio"
-                                name="privacy"
-                                checked={!isPrivate}
-                                onChange={() => setIsPrivate(false)}
+                
+                <div className='BadgeCreateContent'>
+                    <div className='BadgeInputSection'>
+                        {/* 그룹 이미지 업로드 섹션 */}
+                        <div className='BadgeImageSection'>
+                            <div className="GuideText" style={{ textAlign: 'center', marginBottom: '16px' }}>
+                                Group Image
+                            </div>
+                            <div className="BadgeImageContainer" style={{ textAlign: 'center' }}>
+                                {imagePreview ? (
+                                    <img 
+                                        src={imagePreview} 
+                                        alt="Group Preview" 
+                                        style={{ 
+                                            width: '150px', 
+                                            height: '150px', 
+                                            objectFit: 'cover', 
+                                            borderRadius: '8px',
+                                            border: '2px solid var(--main-color)'
+                                        }} 
+                                    />
+                                ) : (
+                                    <div style={{ 
+                                        width: '150px', 
+                                        height: '150px', 
+                                        border: '2px dashed #A0A0A0', 
+                                        borderRadius: '8px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        color: '#A0A0A0',
+                                        margin: '0 auto'
+                                    }}>
+                                        No Image
+                                    </div>
+                                )}
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    accept="image/*"
+                                    onChange={handleImageUpload}
+                                    style={{ display: 'none' }}
+                                />
+                                <button 
+                                    className='AdminActionButton'
+                                    onClick={handleImageButtonClick}
+                                    style={{ marginTop: '10px' }}
+                                >
+                                    {imagePreview ? 'Change Image' : 'Upload Image'}
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* 기존 입력 필드들 */}
+                        <div className='BadgeInputGroup'>
+                            <label className='BadgeInputLabel'>Group Name</label>
+                            <input 
+                                className='Input'
+                                type="text"
+                                value={groupName}
+                                onChange={(e) => setGroupName(e.target.value)}
+                                placeholder="Group Name"
+                                maxLength={50}
                             />
-                            <span>Public Group</span>
-                        </label>
-                        <label className='PrivacyOption'>
-                            <input
-                                type="radio"
-                                name="privacy"
-                                checked={isPrivate}
-                                onChange={() => setIsPrivate(true)}
+                        </div>
+                        
+                        <div className='BadgeInputGroup'>
+                            <label className='BadgeInputLabel'>Description</label>
+                            <input 
+                                className='Input'
+                                type="text"
+                                value={groupDescription}
+                                onChange={(e) => setGroupDescription(e.target.value)}
+                                placeholder="Group Description (Optional)"
+                                maxLength={200}
                             />
-                            <span>Private Group</span>
-                        </label>
+                        </div>
+
+                        <div className='BadgeInputGroup'>
+                            <label className='BadgeInputLabel'>Privacy Setting</label>
+                            <div className='PrivacySelector'>
+                                <label className='PrivacyOption'>
+                                    <input
+                                        type="radio"
+                                        name="privacy"
+                                        checked={!isPrivate}
+                                        onChange={() => setIsPrivate(false)}
+                                    />
+                                    <span>Public Group</span>
+                                </label>
+                                <label className='PrivacyOption'>
+                                    <input
+                                        type="radio"
+                                        name="privacy"
+                                        checked={isPrivate}
+                                        onChange={() => setIsPrivate(true)}
+                                    />
+                                    <span>Private Group</span>
+                                </label>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div className='Line'></div>
-                <div className='Buttonfield'>
-                    <button className='CancelButton' onClick={onCancel}>
-                        Cancel
-                    </button>
-                    <button 
-                        className='ConfirmButton' 
-                        onClick={handleConfirm}
-                        disabled={!groupName.trim()}
-                    >
-                        Create
-                    </button>
+
+                <div className='BadgeCreateFooter'>
+                    <div className='Line'></div>
+                    <div className='Buttonfield'>
+                        <button className='CancelButton' onClick={onCancel}>
+                            Cancel
+                        </button>
+                        <button 
+                            className='ConfirmButton' 
+                            onClick={handleConfirm}
+                            disabled={!groupName.trim()}
+                        >
+                            Create
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -453,7 +542,7 @@ function JoinedGroupDetailPopup({ group, onClose, onGroupLeft }) {
     const [isProcessing, setIsProcessing] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
     const [creatorName, setCreatorName] = useState('Loading...');
-    const [showCreateChallengePopup, setShowCreateChallengePopup] = useState(false); // 추가
+    const [showCreateChallengePopup, setShowCreateChallengePopup] = useState(false);
     const [isCreatingChallenge, setIsCreatingChallenge] = useState(false);
 
     useEffect(() => {
@@ -538,7 +627,6 @@ function JoinedGroupDetailPopup({ group, onClose, onGroupLeft }) {
             
             await ChallengeManagement.createChallenge(challengeRequest);
             setShowCreateChallengePopup(false);
-            //alert('Challenge created successfully!');
         } catch (error) {
             console.error('Failed to create challenge:', error);
             alert('Failed to create challenge: ' + error.message);
@@ -546,7 +634,6 @@ function JoinedGroupDetailPopup({ group, onClose, onGroupLeft }) {
             setIsCreatingChallenge(false);
         }
     };
-
 
     const activeMembers = group.members.filter(member => member.isActive());
     const isCreator = currentUser && group.createdBy === currentUser.uid;
@@ -655,6 +742,7 @@ function JoinedGroupDetailPopup({ group, onClose, onGroupLeft }) {
         </div>
     );
 }
+
 // GroupCardItem
 function GroupCardItem({ group, onClick }) {
     const [groupImage, setGroupImage] = useState('');
@@ -664,8 +752,8 @@ function GroupCardItem({ group, onClick }) {
         const loadGroupImage = async () => {
             setImageLoading(true);
             try {
-                const existingImageBase64 = await DatamanagerElements.getExistingImage(group.groupId);
-                setGroupImage(existingImageBase64 || '');
+                const imageData = await GroupManagement.getGroupImage(group.groupId);
+                setGroupImage(imageData || '');
             } catch (error) {
                 console.error('Failed to load group image:', error);
                 setGroupImage('');
@@ -780,13 +868,18 @@ function Page ({data}) {
         try {
             const currentUser = await UserManagement.getCurrentUser();
             
-            await GroupManagement.createGroup(
+            const createdGroup = await GroupManagement.createGroup(
                 currentUser.uid,
                 groupData.name,
                 groupData.description,
                 50,
                 groupData.isPrivate
             );
+            
+            // 그룹 이미지가 있으면 저장
+            if (groupData.imageData && createdGroup && createdGroup.groupId) {
+                await GroupManagement.saveGroupImage(groupData.imageData, createdGroup.groupId);
+            }
             
             setShowCreateGroupPopup(false);
             await loadUserGroups();
@@ -934,7 +1027,7 @@ function Page ({data}) {
                             </div>
                         </div>
                         
-                        <div className="BottomGridSection">
+                        <div className="BottomGridSection" style={{ overflow: 'auto', maxHeight: '100%' }}>
                             <GroupListSectionHorizontal />
                         </div>
                     </>

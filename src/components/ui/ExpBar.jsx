@@ -70,8 +70,8 @@ function NewCircleExpContainer({ level, expnow, expmax }) {
                     ></circle>
                 </svg>
                 <div className="CircularExpText">
-                    <div className='LevelTitle'>Lv</div>
                     <div className="Level">{level}</div>
+                    <div className='LevelTitle'>Lv</div>
                 </div>
             </div>
         </div>

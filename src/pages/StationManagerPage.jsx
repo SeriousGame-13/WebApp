@@ -274,10 +274,10 @@ function StationManagerPage({ user }) {
         return stations.map(station => (
             <div
                 key={station.uid}
-                className="GroupExerciseContainer"
+                className="CardContainer"
                 onClick={() => setSelectedStation(station)}
             >
-                <div className="GroupExerciseHeader" style={{ color: 'var(--main-color)' }}>
+                <div className="CardHeader" style={{ color: 'var(--main-color)' }}>
                     {station.name}
                 </div>
             </div>

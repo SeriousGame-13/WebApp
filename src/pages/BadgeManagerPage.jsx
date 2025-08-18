@@ -356,16 +356,16 @@ function BadgeManagerPage({ user }) {
         return allBadges.map(badge => (
             <div
                 key={badge.badgeId || `badge-${Math.random()}`}
-                className="GroupExerciseContainer"
+                className="CardContainer"
                 onClick={() => setSelectedBadge(badge)}
             >
-                <div className="GroupExerciseHeader" style={{ color: 'var(--main-color)' }}>
+                <div className="CardHeader" style={{ color: 'var(--main-color)' }}>
                     {badge.name} <span style={{ fontSize: '12px', color: badge.getRarityColor() }}>({badge.rarity})</span>
                 </div>
-                <div className="GroupExerciseContents">
+                <div className="CardContents">
                     {badge.description || 'No description available.'}
                 </div>
-                <div style={{ margin: '0 16px 16px 16px', fontSize: '12px', color: '#A0A0A0' }}>
+                <div className="CardContents">
                     Badge ID: {badge.badgeId} | Reward Points: {badge.rewardPoints}
                 </div>
             </div>

@@ -28,7 +28,7 @@ function AdminPageMain({ user }) {
     };
 
     return (
-        <div className='MainContainer'>
+        <div className='MainContainerWithHeader'>
             <AdminHeader
                 user={user}
                 onPageSelect={setCurrentPage}

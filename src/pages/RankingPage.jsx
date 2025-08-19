@@ -1,6 +1,4 @@
 import { useState, useEffect } from 'react';
-import ExpElements from '../components/ui/ExpBar';
-import IconElements from '../components/ui/IconElements';
 import RankingSystem from '../services/firebase/RankingSystem';
 import '../components/styles/LayoutElements.css';
 
@@ -206,21 +204,9 @@ function Page({ data }) {
                                                     (You)
                                                 </span>
                                             )}
-                                            <span style={{ 
-                                                color: 'var(--light-color)', 
-                                                fontSize: '14px', 
-                                                marginLeft: 'auto' 
-                                            }}>
-                                                {' Level ' + (ranking.level || 1)}
-                                            </span>
                                         </div>
                                         <div className='CardContents'>
                                             {getScoreLabel()}: {getScoreValue(ranking).toLocaleString()}
-                                        </div>
-                                        <div className='CardContents'>
-                                            Rank: #{ranking.rank} | 
-                                            Level: {ranking.level || 1} | 
-                                            Points: {ranking.points || 0}
                                         </div>
                                     </div>
                                 ))
@@ -325,8 +311,6 @@ function Page({ data }) {
                                                 {getScoreLabel()}: {getScoreValue(ranking).toLocaleString()}
                                             </div>
                                             <div className='CardContents'>
-                                                Rank: #{ranking.rank} | 
-                                                Level: {ranking.level || 1} | 
                                                 Points: {ranking.points || 0}
                                             </div>
                                         </div>

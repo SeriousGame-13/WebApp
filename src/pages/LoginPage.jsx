@@ -2,7 +2,6 @@ import { useState } from 'react';
 
 import UserManagement from '../services/firebase/UserManagementSystem';
 import ChallengeManagement from '../services/firebase/ChallengeManagement';
-import IconElements from '../components/ui/IconElements';
 import AdminPage from './AdminPage';
 import LayoutElements from '../layouts/LayoutElements';
 

@@ -94,7 +94,7 @@ const signupUser = async (nickname, email, password) => {
     // Remove arrays
     const { goals, badges, workouts, friends, ...updateData } = newUser;
 
-    await FirebaseManager.createDocument(USERS_COLLECTION, updateData, userLogin.uid, true);
+    await FirebaseManager.createDocument(USERS_COLLECTION, updateData, userLogin.uid);
 
     return userLogin;
 };
@@ -218,7 +218,7 @@ const addFriend = async (requesterId, recipientId) => {
             status: 'PENDING',
         };
 
-        await FirebaseManager.createDocument(FRIENDS_COLLECTION, friendshipData, true);
+        await FirebaseManager.createDocument(FRIENDS_COLLECTION, friendshipData);
 
         return getFriendshipData(friendshipId);
     } catch (error) {
@@ -402,7 +402,7 @@ const blockUser = async (userId, blockedUserId) => {
             // Ignore errors if no friendship exists
         }
 
-        await FirebaseManager.createDocument(BLOCKS_COLLECTION, blockData, true);
+        await FirebaseManager.createDocument(BLOCKS_COLLECTION, blockData);
 
         // Re-get the block data
         return getBlockData(blockId);

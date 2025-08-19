@@ -7,6 +7,7 @@ import '../components/styles/LayoutElements.css';
 import WorkoutManagerPage from './WorkoutManagerPage';
 import StationManagerPage  from './StationManagerPage';
 import GoalManagerPage  from './GoalManagerPage';
+import TournamentManagerPage from './TournamentManagerPage';
 
 function AdminPageMain({ user }) {
     const [currentPage, setCurrentPage] = useState('Group Manager');
@@ -25,6 +26,8 @@ function AdminPageMain({ user }) {
                 return <StationManagerPage user={user} />;
             case 'Goal Manager':
                 return <GoalManagerPage user={user} />;
+            case 'Tournament Manager':
+                return <TournamentManagerPage user={user} />;
             default:
                 return <GroupManagerPage />;
         }

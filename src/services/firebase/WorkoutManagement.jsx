@@ -1,11 +1,11 @@
 /**
  * @fileoverview Workout Management Service
- * 
+ *
  * This module provides comprehensive workout and exercise management functionality for the fitness application.
  * It handles workout creation, exercise tracking, time calculations, highscore processing, and complete
  * workout lifecycle management using Firestore as the backend. The system automatically tracks active
  * and idle times, awards points, and manages exercise-level data within workout sessions.
- * 
+ *
  * @author Igor, Alexander, Hyunu, Robert
  * @version 1.0.0
  */
@@ -225,7 +225,7 @@ const deleteWorkout = async (userId, idWorkout) => {
     try {
         const exerSnap = await FirestoreManager.getAllDocuments(`${createPath(userId)}/${idWorkout}/${EXERCISE_COLLECTION}`);
         for (let doc of exerSnap.docs) {
-            await FirestoreManager.deleteDocument(`${createPath(userId)}/${idWorkout}/${EXERCISE_COLLECTION}`, doc.id);
+            await deleteExercise(userId, idWorkout, doc.id);
         }
 
         await FirestoreManager.deleteDocument(`${createPath(userId)}`, idWorkout);
@@ -329,6 +329,9 @@ const updateExercise = async (userId, workoutId, exerciseData) => {
 const deleteExercise = async (userId, workoutId, exerciseId) => {
     try {
         const exercisePath = `${createPath(userId)}/${workoutId}/${EXERCISE_COLLECTION}`;
+        const oldExer = await FirestoreManager.readDocument(exercisePath, exerciseId);
+        UserManagement.addPoints(userId, -oldExer.points);
+
         await FirestoreManager.deleteDocument(exercisePath, exerciseId);
 
         // Recalculate and save times after deleting the exercise

@@ -1,37 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import ProfileImageElements from '../utils/profileImageManager';
-import UserModel from '../services/interfaces/user.jsx';
-import { GROUP_ROLE } from '../services/interfaces/constants.jsx';
 import WorkoutManager from './../services/firebase/WorkoutManagement.jsx';
+import GoalSystem from './../services/firebase/GoalSystem.jsx';
 import StationManager from '../services/firebase/StationManagement';
 import BadgeManagement from '../services/firebase/BadgeManagement';
 import IconElements from '../components/ui/IconElements';
 import { Workout } from '../services/interfaces/workout';
-import { Timestamp } from 'firebase/firestore';
+import {localDateTimeStringToTimestamp, localISODateTime} from '../utils/DateUtils';
 
 import '../components/styles/LayoutElements.css'
 import '../components/styles/UserPage.css'
 
-const WorkoutUtils = {
-    localDateTimeStringToTimestamp(value) {
-        const [date, time] = value.split('T');
-        const [year, month, day] = date.split('-').map(Number);
-        const [hour, minute] = time.split(':').map(Number);
-        const localDate = new Date(year, month - 1, day, hour, minute);
-        return Timestamp.fromDate(localDate);
-    },
-
-    localISODateTime(date) {
-        date = date.toDate();
-        const pad = (n) => n.toString().padStart(2, '0');
-        const y = date.getFullYear();
-        const m = pad(date.getMonth() + 1);
-        const d = pad(date.getDate());
-        const h = pad(date.getHours());
-        const min = pad(date.getMinutes());
-        return `${y}-${m}-${d}T${h}:${min}`;
-    }
-};
 
 function FormBase({ 
     title, 
@@ -47,7 +26,7 @@ function FormBase({
         return inputFields.reduce((acc, field) => {
             const sourceValue = initialData?.[field.key];
             if (field.type === 'datetime-local' && sourceValue?.toDate) {
-                acc[field.key] = WorkoutUtils.localISODateTime(sourceValue);
+                acc[field.key] = localISODateTime(sourceValue);
             } else {
                 acc[field.key] = sourceValue ?? (field.type === 'number' ? 0 : '');
             }
@@ -66,7 +45,7 @@ function FormBase({
                 if (field.type === 'number') {
                     acc[field.key] = parseInt(value, 10) || 0;
                 } else if (field.type === 'datetime-local') {
-                    acc[field.key] = value ? WorkoutUtils.localDateTimeStringToTimestamp(value) : null;
+                    acc[field.key] = value ? localDateTimeStringToTimestamp(value) : null;
                 } else if (field.key === 'stationId') {
                     acc[field.key] = value || null;
                 } else if (typeof value === 'string') {
@@ -161,6 +140,32 @@ function FormBase({
         </div>
     );
 }
+
+function GoalForm(props) {    
+    const inputFields = [
+        { key: 'name', label: 'Name', type: 'text', maxLength: 50, placeholder: 'Enter goal name' },
+        { key: 'description', label: 'Description', type: 'textarea', placeholder: 'Enter description' },
+        { key: 'targetValue', label: 'Target Value', type: 'number', min: 1, placeholder: 'Enter target value' },
+        { key: 'stationId', label: 'Station', type: 'select', placeholder: 'Select Station...' },
+        { key: 'deadline', label: 'Deadline', type: 'datetime-local' },
+    ];
+
+    const title = props.goalToEdit ? 'Edit Goal' : 'Create New Goal';
+
+    return (
+        <FormBase
+            title={title}
+            inputFields={inputFields}
+            initialData={props.goalToEdit}
+            onSubmit={props.onSubmit}
+            onCancel={props.onCancel}
+            isProcessing={props.isProcessing}
+            submitText={props.submitText}
+            stations={props.stations}
+        />
+    );
+}
+
 
 function EditWorkoutForm(props) {
     const inputFields = [
@@ -487,11 +492,16 @@ function Page({ data }) {
     const [isLoadingBadges, setIsLoadingBadges] = useState(true);
     
     const [workouts, setWorkouts] = useState([]);
+    const [goals, setGoals] = useState([]);
     const [stations, setStations] = useState([]);
     const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(false);
+    const [isLoadingGoals, setIsLoadingGoals] = useState(false);
     const [selectedWorkout, setSelectedWorkout] = useState(null);
+    const [selectedGoal, setSelectedGoal] = useState(null);
     const [showCreateWorkoutPopup, setShowCreateWorkoutPopup] = useState(false);
+    const [showCreateGoalPopup, setShowCreateGoalPopup] = useState(false);
     const [isCreatingWorkout, setIsCreatingWorkout] = useState(false);
+    const [isCreatingGoal, setIsCreatingGoal] = useState(false);
 
     const loadBadges = async () => {
         try {
@@ -532,11 +542,38 @@ function Page({ data }) {
         }
     };
 
+    const loadGoals = async () => {
+        try {
+            setIsLoadingGoals(true);
+            const goalData = await GoalSystem.getUserGoals(userData.uid);
+            setGoals(goalData);
+
+            const stationData = await StationManager.loadAll();
+            setStations(stationData);
+            
+            if (selectedGoal) {
+                const updatedSelectedGoal = goalData.find(g => g.uid === selectedGoal.uid);
+                if (updatedSelectedGoal) {
+                    setSelectedGoal(updatedSelectedGoal);
+                } else {
+                    setSelectedGoal(null);
+                }
+            }
+        } catch (error) {
+            console.error('Failed to load goals:', error);
+            setGoals([]);
+        } finally {
+            setIsLoadingGoals(false);
+        }
+    };
+
+
     useEffect(() => {
         if (activeTab === 'badges') {
             loadBadges();
         } else if (activeTab === 'edit') {
             loadWorkouts();
+            loadGoals(); // Load goals when switching to edit tab
         }
     }, [activeTab]);
 
@@ -552,6 +589,20 @@ function Page({ data }) {
             alert('Failed to create workout: ' + error.message);
         } finally {
             setIsCreatingWorkout(false);
+        }
+    };
+
+    const handleGoalCreation = async (data) => {
+        setIsCreatingGoal(true);
+        try {
+            await GoalSystem.createGoal(userData.uid, data);
+            setShowCreateGoalPopup(false);
+            await loadGoals();
+        } catch (error) {
+            console.error('Failed to create goal:', error);
+            alert('Failed to create goal: ' + error.message);
+        } finally {
+            setIsCreatingGoal(false);
         }
     };
 
@@ -670,6 +721,60 @@ function Page({ data }) {
                     Create New Workout
                 </button>
             </div>
+
+            <div className="WorkoutSection" style={{ marginTop: '30px' }}>
+                <div className="GuideText">Goal Management</div>
+                
+                <div className="WorkoutList">
+                    {isLoadingGoals ? (
+                        <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>
+                            Loading Goals...
+                        </div>
+                    ) : goals.length === 0 ? (
+                        <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>
+                            No Goals Found. Create one to get started!
+                        </div>
+                    ) : (
+                        goals.map(goal => (
+                            <div
+                                key={goal.uid}
+                                className="CardContainer"
+                                onClick={() => setSelectedGoal(goal)}
+                            >
+                                <div className="CardHeader" style={{ color: 'var(--main-color)' }}>
+                                    {goal.name}
+                                </div>
+                                <div className="CardContents">
+                                    {goal.description || 'No description available.'}
+                                </div>
+                                <div className="CardContents">
+                                    Progress: {goal.currentValue}/{goal.targetValue} ({Math.round((goal.currentValue / goal.targetValue) * 100)}%)
+                                </div>
+                                <div className="ProgressBarSmall">
+                                    <div 
+                                        className="ProgressBarFillSmall" 
+                                        style={{ 
+                                            width: `${Math.min(Math.round((goal.currentValue / goal.targetValue) * 100), 100)}%`,
+                                            backgroundColor: goal.isCompleted ? 'var(--success-color)' : 'var(--main-color)'
+                                        }}
+                                    ></div>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+
+                <button
+                    className="AdminActionButton"
+                    onClick={() => setShowCreateGoalPopup(true)}
+                    style={{
+                        width: '100%',
+                        marginTop: '10px'
+                    }}
+                >
+                    Create New Goal
+                </button>
+            </div>
         </div>
     );
 
@@ -694,6 +799,16 @@ function Page({ data }) {
                 />
             )}
 
+            {showCreateGoalPopup && (
+                <GoalForm
+                    onSubmit={handleGoalCreation}
+                    onCancel={() => setShowCreateGoalPopup(false)}
+                    isProcessing={isCreatingGoal}
+                    submitText="Create Goal"
+                    stations={stations}
+                />
+            )}
+
             {selectedWorkout && (
                 <WorkoutDetailPopup
                     workout={selectedWorkout}
@@ -701,6 +816,16 @@ function Page({ data }) {
                     onWorkoutUpdated={loadWorkouts}
                     user={userData}
                     stations={stations}
+                />
+            )}
+
+            {selectedGoal && (
+                <GoalDetailPopup
+                    goal={selectedGoal}
+                    onClose={() => setSelectedGoal(null)}
+                    onGoalUpdated={loadGoals}
+                    user={userData}
+                    stations={stations} // Add this line to pass stations data
                 />
             )}
         </div>
@@ -712,3 +837,191 @@ const UserPageElements = {
 };
 
 export default UserPageElements;
+
+function GoalDetailPopup({ goal, onClose, onGoalUpdated, user, stations }) {
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [showEditPopup, setShowEditPopup] = useState(false);
+    const [isUpdating, setIsUpdating] = useState(false);
+    const [manualProgressValue, setManualProgressValue] = useState(goal.currentValue || 0);
+
+    useEffect(() => {
+        if (showEditPopup) return;
+
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                onClose();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [showEditPopup, onClose]);
+
+    const handleDeleteGoal = async () => {
+        if (confirm(`Are you sure you want to delete the goal "${goal.name}"? This action cannot be undone.`)) {
+            setIsProcessing(true);
+            try {
+                await GoalSystem.deleteGoal(goal.uid, user.uid);
+                onGoalUpdated();
+                onClose();
+            } catch (error) {
+                console.error('Failed to delete goal:', error);
+                alert('Failed to delete goal: ' + error.message);
+            } finally {
+                setIsProcessing(false);
+            }
+        }
+    };
+    
+    const handleUpdateGoal = async (updates) => {
+        setIsUpdating(true);
+        try {
+            await GoalSystem.updateGoal(goal.uid, user.uid, updates);
+            setShowEditPopup(false);
+            onGoalUpdated();
+        } catch (error) {
+            console.error('Failed to update goal:', error);
+            alert('Failed to update goal: ' + error.message);
+        } finally {
+            setIsUpdating(false);
+        }
+    };
+
+    const handleProgressUpdate = async () => {
+        const newValue = parseInt(manualProgressValue, 10);
+        if (isNaN(newValue) || newValue < 0) {
+            alert('Please enter a valid progress value.');
+            return;
+        }
+
+        setIsProcessing(true);
+        try {
+            await GoalSystem.updateGoalProgress(goal.uid, user.uid, newValue);
+            onGoalUpdated();
+        } catch (error) {
+            console.error('Failed to update goal progress:', error);
+            alert('Failed to update goal progress: ' + error.message);
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
+    // Calculate progress percentage
+    const progressPercentage = Math.min(Math.round((goal.currentValue / goal.targetValue) * 100), 100);
+    
+    // Format the deadline date if available
+    const formattedDeadline = goal.deadline?.toDate ? 
+        goal.deadline.toDate().toLocaleDateString() + ' ' + goal.deadline.toDate().toLocaleTimeString() : 
+        'No deadline set';
+
+    // Determine if the goal is overdue
+    const isOverdue = goal.deadline?.toDate && !goal.isCompleted && 
+        new Date() > goal.deadline.toDate();
+
+    const station = stations?.find(s => s.uid === goal.stationId);
+    const stationName = station ? station.name : 'No station selected';
+
+    return (
+        <div className='PopupBackground'>
+            <div className='LargePopupContainer'>
+                <h2 style={{ textAlign: 'center' }}>Goal Details</h2>
+                <div className='GroupDetailContainer'>
+                    <div className='BadgeDetailHeader'>
+                        <div className='BadgeInfoContainer'>
+                            <div className='BadgeDetailTitle' style={{ color: 'var(--main-color)' }}>
+                                {goal.name}
+                                {goal.isCompleted && 
+                                    <span style={{ color: 'var(--success-color)', fontSize: '16px', marginLeft: '10px' }}>
+                                        (Completed)
+                                    </span>
+                                }
+                                {isOverdue && 
+                                    <span style={{ color: 'var(--error-color)', fontSize: '16px', marginLeft: '10px' }}>
+                                        (Overdue)
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div className='GroupDetailDescription' style={{ textAlign: 'left' }}>
+                        {goal.description || 'No description available.'}
+                    </div>
+                    <div className='GroupDetailInfo' style={{ textAlign: 'left' }}>
+                        <div>Goal ID: {goal.uid}</div>
+                        <div>Station: {stationName}</div>
+                        <div>Progress: {goal.currentValue} / {goal.targetValue}</div>
+                        <div>Deadline: {formattedDeadline}</div>
+                        <div>Status: {goal.isCompleted ? 'Completed' : 'In Progress'}</div>
+                    </div>
+
+                    <div style={{ marginTop: '20px' }}>
+                        <h3 style={{ color: 'var(--main-color)', marginBottom: '10px' }}>Progress</h3>
+                        <div className="ProgressBar">
+                            <div 
+                                className="ProgressBarFill" 
+                                style={{ 
+                                    width: `${progressPercentage}%`,
+                                    backgroundColor: goal.isCompleted ? 'var(--success-color)' : isOverdue ? 'var(--error-color)' : 'var(--main-color)'
+                                }}
+                            ></div>
+                        </div>
+                        <div className="ProgressText" style={{ marginBottom: '20px' }}>{progressPercentage}% Complete</div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
+                            <input
+                                type="number"
+                                className="Input"
+                                value={manualProgressValue}
+                                onChange={(e) => setManualProgressValue(e.target.value)}
+                                style={{ width: '100px', marginRight: '10px' }}
+                                min="0"
+                                max={goal.targetValue * 2}
+                            />
+                            <button
+                                className="AdminActionButton"
+                                onClick={handleProgressUpdate}
+                                disabled={isProcessing}
+                                style={{ marginLeft: '10px' }}
+                            >
+                                Update Progress
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="GroupActionButtons" style={{ marginTop: '40px' }}>
+                        <button
+                            className='AdminActionButton'
+                            onClick={() => setShowEditPopup(true)}
+                            disabled={isProcessing}
+                        >
+                            Edit Goal
+                        </button>
+                        <button
+                            className='AdminActionButton'
+                            onClick={handleDeleteGoal}
+                            disabled={isProcessing}
+                        >
+                            {isProcessing ? 'Deleting...' : 'Delete Goal'}
+                        </button>
+                    </div>
+                </div>
+                <div className='Line'></div>
+                <div className='Buttonfield'>
+                    <button className='CancelButton' onClick={onClose}>Close</button>
+                </div>
+
+                {showEditPopup && (
+                    <GoalForm
+                        goalToEdit={goal}
+                        onSubmit={handleUpdateGoal}
+                        onCancel={() => setShowEditPopup(false)}
+                        isProcessing={isUpdating}
+                        submitText="Update Goal"
+                        stations={stations}
+                    />
+                )}
+            </div>
+        </div>
+    );
+}

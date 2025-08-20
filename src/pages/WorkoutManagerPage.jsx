@@ -3,26 +3,7 @@ import '../components/styles/LayoutElements.css';
 import WorkoutManager from '../services/firebase/WorkoutManagement';
 import StationManager from '../services/firebase/StationManagement';
 import { Workout } from '../services/interfaces/workout';
-import { Timestamp } from 'firebase/firestore';
-
-function localDateTimeStringToTimestamp(value) {
-    const [date, time] = value.split('T');
-    const [year, month, day] = date.split('-').map(Number);
-    const [hour, minute] = time.split(':').map(Number);
-    const localDate = new Date(year, month - 1, day, hour, minute); // interpreted in local timezone
-    return Timestamp.fromDate(localDate);
-}
-
-const localISODateTime = (date) => {
-    date = date.toDate();
-    const pad = (n) => n.toString().padStart(2, '0');
-    const y = date.getFullYear();
-    const m = pad(date.getMonth() + 1);
-    const d = pad(date.getDate());
-    const h = pad(date.getHours());
-    const min = pad(date.getMinutes());
-    return `${y}-${m}-${d}T${h}:${min}`;
-};
+import {localDateTimeStringToTimestamp, localISODateTime} from '../utils/DateUtils';
 
 
 function EditWorkoutForm({ workout = null, onSubmit, onCancel, isProcessing, submitText }) {
@@ -592,16 +573,16 @@ function WorkoutManagerPage({ user }) {
         return workouts.map(workout => (
             <div
                 key={workout.uid}
-                className="GroupExerciseContainer"
+                className="CardContainer"
                 onClick={() => setSelectedWorkout(workout)}
             >
-                <div className="GroupExerciseHeader" style={{ color: 'var(--main-color)' }}>
+                <div className="CardHeader" style={{ color: 'var(--main-color)' }}>
                     {workout.name}
                 </div>
-                <div className="GroupExerciseContents">
+                <div className="CardContents">
                     {workout.description || 'No description available.'}
                 </div>
-                <div style={{ margin: '0 16px 16px 16px', fontSize: '12px', color: '#A0A0A0' }}>
+                <div className="CardContents">
                     Exercises: {workout.exercises?.length || 0}
                 </div>
             </div>

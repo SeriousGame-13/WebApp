@@ -6,8 +6,7 @@
  * The system supports personal fitness goals with deadlines, progress tracking, and automatic
  * completion detection with point rewards.
  * 
- * Features include goal recommendations based on workout history, statistics tracking,
- * and integration with the user management and reward systems.
+ * Features include statistics tracking and integration with the user management and reward systems.
  * 
  * @author Igor, Alexander, Hyunu, Robert
  * @version 1.0.0
@@ -28,24 +27,20 @@ import { GOALS_COLLECTION } from './collections';
  * @param {string} goalData.title - The title/name of the goal
  * @param {string} [goalData.description] - Optional description of the goal
  * @param {number} goalData.targetValue - The target value to achieve
- * @param {string} goalData.unit - The unit of measurement for the goal
- * @param {string} [goalData.exerciseDefId] - Optional exercise definition ID if goal is exercise-specific
+ * @param {string} [goalData.stationId] - Optional station definition ID
  * @param {number} goalData.deadline - The deadline timestamp for goal completion
  * @returns {Promise<UserGoal>} The created goal object with assigned ID
  * @throws {Error} If goal creation fails or validation errors occur
  */
 const createGoal = async (userId, goalData) => {
     try {
-        const goalId = uuidv4();
         const goal = new UserGoal({
-            goalId,
             userId,
-            title: goalData.title,
+            name: goalData.name,
             description: goalData.description || '',
             targetValue: goalData.targetValue,
             currentValue: 0,
-            unit: goalData.unit,
-            exerciseDefId: goalData.exerciseDefId || null,
+            stationId: goalData.stationId || null,
             deadline: goalData.deadline,
             isCompleted: false,
             completedAt: null
@@ -55,9 +50,9 @@ const createGoal = async (userId, goalData) => {
             throw new Error('Invalid goal data provided');
         }
 
-        await FirebaseManager.createDocument(GOALS_COLLECTION, goalId, goal.toJSON(), true);
-        
-        return await getGoal(goalId);
+        await FirebaseManager.createDocument(GOALS_COLLECTION, goal.toJSON(), goal.uid, true);
+
+        return await getGoal(goal.uid);
     } catch (error) {
         console.error('Failed to create goal:', error);
         throw error;
@@ -89,7 +84,7 @@ const getGoal = async (goalId) => {
  * @param {string} goalId - The unique identifier of the goal to update
  * @param {string} userId - The unique identifier of the user making the update
  * @param {Object} updates - The fields to update in the goal
- * @param {string} [updates.title] - Updated goal title
+ * @param {string} [updates.name] - Updated goal name
  * @param {string} [updates.description] - Updated goal description
  * @param {number} [updates.targetValue] - Updated target value (not allowed for completed goals)
  * @param {number} [updates.deadline] - Updated deadline timestamp
@@ -105,10 +100,6 @@ const updateGoal = async (goalId, userId, updates) => {
 
         if (goal.userId !== userId) {
             throw new Error('Permission denied: Only the goal owner can modify this goal');
-        }
-
-        if (goal.isCompleted && updates.targetValue) {
-            throw new Error('Cannot modify target value of completed goal');
         }
 
         await FirebaseManager.updateDocument(GOALS_COLLECTION, goalId, updates, true);
@@ -226,7 +217,7 @@ const deleteGoal = async (goalId, userId) => {
  * @param {string} userId - The unique identifier of the user whose goals to retrieve
  * @param {Object} [filters={}] - Optional filters to apply to the goals
  * @param {boolean} [filters.isCompleted] - Filter by completion status (true/false)
- * @param {string} [filters.exerciseDefId] - Filter by specific exercise definition ID
+ * @param {string} [filters.stationId] - Filter by specific Station ID
  * @param {boolean} [filters.isActive] - Filter for active goals (not completed and not expired)
  * @returns {Promise<UserGoal[]>} Array of goal objects matching the criteria, sorted by creation date
  */
@@ -248,8 +239,8 @@ const getUserGoals = async (userId, filters = {}) => {
             goals = goals.filter(g => g.isCompleted === filters.isCompleted);
         }
 
-        if (filters.exerciseDefId) {
-            goals = goals.filter(g => g.exerciseDefId === filters.exerciseDefId);
+        if (filters.stationId) {
+            goals = goals.filter(g => g.stationId === filters.stationId);
         }
 
         if (filters.isActive) {
@@ -354,14 +345,14 @@ const getGoalStatistics = async (userId) => {
  * Automatically creates a goal based on workout performance data.
  * Generates improvement-based goals with calculated target values and deadlines.
  * @param {string} userId - The unique identifier of the user
- * @param {string} exerciseDefId - The unique identifier of the exercise definition
+ * @param {string} stationId - The unique identifier of the exercise definition
  * @param {number} currentBest - The user's current best performance value
  * @param {number} [improvementPercentage=10] - The percentage improvement target (default 10%)
  * @param {number} [daysToComplete=30] - The number of days to complete the goal (default 30)
  * @returns {Promise<UserGoal>} The created goal object with calculated target and deadline
  * @throws {Error} If goal creation fails
  */
-const createGoalFromWorkout = async (userId, exerciseDefId, currentBest, improvementPercentage = 10, daysToComplete = 30) => {
+const createGoalFromWorkout = async (userId, stationId, currentBest, improvementPercentage = 10, daysToComplete = 30) => {
     try {
         const targetValue = Math.ceil(currentBest * (1 + improvementPercentage / 100));
         const deadline = Date.now() + (daysToComplete * 24 * 60 * 60 * 1000);
@@ -370,7 +361,7 @@ const createGoalFromWorkout = async (userId, exerciseDefId, currentBest, improve
             title: `Improve Personal Best by ${improvementPercentage}%`,
             description: `Reach ${targetValue} from current best of ${currentBest}`,
             targetValue,
-            exerciseDefId,
+            stationId,
             deadline,
             unit: 'points'
         };
@@ -387,20 +378,20 @@ const createGoalFromWorkout = async (userId, exerciseDefId, currentBest, improve
  * Automatically updates all relevant active goals when a workout is completed.
  * Only updates goals where the new performance exceeds the current progress.
  * @param {string} userId - The unique identifier of the user
- * @param {string} exerciseDefId - The unique identifier of the exercise completed
+ * @param {string} stationId - The unique identifier of the exercise completed
  * @param {number} performanceValue - The performance value achieved in the workout
  * @returns {Promise<UserGoal[]>} Array of updated goal objects
  */
-const updateGoalsFromWorkout = async (userId, exerciseDefId, performanceValue) => {
+const updateGoalsFromWorkout = async (userId, stationId, performanceValue) => {
     try {
         const activeGoals = await getActiveGoals(userId);
         const relevantGoals = activeGoals.filter(goal => 
-            goal.exerciseDefId === exerciseDefId && performanceValue > goal.currentValue
+            goal.stationId === stationId && performanceValue > goal.currentValue
         );
 
         const updatedGoals = [];
         for (const goal of relevantGoals) {
-            const updatedGoal = await updateGoalProgress(goal.goalId, userId, performanceValue);
+            const updatedGoal = await updateGoalProgress(goal.uid, userId, performanceValue);
             updatedGoals.push(updatedGoal);
         }
 
@@ -411,71 +402,6 @@ const updateGoalsFromWorkout = async (userId, exerciseDefId, performanceValue) =
     }
 };
 
-/**
- * Generates personalized goal recommendations based on user workout history.
- * Analyzes workout patterns and suggests improvement goals for frequently performed exercises.
- * Only recommends goals for exercises without existing active goals.
- * @param {string} userId - The unique identifier of the user
- * @returns {Promise<Object[]>} Array of goal recommendation objects
- * @returns {Promise<Object[]>} result[].exerciseDefId - The exercise definition ID
- * @returns {Promise<Object[]>} result[].currentBest - The user's current best performance
- * @returns {Promise<Object[]>} result[].recommendedTarget - The recommended target value
- * @returns {Promise<Object[]>} result[].workoutCount - Number of times the exercise has been performed
- * @returns {Promise<Object[]>} result[].avgPoints - Average points scored for this exercise
- */
-const getGoalRecommendations = async (userId) => {
-    try {
-        const user = await UserManagement.getUser(userId);
-        if (!user || !user.workouts || user.workouts.length === 0) {
-            return [];
-        }
-
-        const recommendations = [];
-        const exerciseStats = {};
-
-        user.workouts.forEach(workout => {
-            workout.exercises.forEach(exercise => {
-                if (exercise.exerciseDefId) {
-                    if (!exerciseStats[exercise.exerciseDefId]) {
-                        exerciseStats[exercise.exerciseDefId] = {
-                            count: 0,
-                            bestScore: 0,
-                            totalPoints: 0
-                        };
-                    }
-                    exerciseStats[exercise.exerciseDefId].count++;
-                    exerciseStats[exercise.exerciseDefId].bestScore = Math.max(
-                        exerciseStats[exercise.exerciseDefId].bestScore,
-                        exercise.points || 0
-                    );
-                    exerciseStats[exercise.exerciseDefId].totalPoints += exercise.points || 0;
-                }
-            });
-        });
-
-        for (const [exerciseDefId, stats] of Object.entries(exerciseStats)) {
-            if (stats.count >= 3) {
-                const activeGoals = await getActiveGoals(userId);
-                const hasActiveGoal = activeGoals.some(goal => goal.exerciseDefId === exerciseDefId);
-                
-                if (!hasActiveGoal) {
-                    recommendations.push({
-                        exerciseDefId,
-                        currentBest: stats.bestScore,
-                        recommendedTarget: Math.ceil(stats.bestScore * 1.15),
-                        workoutCount: stats.count,
-                        avgPoints: Math.floor(stats.totalPoints / stats.count)
-                    });
-                }
-            }
-        }
-
-        return recommendations.slice(0, 5);
-    } catch (error) {
-        console.error('Failed to get goal recommendations:', error);
-        return [];
-    }
-};
 
 /**
  * Goal System
@@ -486,7 +412,6 @@ const getGoalRecommendations = async (userId) => {
  * - Point rewards for goal completion with difficulty-based calculation
  * - Goal statistics and analytics
  * - Workout-based automatic goal creation and updates
- * - Personalized goal recommendations based on workout history
  * - Goal filtering and categorization (active, completed, expired)
  * 
  * The system integrates with user management for point rewards and uses
@@ -507,7 +432,6 @@ const GoalSystem = {
     getGoalStatistics,
     createGoalFromWorkout,
     updateGoalsFromWorkout,
-    getGoalRecommendations,
 };
 
 export default GoalSystem;

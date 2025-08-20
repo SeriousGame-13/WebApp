@@ -28,6 +28,16 @@ function AdminHeader({ user, onPageSelect, currentPage }) {
         }
     };
 
+    const options = [
+        'Group Manager',
+        'Challenge Manager',
+        'Badge Manager',
+        'Workout Manager',
+        'Station Manager',
+        'Goal Manager',
+        'Tournament Manager'
+    ];
+
     console.log('Rendering AdminHeader, showDropdown:', showDropdown);
 
     return (
@@ -51,36 +61,15 @@ function AdminHeader({ user, onPageSelect, currentPage }) {
                 </button>
                 {showDropdown && (
                     <div className='AdminDropdownMenu'>
-                        <div
-                            className='AdminDropdownItem'
-                            onClick={() => handlePageSelect('Group Manager')}
-                        >
-                            Group Manager
-                        </div>
-                        <div
-                            className='AdminDropdownItem'
-                            onClick={() => handlePageSelect('Challenge Manager')}
-                        >
-                            Challenge Manager
-                        </div>
-                        <div
-                            className='AdminDropdownItem'
-                            onClick={() => handlePageSelect('Badge Manager')}
-                        >
-                            Badge Manager
-                        </div>
-                        <div
-                            className='AdminDropdownItem'
-                            onClick={() => handlePageSelect('Workout Manager')}
-                        >
-                            Workout Manager
-                        </div>
-                                                <div
-                            className='AdminDropdownItem'
-                            onClick={() => handlePageSelect('Station Manager')}
-                        >
-                            Station Manager
-                        </div>
+                        {options.map(option => (
+                            <div
+                                key={option}
+                                className='AdminDropdownItem'
+                                onClick={() => handlePageSelect(option)}
+                            >
+                                {option}
+                            </div>
+                        ))}
                     </div>
                 )}
             </div>

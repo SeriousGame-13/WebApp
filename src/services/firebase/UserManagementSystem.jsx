@@ -569,9 +569,11 @@ const searchUsers = async (searchTerm, limit = 50) => {
 
 const awardBadge = async (userId, badgeId) => {
     const path = getUserDatabasePath(userId);
-
     const badge = new UserBadge({ userId: userId, badgeId: badgeId });
-    await FirebaseManager.createDocument(path + `${BADGES_COLLECTION}`, badge, badge.uid);
+
+    const exisiting = await FirestoreManager.findDocumentByField(path + `${BADGES_COLLECTION}`, 'badgeId', badgeId);
+    if (exisiting == null)
+        await FirebaseManager.createDocument(path + `${BADGES_COLLECTION}`, badge, badge.uid);
 };
 
 const getBadges = async (userId) => {

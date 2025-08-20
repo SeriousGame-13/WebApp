@@ -1,7 +1,6 @@
 import CompetitonSystem from './TournamentManagement';
 import UserManagement from './UserManagementSystem';
 import BadgeManagement from "./BadgeManagement";
-import { createCustomAnalytics } from "../../utils/FirestoreAnalytics";
 import { CHALLENGE_STYLE } from '../interfaces/constants';
 import FirestoreManager from './FirestoreManager';
 
@@ -124,9 +123,9 @@ const awardBadges = async (userId) => {
         const docs = await FirestoreManager.queryDocuments(badge.collection, conditions);
 
         const result = aggregate([{ function: badge.aggregate, field: badge.field }], docs.docs);
-       if(result[Object.keys(result)[0]] >= badge.valueToReach){
+        if (result[Object.keys(result)[0]] >= badge.valueToReach) {
             UserManagement.awardBadge(userId, badge.uid);
-       }
+        }
     }
 };
 

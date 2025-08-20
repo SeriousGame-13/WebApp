@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import '../components/styles/LayoutElements.css';
 import GoalSystem from '../services/firebase/GoalSystem';
 import StationManager from '../services/firebase/StationManagement';
-import {localDateTimeStringToTimestamp, localISODateTime} from '../utils/DateUtils';
+import {localDateTimeStringToTimestamp, localTime} from '../utils/DateUtils';
 
 
 function FormBase({ 
@@ -20,7 +20,7 @@ function FormBase({
         return inputFields.reduce((acc, field) => {
             const sourceValue = initialData?.[field.key];
             if (field.type === 'datetime-local' && sourceValue?.toDate) {
-                acc[field.key] = localISODateTime(sourceValue);
+                acc[field.key] = localTime(sourceValue);
             } else {
                 acc[field.key] = sourceValue ?? (field.type === 'number' ? 0 : '');
             }

@@ -6,28 +6,28 @@ import StationManager from '../services/firebase/StationManagement';
 import BadgeManagement from '../services/firebase/BadgeManagement';
 import IconElements from '../components/ui/IconElements';
 import { Workout } from '../services/interfaces/workout';
-import {localDateTimeStringToTimestamp, localISODateTime} from '../utils/DateUtils';
+import { localDateTimeStringToTimestamp, localTime } from '../utils/DateUtils';
 
 import '../components/styles/LayoutElements.css'
 import '../components/styles/UserPage.css'
 import UserManagement from '../services/firebase/UserManagementSystem.jsx';
 
 
-function FormBase({ 
-    title, 
-    inputFields, 
-    initialData, 
-    onSubmit, 
-    onCancel, 
-    isProcessing, 
+function FormBase({
+    title,
+    inputFields,
+    initialData,
+    onSubmit,
+    onCancel,
+    isProcessing,
     submitText,
-    stations = null 
+    stations = null
 }) {
     const [formData, setFormData] = useState(() => {
         return inputFields.reduce((acc, field) => {
             const sourceValue = initialData?.[field.key];
             if (field.type === 'datetime-local' && sourceValue?.toDate) {
-                acc[field.key] = localISODateTime(sourceValue);
+                acc[field.key] = localTime(sourceValue);
             } else {
                 acc[field.key] = sourceValue ?? (field.type === 'number' ? 0 : '');
             }
@@ -56,7 +56,7 @@ function FormBase({
                 }
                 return acc;
             }, {});
-            
+
             if (initialData?.uid) {
                 submitData.uid = initialData.uid;
             }
@@ -107,6 +107,13 @@ function FormBase({
                                         rows={4}
                                         style={{ resize: 'vertical' }}
                                     />
+                                ) : field.type === 'datetime-local' ? (
+                                    <input
+                                        className='Input'
+                                        type="time" // Fester Typ für Datum und Uhrzeit
+                                        value={formData[field.key]}
+                                        onChange={(e) => handleInputChange(field.key, e.target.value)}
+                                    />
                                 ) : (
                                     <input
                                         className='Input'
@@ -142,7 +149,7 @@ function FormBase({
     );
 }
 
-function GoalForm(props) {    
+function GoalForm(props) {
     const inputFields = [
         { key: 'name', label: 'Name', type: 'text', maxLength: 50, placeholder: 'Enter goal name' },
         { key: 'description', label: 'Description', type: 'textarea', placeholder: 'Enter description' },
@@ -226,7 +233,7 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations
     const [isProcessing, setIsProcessing] = useState(false);
     const [showEditPopup, setShowEditPopup] = useState(false);
     const [showAddExercisePopup, setShowAddExercisePopup] = useState(false);
-    const [editingExercise, setEditingExercise] = useState(null); 
+    const [editingExercise, setEditingExercise] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     workout = Workout.fromJSON(workout);
@@ -260,7 +267,7 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations
             }
         }
     };
-    
+
     const handleUpdateWorkout = async (updates) => {
         setIsSubmitting(true);
         try {
@@ -282,9 +289,9 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations
     const handleExerciseSubmit = async (exerciseData) => {
         setIsSubmitting(true);
         try {
-            if (editingExercise) { 
+            if (editingExercise) {
                 await WorkoutManager.updateExercise(user.uid, workout.uid, exerciseData);
-            } else { 
+            } else {
                 await WorkoutManager.addExercise(user.uid, workout.uid, exerciseData);
             }
             setEditingExercise(null);
@@ -297,7 +304,7 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations
             setIsSubmitting(false);
         }
     };
-    
+
     const handleDeleteExercise = async (exerciseId) => {
         if (confirm('Are you sure you want to delete this exercise?')) {
             setIsProcessing(true);
@@ -348,8 +355,8 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                                     <strong style={{ color: '#E5E5E5' }}>{exercise.name}</strong>
                                                     <div className='ActionButtons'>
-                                                         <button onClick={() => setEditingExercise(exercise)} style={{marginRight: '10px'}}>Edit</button>
-                                                         <button onClick={() => handleDeleteExercise(exercise.uid)}>Delete</button>
+                                                        <button onClick={() => setEditingExercise(exercise)} style={{ marginRight: '10px' }}>Edit</button>
+                                                        <button onClick={() => handleDeleteExercise(exercise.uid)}>Delete</button>
                                                     </div>
                                                 </div>
                                                 <p style={{ margin: '5px 0', color: '#A0A0A0' }}>{exercise.description || 'No description.'}</p>
@@ -464,8 +471,8 @@ function BadgeCardItem({ badge, onClick }) {
                         </div>
                     ) : badgeImage ? (
                         <img className='ProfileImageForCard'
-                            src={badgeImage} 
-                            alt="Badge Image" 
+                            src={badgeImage}
+                            alt="Badge Image"
                         />
                     ) : (
                         <div className='ProfileImageForCardAlt'>
@@ -478,7 +485,7 @@ function BadgeCardItem({ badge, onClick }) {
                         {badge.name}
                     </div>
                     <div className="CardContents" style={{ color: getRarityColor(badge.rarity) }}>
-                        {badge.rarity.charAt(0).toUpperCase() + badge.rarity.slice(1)}
+                        {badge.rarity == undefined ? '' : badge.rarity.charAt(0).toUpperCase() + badge.rarity.slice(1)}
                     </div>
                 </div>
             </div>
@@ -491,7 +498,7 @@ function Page({ data }) {
     const [activeTab, setActiveTab] = useState('badges');
     const [badges, setBadges] = useState([]);
     const [isLoadingBadges, setIsLoadingBadges] = useState(true);
-    
+
     const [workouts, setWorkouts] = useState([]);
     const [goals, setGoals] = useState([]);
     const [stations, setStations] = useState([]);
@@ -551,7 +558,7 @@ function Page({ data }) {
 
             const stationData = await StationManager.loadAll();
             setStations(stationData);
-            
+
             if (selectedGoal) {
                 const updatedSelectedGoal = goalData.find(g => g.uid === selectedGoal.uid);
                 if (updatedSelectedGoal) {
@@ -608,21 +615,21 @@ function Page({ data }) {
     };
 
     const UserTabSection = () => (
-        <div className="UserButtonContainer" style={{ 
-            position: 'sticky', 
-            top: 0, 
-            zIndex: 10, 
+        <div className="UserButtonContainer" style={{
+            position: 'sticky',
+            top: 0,
+            zIndex: 10,
             backgroundColor: 'var(--background-color)',
             paddingBottom: '10px',
             borderBottom: '1px solid var(--border-color)'
         }}>
-            <button 
+            <button
                 className={activeTab === 'badges' ? 'ButtonMediumFilled BadgesButton' : 'ButtonMedium BadgesButton'}
                 onClick={() => setActiveTab('badges')}
             >
                 <div className='ButtonText'>Badges</div>
             </button>
-            <button 
+            <button
                 className={activeTab === 'edit' ? 'ButtonMediumFilled EditButton' : 'ButtonMedium EditButton'}
                 onClick={() => setActiveTab('edit')}
             >
@@ -647,8 +654,8 @@ function Page({ data }) {
             ) : (
                 <div className="BadgeGrid">
                     {badges.map(badge => (
-                        <BadgeCardItem 
-                            key={badge.uid} 
+                        <BadgeCardItem
+                            key={badge.uid}
                             badge={badge}
                             onClick={() => console.log('Badge clicked:', badge.name)}
                         />
@@ -659,10 +666,10 @@ function Page({ data }) {
     );
 
     const EditSection = () => (
-        <div style={{ 
-            flex: 1, 
-            overflowY: 'auto', 
-            padding: '20px 0' 
+        <div style={{
+            flex: 1,
+            overflowY: 'auto',
+            padding: '20px 0'
         }}>
             <div className="UserInfo">
                 <div className="UserProfileSection">
@@ -677,10 +684,10 @@ function Page({ data }) {
                     <p>MaxRecord: {userData.longestStreak}</p>
                 </div>
             </div>
-            
+
             <div className="WorkoutSection">
                 <div className="GuideText">Workout Management</div>
-                
+
                 <div className="WorkoutList">
                     {isLoadingWorkouts ? (
                         <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>
@@ -725,7 +732,7 @@ function Page({ data }) {
 
             <div className="WorkoutSection" style={{ marginTop: '30px' }}>
                 <div className="GuideText">Goal Management</div>
-                
+
                 <div className="WorkoutList">
                     {isLoadingGoals ? (
                         <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>
@@ -752,9 +759,9 @@ function Page({ data }) {
                                     Progress: {goal.currentValue}/{goal.targetValue} ({Math.round((goal.currentValue / goal.targetValue) * 100)}%)
                                 </div>
                                 <div className="ProgressBarSmall">
-                                    <div 
-                                        className="ProgressBarFillSmall" 
-                                        style={{ 
+                                    <div
+                                        className="ProgressBarFillSmall"
+                                        style={{
                                             width: `${Math.min(Math.round((goal.currentValue / goal.targetValue) * 100), 100)}%`,
                                             backgroundColor: goal.isCompleted ? 'var(--success-color)' : 'var(--main-color)'
                                         }}
@@ -782,11 +789,11 @@ function Page({ data }) {
     return (
         <div className="AppContents">
             <UserTabSection />
-            
-            <div style={{ 
-                flex: 1, 
-                overflowY: 'auto', 
-                padding: '20px 0' 
+
+            <div style={{
+                flex: 1,
+                overflowY: 'auto',
+                padding: '20px 0'
             }}>
                 {activeTab === 'badges' ? <BadgesSection /> : <EditSection />}
             </div>
@@ -874,7 +881,7 @@ function GoalDetailPopup({ goal, onClose, onGoalUpdated, user, stations }) {
             }
         }
     };
-    
+
     const handleUpdateGoal = async (updates) => {
         setIsUpdating(true);
         try {
@@ -910,14 +917,14 @@ function GoalDetailPopup({ goal, onClose, onGoalUpdated, user, stations }) {
 
     // Calculate progress percentage
     const progressPercentage = Math.min(Math.round((goal.currentValue / goal.targetValue) * 100), 100);
-    
+
     // Format the deadline date if available
-    const formattedDeadline = goal.deadline?.toDate ? 
-        goal.deadline.toDate().toLocaleDateString() + ' ' + goal.deadline.toDate().toLocaleTimeString() : 
+    const formattedDeadline = goal.deadline?.toDate ?
+        goal.deadline.toDate().toLocaleDateString() + ' ' + goal.deadline.toDate().toLocaleTimeString() :
         'No deadline set';
 
     // Determine if the goal is overdue
-    const isOverdue = goal.deadline?.toDate && !goal.isCompleted && 
+    const isOverdue = goal.deadline?.toDate && !goal.isCompleted &&
         new Date() > goal.deadline.toDate();
 
     const station = stations?.find(s => s.uid === goal.stationId);
@@ -932,12 +939,12 @@ function GoalDetailPopup({ goal, onClose, onGoalUpdated, user, stations }) {
                         <div className='BadgeInfoContainer'>
                             <div className='BadgeDetailTitle' style={{ color: 'var(--main-color)' }}>
                                 {goal.name}
-                                {goal.isCompleted && 
+                                {goal.isCompleted &&
                                     <span style={{ color: 'var(--success-color)', fontSize: '16px', marginLeft: '10px' }}>
                                         (Completed)
                                     </span>
                                 }
-                                {isOverdue && 
+                                {isOverdue &&
                                     <span style={{ color: 'var(--error-color)', fontSize: '16px', marginLeft: '10px' }}>
                                         (Overdue)
                                     </span>
@@ -959,9 +966,9 @@ function GoalDetailPopup({ goal, onClose, onGoalUpdated, user, stations }) {
                     <div style={{ marginTop: '20px' }}>
                         <h3 style={{ color: 'var(--main-color)', marginBottom: '10px' }}>Progress</h3>
                         <div className="ProgressBar">
-                            <div 
-                                className="ProgressBarFill" 
-                                style={{ 
+                            <div
+                                className="ProgressBarFill"
+                                style={{
                                     width: `${progressPercentage}%`,
                                     backgroundColor: goal.isCompleted ? 'var(--success-color)' : isOverdue ? 'var(--error-color)' : 'var(--main-color)'
                                 }}

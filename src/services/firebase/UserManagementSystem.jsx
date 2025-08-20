@@ -15,9 +15,8 @@ import FireAuthManager from './FirebaseAuthenticationManager';
 import WorkoutManager from './WorkoutManagement.jsx';
 import User from '../interfaces/user.jsx';
 import { Workout } from '../interfaces/workout.jsx';
-import { USERS_COLLECTION, FRIENDS_COLLECTION, BLOCKS_COLLECTION, BADGES_COLLECTION } from './collections.jsx'
+import { USERS_COLLECTION, FRIENDS_COLLECTION, BLOCKS_COLLECTION, BADGES_USER_COLLECTION, BADGES_COLLECTION } from './collections.jsx'
 import { UserBadge } from '../interfaces/badge.jsx';
-import { getDocs } from 'firebase/firestore';
 import FirestoreManager from './FirestoreManager';
 import BadgeManagement from './BadgeManagement.jsx';
 
@@ -571,13 +570,13 @@ const awardBadge = async (userId, badgeId) => {
     const path = getUserDatabasePath(userId);
     const badge = new UserBadge({ userId: userId, badgeId: badgeId });
 
-    const exisiting = await FirestoreManager.findDocumentByField(path + `${BADGES_COLLECTION}`, 'badgeId', badgeId);
+    const exisiting = await FirestoreManager.findDocumentByField(path + `${BADGES_USER_COLLECTION}`, 'badgeId', badgeId);
     if (exisiting == null)
-        await FirebaseManager.createDocument(path + `${BADGES_COLLECTION}`, badge, badge.uid);
+        await FirebaseManager.createDocument(path + `${BADGES_USER_COLLECTION}`, badge, badge.uid);
 };
 
 const getBadges = async (userId) => {
-    const path = getUserDatabasePath(userId) + `${BADGES_COLLECTION}`;
+    const path = getUserDatabasePath(userId) + `${BADGES_USER_COLLECTION}`;
     const userBadges = await FirestoreManager.getAllDocuments(path);
     const badges = [];
     const promises = [];

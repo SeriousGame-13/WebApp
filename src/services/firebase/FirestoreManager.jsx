@@ -226,8 +226,13 @@ const createDocumentWithAutoId = async (collectionName, data) => {
         const docRef = await addDoc(collectionGroup(db, collectionName), data);
         return docRef;
     } catch (error) {
-        console.error(`Error creating document in ${collectionName}:`, error);
-        return null;
+        try {
+            const docRef = await addDoc(collection(db, collectionName), data);
+            return docRef;
+        } catch (error) {
+            console.error(`Error creating document in ${collectionName}:`, error);
+            return null;
+        }
     }
 }
 

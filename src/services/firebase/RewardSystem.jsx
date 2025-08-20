@@ -83,17 +83,6 @@ const awardBadges = async (userId) => {
     const badges = await BadgeManagement.getAllBadges();
 
     for (let badge of badges) {
-        const rawmapping = badge.mapping.replaceAll('\n', '').split(';');
-
-        let mapping = {};
-        rawmapping.forEach(str => {
-            const temp = str.split(':');
-            if (temp.length == 2) {
-                const fields = temp[1].split(',');
-                mapping[temp[0]] = fields;
-            }
-        });
-
         const rawConditions = badge.conditions.split('\n');
 
         let conditions = [];

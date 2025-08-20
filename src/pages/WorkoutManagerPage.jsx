@@ -3,7 +3,7 @@ import '../components/styles/LayoutElements.css';
 import WorkoutManager from '../services/firebase/WorkoutManagement';
 import StationManager from '../services/firebase/StationManagement';
 import { Workout } from '../services/interfaces/workout';
-import {localDateTimeStringToTimestamp, localISODateTime} from '../utils/DateUtils';
+import {localDateTimeStringToTimestamp, localTime} from '../utils/DateUtils';
 
 
 function EditWorkoutForm({ workout = null, onSubmit, onCancel, isProcessing, submitText }) {
@@ -22,7 +22,7 @@ function EditWorkoutForm({ workout = null, onSubmit, onCancel, isProcessing, sub
         return inputFields.reduce((acc, field) => {
             const sourceValue = workout?.[field.key];
             if (field.type === 'datetime-local' && sourceValue?.toDate) {
-                acc[field.key] = localISODateTime(sourceValue);
+                acc[field.key] = localTime(sourceValue);
             } else {
                 acc[field.key] = sourceValue ?? (field.type === 'number' ? 0 : '');
             }
@@ -165,7 +165,7 @@ function ExerciseForm({
         return inputFields.reduce((acc, field) => {
             const sourceValue = exerciseToEdit?.[field.key];
             if (field.type === 'datetime-local' && sourceValue?.toDate) {
-                acc[field.key] = localISODateTime(sourceValue);
+                acc[field.key] = localTime(sourceValue);
             } else {
                 acc[field.key] = sourceValue ?? (field.type === 'number' ? 0 : '');
             }

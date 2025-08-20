@@ -10,6 +10,7 @@ export const CHALLENGES_COLLECTION = 'challenges';
 export const CHALLENGE_PARTICIPANTS_SUBCOLLECTION = 'participants';
 
 export const BADGES_COLLECTION = 'badges';
+export const BADGES_USER_COLLECTION = 'ubadges';
 export const BADGE_IMAGES_COLLECTION = 'badgeimages';
 
 export const WORKOUT_COLLECTION = 'workouts';

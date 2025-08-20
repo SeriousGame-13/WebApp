@@ -15,7 +15,8 @@ import FireAuthManager from './FirebaseAuthenticationManager';
 import WorkoutManager from './WorkoutManagement.jsx';
 import User from '../interfaces/user.jsx';
 import { Workout } from '../interfaces/workout.jsx';
-import {USERS_COLLECTION, FRIENDS_COLLECTION, BLOCKS_COLLECTION } from './collections.jsx'
+import { USERS_COLLECTION, FRIENDS_COLLECTION, BLOCKS_COLLECTION, BADGES_COLLECTION } from './collections.jsx'
+import { UserBadge } from '../interfaces/badge.jsx';
 
 
 /**
@@ -145,9 +146,9 @@ const addPoints = async (uid, points) => {
         const user = await getCurrentUser(uid);
 
         user.addPoints(points);
-        
+
         user.workouts = []; // Firebase cannot handle custom objects
-        
+
         const { goals, badges, workouts, friends, ...updateData } = user;
 
         await FirebaseManager.updateDocument(USERS_COLLECTION, uid, updateData, true);
@@ -531,7 +532,7 @@ const getAllActiveUsers = async () => {
                 });
             }
         });
-        
+
         return users;
     } catch (error) {
         console.error('Failed to get all users:', error);
@@ -549,18 +550,25 @@ const getAllActiveUsers = async () => {
 const searchUsers = async (searchTerm, limit = 50) => {
     try {
         const allUsers = await getAllActiveUsers();
-        
+
         const searchLower = searchTerm.toLowerCase();
-        const matchingUsers = allUsers.filter(user => 
+        const matchingUsers = allUsers.filter(user =>
             user.displayName?.toLowerCase().includes(searchLower) ||
             user.email?.toLowerCase().includes(searchLower)
         ).slice(0, limit);
-        
+
         return matchingUsers;
     } catch (error) {
         console.error('Failed to search users:', error);
         return [];
     }
+};
+
+const awardBadge = async (userId, badgeId) => {
+    const path = getUserDatabasePath(userId);
+
+    const badge = new UserBadge({ userId: userId, badgeId: badgeId });
+    await FirebaseManager.createDocument(path + `${BADGES_COLLECTION}`, badge, badge.uid);
 };
 
 /**
@@ -592,7 +600,8 @@ const UserManagement = {
     isUserBlocked,
     getUserBlocks,
     getBlockData,
-    addPoints
+    addPoints,
+    awardBadge
 }
 
 export default UserManagement;

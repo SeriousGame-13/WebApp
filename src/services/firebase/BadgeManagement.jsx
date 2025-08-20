@@ -196,6 +196,9 @@ const updateBadge = async (badgeId, badgeData) => {
     }
 };
 
+
+
+
 /**
  * Badge Management System
  * 
@@ -218,6 +221,7 @@ const BadgeManagement = {
     getBadgeImage,
     deleteBadge,
     updateBadge,
+ 
 };
 
 export default BadgeManagement;

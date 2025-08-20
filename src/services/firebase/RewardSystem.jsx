@@ -3,6 +3,7 @@ import UserManagement from './UserManagementSystem';
 import BadgeManagement from "./BadgeManagement";
 import { createCustomAnalytics } from "../../utils/FirestoreAnalytics";
 import { CHALLENGE_STYLE } from '../interfaces/constants';
+import FirestoreManager from './FirestoreManager';
 
 /**
  * Awards rewards to challenge participants
@@ -17,7 +18,7 @@ const awardChallengeRewards = async (challengeId) => {
         }
 
         const participants = await CompetitonSystem.getChallengeParticipants(challengeId);
-        
+
         for (const participant of participants) {
             if (participant.completed) {
                 await UserManagement.addPoints(participant.userId, challenge.rewardPoints);
@@ -41,14 +42,14 @@ const awardTournamentRewards = async (challengeId) => {
         }
 
         const results = await CompetitonSystem.getChallengeResults(challengeId);
-        
+
         // TODO: Award different points based on ranking?
         const rewardStructure = {
             1: challenge.rewardPoints * 5,
-            2: challenge.rewardPoints * 4, 
-            3: challenge.rewardPoints * 3, 
-            4: challenge.rewardPoints * 2, 
-            5: challenge.rewardPoints * 1.5, 
+            2: challenge.rewardPoints * 4,
+            3: challenge.rewardPoints * 3,
+            4: challenge.rewardPoints * 2,
+            5: challenge.rewardPoints * 1.5,
         };
 
         for (const result of results) {
@@ -81,17 +82,8 @@ const awardBadges = async (userId) => {
     const mappingData = { user: user };
 
     const badges = await BadgeManagement.getAllBadges();
+
     for (let badge of badges) {
-        const rawstructure = badge.structure.replaceAll('\n', '').split(';');
-        let structure = [];
-        rawstructure.forEach(str => {
-            const temp = str.split(',');
-            if (temp.length == 2) {
-                const first = temp[0].split(':');
-                const second = temp[1].split(':');
-                structure.push({ name: first[1], idField: second[1] });
-            }
-        });
         const rawmapping = badge.mapping.replaceAll('\n', '').split(';');
 
         let mapping = {};
@@ -117,7 +109,7 @@ const awardBadges = async (userId) => {
                 if (cond['value'].includes('{')) {
                     const tt = cond['value'].replaceAll('{', '').replaceAll('}', '').split('.');
                     let curData = mappingData;
-                    for(let n of tt){
+                    for (let n of tt) {
                         curData = curData[n];
                     }
                     cond['value'] = curData;
@@ -128,17 +120,47 @@ const awardBadges = async (userId) => {
         });
 
 
-        const analytics = createCustomAnalytics(structure, mapping);
-        const totalCalories = await analytics.query({
-            targetDepth: 2,
-            sumField: 'calories',
-            conditions: conditions,
-        });
-        console.log(totalCalories);
+
+        const docs = await FirestoreManager.queryDocuments(badge.collection, conditions);
+
+        const result = aggregate([{ function: badge.aggregate, field: badge.field }], docs.docs);
+       if(result[Object.keys(result)[0]] >= badge.valueToReach){
+            UserManagement.awardBadge(userId, badge.uid);
+       }
     }
 };
 
-const RewardSystem = {    
+const aggregate = (aggregates, docs) => {
+    let results = {};
+    aggregates.forEach(aggregation => {
+        switch (aggregation.function) {
+            case 'count':
+                results[aggregation.function + aggregation.field] = docs.length;
+                break;
+            case 'sum':
+                results[aggregation.function + aggregation.field] = docs.reduce((total, doc) => {
+                    const value = doc.data()[aggregation.field];
+                    // Stellt sicher, dass der Wert eine Zahl ist, bevor er addiert wird
+                    return total + (typeof value === 'number' ? value : 0);
+                }, 0);
+                break;
+            case 'average': {
+                const sum = docs.reduce((total, doc) => {
+                    const value = doc.data()[aggregation.field];
+                    return total + (typeof value === 'number' ? value : 0);
+                }, 0);
+                results[aggregation.function + aggregation.field] = sum / docs.length;
+            }
+                break;
+            default:
+                console.error(`Nicht unterstützter Aggregationstyp: ${aggregation.function}`);
+                break;
+        }
+    });
+    return results;
+}
+
+const RewardSystem = {
     awardChallengeRewards,
     awardTournamentRewards,
     awardBadges,

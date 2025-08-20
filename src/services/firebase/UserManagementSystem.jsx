@@ -17,6 +17,9 @@ import User from '../interfaces/user.jsx';
 import { Workout } from '../interfaces/workout.jsx';
 import { USERS_COLLECTION, FRIENDS_COLLECTION, BLOCKS_COLLECTION, BADGES_COLLECTION } from './collections.jsx'
 import { UserBadge } from '../interfaces/badge.jsx';
+import { getDocs } from 'firebase/firestore';
+import FirestoreManager from './FirestoreManager';
+import BadgeManagement from './BadgeManagement.jsx';
 
 
 /**
@@ -571,6 +574,24 @@ const awardBadge = async (userId, badgeId) => {
     await FirebaseManager.createDocument(path + `${BADGES_COLLECTION}`, badge, badge.uid);
 };
 
+const getBadges = async (userId) => {
+    const path = getUserDatabasePath(userId) + `${BADGES_COLLECTION}`;
+    const userBadges = await FirestoreManager.getAllDocuments(path);
+    const badges = [];
+    const promises = [];
+    for (let index = 0; index < userBadges.docs.length; index++) {
+        const element = userBadges.docs[index].data();
+        const promise = FirestoreManager.readDocument(BADGES_COLLECTION, element.badgeId)
+            .then(data => {
+                if (data != null)
+                    badges.push(data);
+            });
+        promises.push(promise);
+    }
+    await Promise.all(promises)
+    return badges;
+}
+
 /**
  * @namespace UserManagement
  * @description Firebase service module for comprehensive user management functionality.
@@ -601,7 +622,8 @@ const UserManagement = {
     getUserBlocks,
     getBlockData,
     addPoints,
-    awardBadge
+    awardBadge,
+    getBadges
 }
 
 export default UserManagement;

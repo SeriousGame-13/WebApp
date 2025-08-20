@@ -10,6 +10,7 @@ import {localDateTimeStringToTimestamp, localISODateTime} from '../utils/DateUti
 
 import '../components/styles/LayoutElements.css'
 import '../components/styles/UserPage.css'
+import UserManagement from '../services/firebase/UserManagementSystem.jsx';
 
 
 function FormBase({ 
@@ -428,7 +429,7 @@ function BadgeCardItem({ badge, onClick }) {
         const loadBadgeImage = async () => {
             setImageLoading(true);
             try {
-                const imageBase64 = await BadgeManagement.getBadgeImage(badge.badgeId);
+                const imageBase64 = await BadgeManagement.getBadgeImage(badge.uid);
                 setBadgeImage(imageBase64 || '');
             } catch (error) {
                 console.error('Failed to load badge image:', error);
@@ -438,10 +439,10 @@ function BadgeCardItem({ badge, onClick }) {
             }
         };
 
-        if (badge.badgeId) {
+        if (badge.uid) {
             loadBadgeImage();
         }
-    }, [badge.badgeId]);
+    }, [badge.uid]);
 
     const getRarityColor = (rarity) => {
         switch (rarity) {
@@ -506,7 +507,7 @@ function Page({ data }) {
     const loadBadges = async () => {
         try {
             setIsLoadingBadges(true);
-            const allBadges = await BadgeManagement.getAllBadges();
+            const allBadges = await UserManagement.getBadges(userData.uid);
             setBadges(allBadges);
         } catch (error) {
             console.error('Failed to load badges:', error);
@@ -647,7 +648,7 @@ function Page({ data }) {
                 <div className="BadgeGrid">
                     {badges.map(badge => (
                         <BadgeCardItem 
-                            key={badge.badgeId} 
+                            key={badge.uid} 
                             badge={badge}
                             onClick={() => console.log('Badge clicked:', badge.name)}
                         />

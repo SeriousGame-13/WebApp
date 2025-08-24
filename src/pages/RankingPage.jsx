@@ -121,8 +121,14 @@ function Page({ data }) {
         <div className="AppContents">
             <div className={`MainContentWrapper ${orientation}`}>
                 {orientation === 'portrait' ? (
-                    <div className="RankingContents">
-                        <div className='RankingContainer'>
+                    <div style={{
+                        height: '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        overflow: 'hidden'
+                    }}>
+                        {/* 고정 부분 */}
+                        <div style={{ flexShrink: 0 }}>
                             <div className="GuideTitle">Ranking</div>
                             <div className='GuideText'>Leaderboard Type</div>
                             <div className='GroupExerciseContents'>
@@ -146,33 +152,27 @@ function Page({ data }) {
                             </div>
 
                             {userRank && (
-                                <div className='CardContainer' style={{ marginBottom: '20px' }}>
-                                    <div className='CardHeader'>
-                                        <span style={{ color: 'var(--light-color)' }}>
-                                            Your Ranking
-                                        </span>
-                                        <span style={{ 
-                                            color: '#00FF94', 
-                                            fontSize: '12px', 
-                                            marginLeft: '8px' 
-                                        }}>
-                                            (Rank #{userRank.rank})
-                                        </span>
-                                    </div>
-                                    <div className='CardContents'>
-                                        Your {getScoreLabel()}: {getScoreValue(userRank).toLocaleString()}
-                                    </div>
+                                <div style={{
+                                    color: 'var(--main-color)',
+                                    fontSize: 'xx-large',
+                                    fontWeight: 'bold',
+                                    textAlign: 'center',
+                                    margin: '30px 0'
+                                }}>
+                                    Mein Ranking: Rank {userRank.rank}
                                 </div>
                             )}
-                        </div>
 
-                        <div className='GuideText'>
-                            {getLeaderboardTitle()}
+                            <div className='GuideText'>
+                                {getLeaderboardTitle()}
+                            </div>
                         </div>
                         
-                        <div style={{ 
-                            maxHeight: 'calc(100vh - 470px)',
-                            overflow: 'auto',
+                        {/* 스크롤 부분 */}
+                        <div style={{
+                            flex: 1,
+                            overflowY: 'auto',
+                            overflowX: 'hidden',
                             paddingRight: '8px'
                         }}>
                             {isLoading ? (
@@ -187,7 +187,7 @@ function Page({ data }) {
                                 rankings.map((ranking) => (
                                     <div key={`${ranking.uid}_${leaderboardType}`} className='CardContainer'>
                                         <div className='CardHeader'>
-                                            <span style={{ 
+                                            <span style={{
                                                 color: ranking.rank <= 3 ? '#FFD700' : 'var(--main-color)',
                                                 fontSize: '18px',
                                                 marginRight: '8px'
@@ -198,18 +198,18 @@ function Page({ data }) {
                                                 {ranking.displayName}
                                             </span>
                                             {ranking.uid === userData?.uid && (
-                                                <span style={{ 
-                                                    color: '#00FF94', 
-                                                    fontSize: '12px', 
-                                                    marginLeft: '8px' 
+                                                <span style={{
+                                                    color: '#00FF94',
+                                                    fontSize: '12px',
+                                                    marginLeft: '8px'
                                                 }}>
                                                     (You)
                                                 </span>
                                             )}
-                                            <span style={{ 
-                                                color: 'var(--light-color)', 
-                                                fontSize: '14px', 
-                                                marginLeft: 'auto' 
+                                            <span style={{
+                                                color: 'var(--light-color)',
+                                                fontSize: '14px',
+                                                marginLeft: 'auto'
                                             }}>
                                                 {' Level ' + (ranking.level || 1)}
                                             </span>
@@ -218,8 +218,8 @@ function Page({ data }) {
                                             {getScoreLabel()}: {getScoreValue(ranking).toLocaleString()}
                                         </div>
                                         <div className='CardContents'>
-                                            Rank: #{ranking.rank} | 
-                                            Level: {ranking.level || 1} | 
+                                            Rank: #{ranking.rank} |
+                                            Level: {ranking.level || 1} |
                                             Points: {ranking.points || 0}
                                         </div>
                                     </div>
@@ -254,22 +254,14 @@ function Page({ data }) {
                                 </div>
 
                                 {userRank && (
-                                    <div className='CardContainer' style={{ marginTop: '20px' }}>
-                                        <div className='CardHeader'>
-                                            <span style={{ color: 'var(--light-color)' }}>
-                                                Your Ranking
-                                            </span>
-                                            <span style={{ 
-                                                color: '#00FF94', 
-                                                fontSize: '12px', 
-                                                marginLeft: '8px' 
-                                            }}>
-                                                (Rank #{userRank.rank})
-                                            </span>
-                                        </div>
-                                        <div className='CardContents'>
-                                            Your {getScoreLabel()}: {getScoreValue(userRank).toLocaleString()}
-                                        </div>
+                                    <div style={{
+                                        color: 'var(--main-color)',
+                                        fontSize: 'xx-large',
+                                        fontWeight: 'bold',
+                                        textAlign: 'center',
+                                        margin: '30px 0'
+                                    }}>
+                                        Mein Ranking: Rank {userRank.rank}
                                     </div>
                                 )}
                             </div>
@@ -279,9 +271,11 @@ function Page({ data }) {
                             <div className='GuideText'>
                                     {getLeaderboardTitle()}
                             </div>
-                            <div className="RankingContainer">
-                                
-                                
+                            <div className="RankingContainer" style={{ 
+                                maxHeight: 'calc(100vh - 200px)',
+                                overflow: 'auto',
+                                paddingRight: '8px'
+                            }}>
                                 {isLoading ? (
                                     <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>
                                         Loading rankings...

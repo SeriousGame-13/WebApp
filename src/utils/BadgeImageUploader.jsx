@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import BadgeManagement from '../services/firebase/BadgeManagement';
 import '../components/styles/LoginPage.css';
 
-// 기존 이미지 리사이징 함수 재사용
 const resizeImage = (file, width = 100, height = 100, quality = 0.8) => {
   return new Promise((resolve, reject) => {
     const canvas = document.createElement('canvas');
@@ -23,7 +22,6 @@ const resizeImage = (file, width = 100, height = 100, quality = 0.8) => {
   });
 };
 
-// 뱃지 이미지 선택 컴포넌트
 const BadgeImageSelector = ({ badgeId, onImageProcessed, onError, disabled }) => {
   const [processing, setProcessing] = useState(false);
   const [previewUrl, setPreviewUrl] = useState('');
@@ -31,7 +29,6 @@ const BadgeImageSelector = ({ badgeId, onImageProcessed, onError, disabled }) =>
   const [imageLoading, setImageLoading] = useState(false);
   const fileInputRef = useRef(null);
 
-  // 기존 이미지 로드 (badgeId가 있을 때만)
   useEffect(() => {
     const loadExistingImage = async () => {
       if (!badgeId) {
@@ -58,7 +55,6 @@ const BadgeImageSelector = ({ badgeId, onImageProcessed, onError, disabled }) =>
     const file = event.target.files[0];
     if (!file) return;
 
-    // 파일 검증
     if (!file.type.startsWith('image/')) {
       onError && onError('Please select an image file only.');
       return;
@@ -72,13 +68,10 @@ const BadgeImageSelector = ({ badgeId, onImageProcessed, onError, disabled }) =>
     setProcessing(true);
 
     try {
-      // 이미지 리사이징 + Base64 변환
       const resizedBase64 = await resizeImage(file, 100, 100, 0.8);
       
-      // 미리보기 설정
       setPreviewUrl(resizedBase64);
 
-      // 결과 콜백 호출 (실제 저장은 뱃지 생성 시에)
       onImageProcessed && onImageProcessed({
         originalFile: file,
         base64Data: resizedBase64,
@@ -103,7 +96,6 @@ const BadgeImageSelector = ({ badgeId, onImageProcessed, onError, disabled }) =>
 
   return (
     <div>
-      {/* 미리보기 */}
       <div className='EditImageContainer'>
         {imageLoading ? (
           <div className='ProfileImageAlt'>
@@ -121,7 +113,6 @@ const BadgeImageSelector = ({ badgeId, onImageProcessed, onError, disabled }) =>
         )}
       </div>
 
-      {/* 파일 선택 입력 */}
       <input
         ref={fileInputRef}
         type="file"
@@ -130,7 +121,6 @@ const BadgeImageSelector = ({ badgeId, onImageProcessed, onError, disabled }) =>
         style={{ display: 'none' }}
       />
 
-      {/* 선택 버튼 */}
       <button className='UploadButton'
         onClick={handleButtonClick}
         disabled={processing || disabled || imageLoading}
@@ -153,7 +143,6 @@ const BadgeImageSelector = ({ badgeId, onImageProcessed, onError, disabled }) =>
   );
 };
 
-// 메인 뱃지 이미지 업로더 컴포넌트
 const BadgeImageUploader = ({ badgeId, onUploadComplete, disabled }) => {
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
@@ -162,7 +151,6 @@ const BadgeImageUploader = ({ badgeId, onUploadComplete, disabled }) => {
     setResult(processResult);
     setError('');
     
-    // 부모 컴포넌트에 결과 전달
     onUploadComplete && onUploadComplete({
       base64Data: processResult.base64Data,
       badgeId: badgeId

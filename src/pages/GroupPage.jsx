@@ -10,6 +10,26 @@ import DatamanagerElements from '../utils/dataManager';
 import '../components/styles/LayoutElements.css'
 import '../components/styles/GroupPage.css'
 
+const resizeImage = (file, width = 150, height = 150, quality = 0.8) => {
+    return new Promise((resolve, reject) => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        
+        img.onload = () => {
+            canvas.width = width;
+            canvas.height = height;
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            const base64String = canvas.toDataURL('image/jpeg', quality);
+            resolve(base64String);
+        };
+        
+        img.onerror = () => reject(new Error('Image loading failed'));
+        img.src = URL.createObjectURL(file);
+    });
+};
+
 function CreateGroupPopup({ onCreateGroup, onCancel, isCreating }) {
     const [groupName, setGroupName] = useState('');
     const [groupDescription, setGroupDescription] = useState('');
@@ -18,16 +38,27 @@ function CreateGroupPopup({ onCreateGroup, onCancel, isCreating }) {
     const [imagePreview, setImagePreview] = useState('');
     const fileInputRef = useRef(null);
 
-    const handleImageUpload = (event) => {
+    const handleImageUpload = async (event) => {
         const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const base64Data = e.target.result;
-                setImageData(base64Data);
-                setImagePreview(base64Data);
-            };
-            reader.readAsDataURL(file);
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+            alert('Please select an image file only.');
+            return;
+        }
+
+        if (file.size > 10 * 1024 * 1024) {
+            alert('File size must be less than 10MB.');
+            return;
+        }
+
+        try {
+            const resizedBase64 = await resizeImage(file, 150, 150, 0.8);
+            setImageData(resizedBase64);
+            setImagePreview(resizedBase64);
+        } catch (error) {
+            console.error('Image processing failed:', error);
+            alert(`Image processing failed: ${error.message}`);
         }
     };
 
@@ -63,7 +94,6 @@ function CreateGroupPopup({ onCreateGroup, onCancel, isCreating }) {
                 
                 <div className='BadgeCreateContent'>
                     <div className='BadgeInputSection'>
-                        {/* 그룹 이미지 업로드 섹션 */}
                         <div className='BadgeImageSection'>
                             <div className="GuideText" style={{ textAlign: 'center', marginBottom: '16px' }}>
                                 Group Image
@@ -113,7 +143,6 @@ function CreateGroupPopup({ onCreateGroup, onCancel, isCreating }) {
                             </div>
                         </div>
 
-                        {/* 기존 입력 필드들 */}
                         <div className='BadgeInputGroup'>
                             <label className='BadgeInputLabel'>Group Name</label>
                             <input 
@@ -184,6 +213,228 @@ function CreateGroupPopup({ onCreateGroup, onCancel, isCreating }) {
     );
 }
 
+function EditGroupPopup({ group, onEditGroup, onCancel, isEditing }) {
+    const [groupName, setGroupName] = useState(group.name);
+    const [groupDescription, setGroupDescription] = useState(group.description || '');
+    const [isPrivate, setIsPrivate] = useState(group.isPrivate);
+    const [imageData, setImageData] = useState(null);
+    const [imagePreview, setImagePreview] = useState('');
+    const [existingImage, setExistingImage] = useState('');
+    const [imageLoading, setImageLoading] = useState(true);
+    const fileInputRef = useRef(null);
+
+    useEffect(() => {
+        const loadExistingImage = async () => {
+            setImageLoading(true);
+            try {
+                const imageData = await GroupManagement.getGroupImage(group.groupId);
+                setExistingImage(imageData || '');
+            } catch (error) {
+                console.error('Failed to load group image:', error);
+                setExistingImage('');
+            } finally {
+                setImageLoading(false);
+            }
+        };
+
+        if (group.groupId) {
+            loadExistingImage();
+        }
+    }, [group.groupId]);
+
+    const handleImageUpload = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+            alert('Please select an image file only.');
+            return;
+        }
+
+        if (file.size > 10 * 1024 * 1024) {
+            alert('File size must be less than 10MB.');
+            return;
+        }
+
+        try {
+            const resizedBase64 = await resizeImage(file, 150, 150, 0.8);
+            setImageData(resizedBase64);
+            setImagePreview(resizedBase64);
+        } catch (error) {
+            console.error('Image processing failed:', error);
+            alert(`Image processing failed: ${error.message}`);
+        }
+    };
+
+    const handleImageButtonClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleConfirm = () => {
+        if (groupName.trim()) {
+            onEditGroup({
+                name: groupName.trim(),
+                description: groupDescription.trim(),
+                isPrivate: isPrivate,
+                imageData: imageData
+            });
+        }
+    };
+
+    const displayImage = imagePreview || existingImage;
+
+    if (isEditing) {
+        return (
+            <div className='PopupBackground'>
+                <div className='PopupContainer'>
+                    <h2>Updating Group...</h2>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className='PopupBackground'>
+            <div className='LargePopupContainer'>
+                <h2>Edit Group</h2>
+                
+                <div className='BadgeCreateContent'>
+                    <div className='BadgeInputSection'>
+                        <div className='BadgeImageSection'>
+                            <div className="GuideText" style={{ textAlign: 'center', marginBottom: '16px' }}>
+                                Group Image
+                            </div>
+                            <div className="BadgeImageContainer" style={{ textAlign: 'center' }}>
+                                {imageLoading ? (
+                                    <div style={{ 
+                                        width: '150px', 
+                                        height: '150px', 
+                                        border: '2px dashed #A0A0A0', 
+                                        borderRadius: '8px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        color: '#A0A0A0',
+                                        margin: '0 auto'
+                                    }}>
+                                        Loading...
+                                    </div>
+                                ) : displayImage ? (
+                                    <img 
+                                        src={displayImage} 
+                                        alt="Group Preview" 
+                                        style={{ 
+                                            width: '150px', 
+                                            height: '150px', 
+                                            objectFit: 'cover', 
+                                            borderRadius: '8px',
+                                            border: '2px solid var(--main-color)'
+                                        }} 
+                                    />
+                                ) : (
+                                    <div style={{ 
+                                        width: '150px', 
+                                        height: '150px', 
+                                        border: '2px dashed #A0A0A0', 
+                                        borderRadius: '8px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        color: '#A0A0A0',
+                                        margin: '0 auto'
+                                    }}>
+                                        No Image
+                                    </div>
+                                )}
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    accept="image/*"
+                                    onChange={handleImageUpload}
+                                    style={{ display: 'none' }}
+                                />
+                                <button 
+                                    className='AdminActionButton'
+                                    onClick={handleImageButtonClick}
+                                    style={{ marginTop: '10px' }}
+                                    disabled={imageLoading}
+                                >
+                                    {imageLoading ? 'Loading...' : 
+                                     displayImage ? 'Change Image' : 'Upload Image'}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className='BadgeInputGroup'>
+                            <label className='BadgeInputLabel'>Group Name</label>
+                            <input 
+                                className='Input'
+                                type="text"
+                                value={groupName}
+                                onChange={(e) => setGroupName(e.target.value)}
+                                placeholder="Group Name"
+                                maxLength={50}
+                            />
+                        </div>
+                        
+                        <div className='BadgeInputGroup'>
+                            <label className='BadgeInputLabel'>Description</label>
+                            <input 
+                                className='Input'
+                                type="text"
+                                value={groupDescription}
+                                onChange={(e) => setGroupDescription(e.target.value)}
+                                placeholder="Group Description (Optional)"
+                                maxLength={200}
+                            />
+                        </div>
+
+                        <div className='BadgeInputGroup'>
+                            <label className='BadgeInputLabel'>Privacy Setting</label>
+                            <div className='PrivacySelector'>
+                                <label className='PrivacyOption'>
+                                    <input
+                                        type="radio"
+                                        name="privacy"
+                                        checked={!isPrivate}
+                                        onChange={() => setIsPrivate(false)}
+                                    />
+                                    <span>Public Group</span>
+                                </label>
+                                <label className='PrivacyOption'>
+                                    <input
+                                        type="radio"
+                                        name="privacy"
+                                        checked={isPrivate}
+                                        onChange={() => setIsPrivate(true)}
+                                    />
+                                    <span>Private Group</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className='BadgeCreateFooter'>
+                    <div className='Line'></div>
+                    <div className='Buttonfield'>
+                        <button className='CancelButton' onClick={onCancel}>
+                            Cancel
+                        </button>
+                        <button 
+                            className='ConfirmButton' 
+                            onClick={handleConfirm}
+                            disabled={!groupName.trim()}
+                        >
+                            Save Changes
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 function JoinGroupByIdPopup({ onJoinById, onCancel, isJoining }) {
     const [groupId, setGroupId] = useState('');
 
@@ -235,7 +486,7 @@ function JoinGroupByIdPopup({ onJoinById, onCancel, isJoining }) {
     );
 }
 
-function JoinGroupListPopup({ onCancel }) {
+function JoinGroupListPopup({ onCancel, onGroupJoined }) {
     const [publicGroups, setPublicGroups] = useState([]);
     const [selectedGroup, setSelectedGroup] = useState(null);
     const [isLoadingGroups, setIsLoadingGroups] = useState(true);
@@ -295,6 +546,7 @@ function JoinGroupListPopup({ onCancel }) {
         try {
             const currentUser = await UserManagement.getCurrentUser();
             await GroupManagement.addGroupMember(selectedGroup.groupId, currentUser.uid);
+            onGroupJoined();
             onCancel(); 
         } catch (error) {
             console.error('Failed to join group:', error);
@@ -544,6 +796,8 @@ function JoinedGroupDetailPopup({ group, onClose, onGroupLeft }) {
     const [creatorName, setCreatorName] = useState('Loading...');
     const [showCreateChallengePopup, setShowCreateChallengePopup] = useState(false);
     const [isCreatingChallenge, setIsCreatingChallenge] = useState(false);
+    const [showEditGroupPopup, setShowEditGroupPopup] = useState(false);
+    const [isEditingGroup, setIsEditingGroup] = useState(false);
 
     useEffect(() => {
         const loadCurrentUser = async () => {
@@ -635,6 +889,30 @@ function JoinedGroupDetailPopup({ group, onClose, onGroupLeft }) {
         }
     };
 
+    const handleGroupEdit = async (groupData) => {
+        setIsEditingGroup(true);
+        try {
+            await GroupManagement.updateGroup(group.groupId, currentUser.uid, {
+                name: groupData.name,
+                description: groupData.description,
+                isPrivate: groupData.isPrivate
+            });
+            
+            if (groupData.imageData) {
+                await GroupManagement.saveGroupImage(groupData.imageData, group.groupId);
+            }
+            
+            setShowEditGroupPopup(false);
+            onGroupLeft();
+            alert('Group updated successfully!');
+        } catch (error) {
+            console.error('Failed to update group:', error);
+            alert('Failed to update group: ' + error.message);
+        } finally {
+            setIsEditingGroup(false);
+        }
+    };
+
     const activeMembers = group.members.filter(member => member.isActive());
     const isCreator = currentUser && group.createdBy === currentUser.uid;
     const isAdmin = currentUser && activeMembers.find(member => 
@@ -704,9 +982,20 @@ function JoinedGroupDetailPopup({ group, onClose, onGroupLeft }) {
                                 
                                 {isCreator && (
                                     <button 
+                                        className='AdminActionButton'
+                                        onClick={() => setShowEditGroupPopup(true)}
+                                        disabled={isProcessing}
+                                    >
+                                        Edit Group
+                                    </button>
+                                )}
+                                
+                                {isCreator && (
+                                    <button 
                                         className='CancelButton'
                                         onClick={handleDeleteGroup}
                                         disabled={isProcessing}
+                                        style={{ marginBottom: '12px' }}
                                     >
                                         {isProcessing ? 'Deleting...' : 'Delete Group'}
                                     </button>
@@ -739,11 +1028,19 @@ function JoinedGroupDetailPopup({ group, onClose, onGroupLeft }) {
                     isCreating={isCreatingChallenge}
                 />
             )}
+
+            {showEditGroupPopup && (
+                <EditGroupPopup
+                    group={group}
+                    onEditGroup={handleGroupEdit}
+                    onCancel={() => setShowEditGroupPopup(false)}
+                    isEditing={isEditingGroup}
+                />
+            )}
         </div>
     );
 }
 
-// GroupCardItem
 function GroupCardItem({ group, onClick }) {
     const [groupImage, setGroupImage] = useState('');
     const [imageLoading, setImageLoading] = useState(true);
@@ -876,7 +1173,6 @@ function Page ({data}) {
                 groupData.isPrivate
             );
             
-            // 그룹 이미지가 있으면 저장
             if (groupData.imageData && createdGroup && createdGroup.groupId) {
                 await GroupManagement.saveGroupImage(groupData.imageData, createdGroup.groupId);
             }
@@ -1034,7 +1330,6 @@ function Page ({data}) {
                 )}
             </div>
 
-            {/* 팝업들 */}
             {showActionPopup && (
                 <ActionSelectionPopup
                     onJoinGroup={handleJoinGroup}
@@ -1062,6 +1357,7 @@ function Page ({data}) {
             {showJoinListPopup && (
                 <JoinGroupListPopup
                     onCancel={() => setShowJoinListPopup(false)}
+                    onGroupJoined={loadUserGroups}
                 />
             )}
 
@@ -1110,7 +1406,8 @@ function ActionSelectionPopup({ onCreateGroup, onJoinGroup, onJoinGroupViaId, on
 
 const GroupPageElements = {
     Page,
-    CreateGroupPopup
+    CreateGroupPopup,
+    EditGroupPopup
 };
 
 export default GroupPageElements;

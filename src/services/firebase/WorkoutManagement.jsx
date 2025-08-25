@@ -1,11 +1,11 @@
 /**
  * @fileoverview Workout Management Service
- * 
+ *
  * This module provides comprehensive workout and exercise management functionality for the fitness application.
  * It handles workout creation, exercise tracking, time calculations, highscore processing, and complete
  * workout lifecycle management using Firestore as the backend. The system automatically tracks active
  * and idle times, awards points, and manages exercise-level data within workout sessions.
- * 
+ *
  * @author Igor, Alexander, Hyunu, Robert
  * @version 1.0.0
  */
@@ -36,33 +36,33 @@ const createPath = (userId) => {
  */
 function safeTimestampToDate(timestamp) {
     if (!timestamp) return null;
-    
+
     // If it's a Firestore Timestamp
     if (timestamp?.toDate && typeof timestamp.toDate === 'function') {
         return timestamp.toDate();
     }
-    
+
     // If it's already a Date object
     if (timestamp instanceof Date) {
         return timestamp;
     }
-    
+
     // If it's a Firestore Timestamp object with seconds property
     if (timestamp?.seconds && typeof timestamp.seconds === 'number') {
         return new Timestamp(timestamp.seconds, timestamp.nanoseconds || 0).toDate();
     }
-    
+
     // If it's a number (Unix timestamp in milliseconds)
     if (typeof timestamp === 'number') {
         return new Date(timestamp);
     }
-    
+
     // If it's a string (ISO date string)
     if (typeof timestamp === 'string') {
         const date = new Date(timestamp);
         return isNaN(date.getTime()) ? null : date;
     }
-    
+
     console.warn('Unknown timestamp format:', timestamp);
     return null;
 }
@@ -127,8 +127,8 @@ const calculateAndSaveWorkoutTimes = async (userId, workoutId) => {
 
         const workoutPath = createPath(userId);
         await FirestoreManager.updateDocument(workoutPath, workoutId, { activeTime, idleTime });
-        
-        
+
+
     } catch (error) {
         console.error(`Failed to calculate and save times for workout ${workoutId}:`, error);
         // Do not re-throw, as this is a background task and shouldn't fail the main operation
@@ -148,10 +148,6 @@ const saveWorkout = async (workout) => {
     }
     try {
         const { exercises = [], ...workoutData } = workout;
-        let points = workout.getTotalPoints();
-        if (points > 0) {
-            UserManagement.addPoints(workoutData.userId, points);
-        }
 
         const workoutRef = await FirestoreManager.createDocument(`${createPath(workoutData.userId)}`, workoutData, workoutData.uid);
         if (!workoutRef) throw new Error('Could not save workout');
@@ -229,7 +225,7 @@ const deleteWorkout = async (userId, idWorkout) => {
     try {
         const exerSnap = await FirestoreManager.getAllDocuments(`${createPath(userId)}/${idWorkout}/${EXERCISE_COLLECTION}`);
         for (let doc of exerSnap.docs) {
-            await FirestoreManager.deleteDocument(`${createPath(userId)}/${idWorkout}/${EXERCISE_COLLECTION}`, doc.id);
+            await deleteExercise(userId, idWorkout, doc.id);
         }
 
         await FirestoreManager.deleteDocument(`${createPath(userId)}`, idWorkout);
@@ -267,7 +263,7 @@ const update = async (workout) => {
  */
 const addExercise = async (userId, workoutId, exerData) => {
     try {
-        const exercise = new Exercise({ ...exerData, userId }); 
+        const exercise = new Exercise({ ...exerData, userId });
         await FirestoreManager.createDocument(
             `${createPath(userId)}/${workoutId}/${EXERCISE_COLLECTION}`,
             exercise,
@@ -276,9 +272,10 @@ const addExercise = async (userId, workoutId, exerData) => {
         if (exercise.stationId) {
             await HighscoreManager.create(exercise);
         }
+        UserManagement.addPoints(userId, exercise.points);
         // Recalculate and save times after adding the exercise
         await calculateAndSaveWorkoutTimes(userId, workoutId);
-        await RewardSystem.awardBadges(userId);
+        RewardSystem.awardBadges(userId);
     } catch (error) {
         console.error('Error adding exercise:', error);
         throw error;
@@ -298,15 +295,22 @@ const updateExercise = async (userId, workoutId, exerciseData) => {
     try {
         const exercisePath = `${createPath(userId)}/${workoutId}/${EXERCISE_COLLECTION}`;
         const dataToUpdate = { ...exerciseData };
+        const oldExer = await FirestoreManager.readDocument(exercisePath, exerciseData.uid);
+
+        if (dataToUpdate.points)
+            await UserManagement.addPoints(userId, -oldExer.points);
+
         delete dataToUpdate.uid;
         await FirestoreManager.updateDocument(exercisePath, exerciseData.uid, dataToUpdate);
-        
         exerciseData.userId = userId;
         await HighscoreManager.create(exerciseData);
-        
+
+        if (dataToUpdate.points)
+            await UserManagement.addPoints(userId, dataToUpdate.points);
+
         // Recalculate and save times after updating the exercise
         await calculateAndSaveWorkoutTimes(userId, workoutId);
-        await RewardSystem.awardBadges(userId);
+        RewardSystem.awardBadges(userId);
     } catch (error) {
         console.error('Error updating exercise:', error);
         throw error;
@@ -325,6 +329,9 @@ const updateExercise = async (userId, workoutId, exerciseData) => {
 const deleteExercise = async (userId, workoutId, exerciseId) => {
     try {
         const exercisePath = `${createPath(userId)}/${workoutId}/${EXERCISE_COLLECTION}`;
+        const oldExer = await FirestoreManager.readDocument(exercisePath, exerciseId);
+        UserManagement.addPoints(userId, -oldExer.points);
+
         await FirestoreManager.deleteDocument(exercisePath, exerciseId);
 
         // Recalculate and save times after deleting the exercise

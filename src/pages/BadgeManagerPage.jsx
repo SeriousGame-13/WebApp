@@ -3,22 +3,27 @@ import BadgeManagement from '../services/firebase/BadgeManagement';
 import { BADGE_RARITY } from '../services/interfaces/constants';
 import BadgeImageElements from '../utils/BadgeImageUploader';
 import '../components/styles/LayoutElements.css';
-import { Badge } from '../services/interfaces/badge';
 import RewardSystem from '../services/firebase/RewardSystem';
 
 // Shared Badge Form Component
 function BadgeForm({ badge = null, onSubmit, onCancel, isProcessing, submitText }) {
-    const dummyBadge = new Badge();
-    const [formData, setFormData] = useState({
-        name: badge?.name || '',
-        description: badge?.description || '',
-        rarity: badge?.rarity || BADGE_RARITY.COMMON,
-        rewardPoints: badge?.rewardPoints || 0,
-        structure: badge?.structure || dummyBadge.structure,
-        mapping: badge?.mapping || dummyBadge.mapping,
-        query: badge?.query || dummyBadge.query,
-        conditions: badge?.conditions || dummyBadge.conditions,
-        imageData: null
+    const inputFields = [
+        { key: 'name', label: 'Badge Name', type: 'text', maxLength: 50, placeholder: 'Enter badge name' },
+        { key: 'description', label: 'Description', type: 'text', maxLength: 200, placeholder: 'Enter badge description' },
+        { key: 'rewardPoints', label: 'Reward Points', type: 'number', min: 0, placeholder: 'Points awarded when earned' },
+        { key: 'collection', label: 'collection', type: 'text', maxLength: 200, placeholder: 'Enter collection' },
+        { key: 'conditions', label: 'Conditions', type: 'textarea', rows: 4, placeholder: 'Enter Conditions' },
+        { key: 'field', label: 'field', type: 'text', maxLength: 20, placeholder: 'Enter Conditions' },
+        { key: 'aggregate', label: 'aggregate', type: 'text', maxLength: 20, placeholder: 'Enter Conditions' },
+        { key: 'valueToReach', label: 'valueToReach', type: 'number', placeholder: 'Enter Conditions' },
+    ];
+
+    const [formData, setFormData] = useState(() => {
+        return inputFields.reduce((acc, field) => {
+            const sourceValue = badge?.[field.key];
+            acc[field.key] = sourceValue ?? (field.type === 'number' ? 0 : '');
+            return acc;
+        }, {});
     });
 
     const handleInputChange = (field, value) => {
@@ -53,15 +58,7 @@ function BadgeForm({ badge = null, onSubmit, onCancel, isProcessing, submitText 
         );
     }
 
-    const inputFields = [
-        { key: 'name', label: 'Badge Name', type: 'text', maxLength: 50, placeholder: 'Enter badge name' },
-        { key: 'description', label: 'Description', type: 'text', maxLength: 200, placeholder: 'Enter badge description' },
-        { key: 'rewardPoints', label: 'Reward Points', type: 'number', min: 0, placeholder: 'Points awarded when earned' },
-        { key: 'structure', label: 'Firebase Structure', type: 'textarea', rows: 4, placeholder: 'Enter Firebase Structure' },
-        { key: 'mapping', label: 'Firebase Mapping', type: 'textarea', rows: 4, placeholder: 'Enter Firebase Mapping' },
-        { key: 'query', label: 'Query', type: 'textarea', rows: 4, placeholder: 'Enter Query' },
-        { key: 'conditions', label: 'Conditions', type: 'textarea', rows: 4, placeholder: 'Enter Conditions' }
-    ];
+
 
     return (
         <div className='PopupBackground'>
@@ -190,16 +187,7 @@ function AdminBadgeDetailPopup({ badge, onClose, onBadgeUpdated }) {
     const handleUpdateBadge = async (badgeData) => {
         setIsUpdatingBadge(true);
         try {
-            await BadgeManagement.updateBadge(badge.badgeId, {
-                name: badgeData.name,
-                description: badgeData.description,
-                rarity: badgeData.rarity,
-                rewardPoints: badgeData.rewardPoints,
-                structure: badgeData.structure,
-                mapping: badgeData.mapping,
-                query: badgeData.query,
-                conditions: badgeData.conditions
-            });
+            await BadgeManagement.updateBadge(badge.badgeId, badgeData);
 
             if (badgeData.imageData) {
                 await BadgeManagement.saveBadgeImage(badgeData.imageData, badge.badgeId);
@@ -252,7 +240,7 @@ function AdminBadgeDetailPopup({ badge, onClose, onBadgeUpdated }) {
                     <div className='GroupDetailDescription' style={{ textAlign: 'left' }}>
                         {badge.description || 'No description available.'}
                     </div>
-                    
+
                     <div className='GroupDetailInfo' style={{ textAlign: 'left' }}>
                         <div>Badge ID: {badge.badgeId}</div>
                         <div>Reward Points: {badge.rewardPoints}</div>
@@ -378,7 +366,7 @@ function BadgeManagerPage({ user }) {
 
             <div className="AdminGroupContainer">
                 <div className="GuideText">All Badges</div>
-                
+
                 {renderBadgeList()}
 
                 <button

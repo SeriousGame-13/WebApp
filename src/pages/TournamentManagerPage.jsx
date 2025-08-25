@@ -3,7 +3,7 @@ import '../components/styles/LayoutElements.css';
 import TournamentManagement from '../services/firebase/TournamentManagement';
 import UserManagement from '../services/firebase/UserManagementSystem';
 import { CHALLENGE_VISIBILITY } from '../services/interfaces/constants';
-import {localDateTimeStringToTimestamp, localISODateTime} from '../utils/DateUtils';
+import {localDateTimeStringToTimestamp, localTime} from '../utils/DateUtils';
 
 
 function FormBase({ 
@@ -21,7 +21,7 @@ function FormBase({
         return inputFields.reduce((acc, field) => {
             const sourceValue = initialData?.[field.key];
             if (field.type === 'datetime-local' && sourceValue?.toDate) {
-                acc[field.key] = localISODateTime(sourceValue);
+                acc[field.key] = localTime(sourceValue);
             } else if (field.type === 'select' && field.key === 'visibility') {
                 acc[field.key] = sourceValue || CHALLENGE_VISIBILITY.PUBLIC;
             } else {

@@ -110,7 +110,9 @@ const awardBadges = async (userId) => {
 
 
         const docs = await FirestoreManager.queryDocuments(badge.collection, conditions);
-
+        if (!docs) {
+            continue;
+        }
         const result = aggregate([{ function: badge.aggregate, field: badge.field }], docs.docs);
         if (result[Object.keys(result)[0]] >= badge.valueToReach) {
             UserManagement.awardBadge(userId, badge.uid);

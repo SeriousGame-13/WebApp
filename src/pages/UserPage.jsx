@@ -229,7 +229,7 @@ function ExerciseForm(props) {
     );
 }
 
-function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations }) {
+function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, onGoalUpdated, user, stations }) {
     const [isProcessing, setIsProcessing] = useState(false);
     const [showEditPopup, setShowEditPopup] = useState(false);
     const [showAddExercisePopup, setShowAddExercisePopup] = useState(false);
@@ -297,11 +297,13 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations
             setEditingExercise(null);
             setShowAddExercisePopup(false);
             onWorkoutUpdated();
+            onGoalUpdated();
         } catch (error) {
             console.error('Failed to save exercise:', error);
             alert('Failed to save exercise: ' + error.message);
         } finally {
             setIsSubmitting(false);
+            
         }
     };
 
@@ -822,6 +824,7 @@ function Page({ data }) {
                     workout={selectedWorkout}
                     onClose={() => setSelectedWorkout(null)}
                     onWorkoutUpdated={loadWorkouts}
+                    onGoalUpdated={loadGoals}
                     user={userData}
                     stations={stations}
                 />

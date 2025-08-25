@@ -18,6 +18,7 @@ import { Workout } from '../interfaces/workout.jsx';
 import UserManagement from './UserManagementSystem.jsx';
 import HighscoreManager from './HighscoreManager.jsx';
 import RewardSystem from './RewardSystem.jsx';
+import GoalSystem from './GoalSystem.jsx';
 
 /**
  * Creates the Firestore collection path for a user's workouts.
@@ -257,25 +258,23 @@ const update = async (workout) => {
  * Creates highscore entries for station-based exercises and recalculates workout times.
  * @param {string} userId - The user ID who owns the workout
  * @param {string} workoutId - The workout ID to add the exercise to
- * @param {Object} exerData - The exercise data to add
+ * @param {Object} exerciseData - The exercise data to add
  * @returns {Promise<void>}
  * @throws {Error} When exercise cannot be added or workout times cannot be updated
  */
-const addExercise = async (userId, workoutId, exerData) => {
+const addExercise = async (userId, workoutId, exerciseData) => {
     try {
-        const exercise = new Exercise({ ...exerData, userId });
+        const exercise = new Exercise({ ...exerciseData, userId });
         await FirestoreManager.createDocument(
             `${createPath(userId)}/${workoutId}/${EXERCISE_COLLECTION}`,
             exercise,
             exercise.uid
         );
-        if (exercise.stationId) {
-            await HighscoreManager.create(exercise);
-        }
+
         UserManagement.addPoints(userId, exercise.points);
         // Recalculate and save times after adding the exercise
         await calculateAndSaveWorkoutTimes(userId, workoutId);
-        RewardSystem.awardBadges(userId);
+        handlePostExercise(userId, exerciseData);
     } catch (error) {
         console.error('Error adding exercise:', error);
         throw error;
@@ -302,15 +301,13 @@ const updateExercise = async (userId, workoutId, exerciseData) => {
 
         delete dataToUpdate.uid;
         await FirestoreManager.updateDocument(exercisePath, exerciseData.uid, dataToUpdate);
-        exerciseData.userId = userId;
-        await HighscoreManager.create(exerciseData);
 
         if (dataToUpdate.points)
             await UserManagement.addPoints(userId, dataToUpdate.points);
 
         // Recalculate and save times after updating the exercise
         await calculateAndSaveWorkoutTimes(userId, workoutId);
-        RewardSystem.awardBadges(userId);
+        handlePostExercise(userId, exerciseData);
     } catch (error) {
         console.error('Error updating exercise:', error);
         throw error;
@@ -342,6 +339,15 @@ const deleteExercise = async (userId, workoutId, exerciseId) => {
     }
 };
 
+async function handlePostExercise(userId, exercise) {
+    RewardSystem.awardBadges(userId);
+    GoalSystem.updateGoalsFromWorkout(userId, exercise.stationId, exercise.points);
+    if (exercise.stationId) {
+        HighscoreManager.create(exercise);
+    }
+}
+
+
 /**
  * @namespace WorkoutManager
  * @description Firebase service module for comprehensive workout and exercise management.
@@ -360,3 +366,4 @@ const WorkoutManager = {
     deleteExercise,
 }
 export default WorkoutManager;
+

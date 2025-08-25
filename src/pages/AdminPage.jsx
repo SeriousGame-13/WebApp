@@ -8,6 +8,7 @@ import WorkoutManagerPage from './WorkoutManagerPage';
 import StationManagerPage  from './StationManagerPage';
 import GoalManagerPage  from './GoalManagerPage';
 import TournamentManagerPage from './TournamentManagerPage';
+import StationGamePage from './StationGamePage';
 
 function AdminPageMain({ user }) {
     const [currentPage, setCurrentPage] = useState('Group Manager');
@@ -24,6 +25,8 @@ function AdminPageMain({ user }) {
                 return <WorkoutManagerPage user={user} />;
             case 'Station Manager':
                 return <StationManagerPage user={user} />;
+            case 'Station Game Manager':
+                return <StationGamePage user={user} />;
             case 'Goal Manager':
                 return <GoalManagerPage user={user} />;
             case 'Tournament Manager':

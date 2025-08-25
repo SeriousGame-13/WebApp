@@ -34,6 +34,7 @@ function AdminHeader({ user, onPageSelect, currentPage }) {
         'Badge Manager',
         'Workout Manager',
         'Station Manager',
+        'Station Game Manager',
         'Goal Manager',
         'Tournament Manager'
     ];

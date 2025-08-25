@@ -13,8 +13,8 @@ function BadgeForm({ badge = null, onSubmit, onCancel, isProcessing, submitText 
         { key: 'rewardPoints', label: 'Reward Points', type: 'number', min: 0, placeholder: 'Points awarded when earned' },
         { key: 'collection', label: 'collection', type: 'text', maxLength: 200, placeholder: 'Enter collection' },
         { key: 'conditions', label: 'Conditions', type: 'textarea', rows: 4, placeholder: 'Enter Conditions' },
-        { key: 'aggregate', label: 'aggregate', type: 'text', maxLength: 20, placeholder: 'Enter Conditions' },
         { key: 'field', label: 'field', type: 'text', maxLength: 20, placeholder: 'Enter Conditions' },
+        { key: 'aggregate', label: 'aggregate', type: 'text', maxLength: 20, placeholder: 'Enter Conditions' },
         { key: 'valueToReach', label: 'valueToReach', type: 'number', placeholder: 'Enter Conditions' },
     ];
 

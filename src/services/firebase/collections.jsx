@@ -21,3 +21,5 @@ export const EXERCISE_COLLECTION = 'exercises';
 export const GOALS_COLLECTION = 'goals';
 
 export const GROUP_IMAGES_COLLECTION = 'groupimages';
+
+export const STATION_GAMES_COLLECTION = 'station_games'

@@ -1,20 +1,47 @@
-/* Ranking CSS */
+/* Ranking CSS - 그룹 페이지 방식 적용 */
 
+/* 세로모드 - 그룹 페이지 방식 */
 .RankingContents {
     height: 100%;
     display: flex;
     flex-direction: column;
     gap: 20px;
-    overflow: auto;
+    overflow-y: auto; /* 그룹 페이지처럼 */
 }
 
 .RankingContainer {
+    flex: none; /* 고정 높이 */
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 12px;
+    overflow: visible; /* 스크롤 안함 */
+    padding-bottom: 20px;
+}
+
+.RankingContents > .GuideText {
+    flex: none;
+}
+
+/* 새로운 스크롤 컨테이너는 그룹의 GroupContainer처럼 */
+.RankingListScrollContainer {
     flex: 1;
     display: flex;
     flex-direction: column;
+    width: 100%;
     gap: 12px;
-    overflow: auto;
+    overflow-y: auto; /* 그룹 페이지의 GroupContainer처럼 */
     padding-bottom: 20px;
+    padding-right: 8px;
+}
+
+/* 가로모드 설정 */
+.MainContentWrapper.landscape {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    height: 100%;
+    overflow: hidden;
 }
 
 .RankingActionsSectionHorizontal {
@@ -27,39 +54,36 @@
     align-items: center;
 }
 
-.landscape .BottomGridSection .RankingContainer {
-    height: 100%;
+.MainContentWrapper.landscape .TopGridSection {
     width: 100%;
-}
-
-.portrait .RankingContents {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    overflow: hidden;
     padding: 0;
 }
 
-.MainContentWrapper {
+.MainContentWrapper.landscape .TopGridSection > * {
     width: 100%;
+    max-width: none;
+}
+
+.MainContentWrapper.landscape .BottomGridSection {
     height: 100%;
-}
-
-.MainContentWrapper.landscape {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-}
-
-.MainContentWrapper.portrait {
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 }
 
-.TopGridSection {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
+.landscape .BottomGridSection .GuideText {
+    flex-shrink: 0;
+    margin-bottom: 16px;
 }
 
-.BottomGridSection {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
+.landscape .BottomGridSection .RankingContainer {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
 }

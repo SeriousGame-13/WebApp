@@ -15,32 +15,7 @@
 import FirebaseManager from './FirestoreManager.jsx';
 import { Badge } from '../interfaces/badge.jsx';
 import { BADGES_COLLECTION, BADGE_IMAGES_COLLECTION } from './collections.jsx'
-
-/**
- * Generates a unique badge ID in the format BD000001, BD000002, etc.
- * Checks existing badges in the database to ensure uniqueness.
- * @returns {Promise<string>} A unique badge ID string
- * @throws {Error} If there's an error accessing the database
- */
-const generateUniqueBadgeId = async () => {
-    let badgeId;
-    let isUnique = false;
-    let counter = 1;
-
-    while (!isUnique) {
-        const paddedNumber = counter.toString().padStart(6, '0');
-        badgeId = `BD${paddedNumber}`;
-
-        const existingBadge = await FirebaseManager.readDocument(BADGES_COLLECTION, badgeId);
-        if (!existingBadge) {
-            isUnique = true;
-        } else {
-            counter++;
-        }
-    }
-
-    return badgeId;
-};
+import { serverTimestamp } from 'firebase/firestore';
 
 /**
  * Creates a new badge in the database with the provided badge data.
@@ -114,7 +89,7 @@ const saveBadgeImage = async (base64Data, badgeId) => {
         const imageData = {
             badgeId,
             imageData: base64Data,
-            updatedAt: Date.now()
+            updatedAt: serverTimestamp(),
         };
 
         await FirebaseManager.createDocument(BADGE_IMAGES_COLLECTION, imageData, badgeId, true);
@@ -206,14 +181,12 @@ const updateBadge = async (badgeId, badgeData) => {
  * @namespace BadgeManagement
  */
 const BadgeManagement = {
-    generateUniqueBadgeId,
     createBadge,
     getAllBadges,
     saveBadgeImage,
     getBadgeImage,
     deleteBadge,
     updateBadge,
-
 };
 
 export default BadgeManagement;

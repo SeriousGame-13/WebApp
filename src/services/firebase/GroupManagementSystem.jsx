@@ -18,6 +18,7 @@ import FireAuthManager from './FirebaseAuthenticationManager.jsx';
 import { Group, GroupMember } from '../interfaces/group.jsx';
 import { GROUP_ROLE } from '../interfaces/constants.jsx';
 import {GROUPS_COLLECTION, GROUP_MEMBERS_COLLECTION, USERS_COLLECTION } from './collections.jsx'
+import { serverTimestamp } from 'firebase/firestore';
 
 const GROUP_IMAGES_COLLECTION = 'groupimages';
 
@@ -173,7 +174,7 @@ const saveGroupImage = async (base64Data, groupId) => {
         const imageData = {
             groupId,
             imageData: base64Data,
-            updatedAt: Date.now()
+            updatedAt: serverTimestamp()
         };
         
         await FirebaseManager.createDocument(GROUP_IMAGES_COLLECTION, imageData, groupId, true);
@@ -375,7 +376,7 @@ const addGroupMember = async (groupId, userId, role = GROUP_ROLE.MEMBER) => {
             groupId,
             userId,
             role,
-            joinedAt: Date.now()
+            joinedAt: serverTimestamp()
         });        
 
         await FirebaseManager.createDocument(GROUP_MEMBERS_COLLECTION, membership, membershipId, true);
@@ -472,7 +473,7 @@ const removeGroupMember = async (groupId, userId, targetUserId) => {
             await FirebaseManager.updateDocument(
                 GROUP_MEMBERS_COLLECTION, 
                 targetMember.membershipId, 
-                { leftAt: Date.now() }, 
+                { leftAt: serverTimestamp() }, 
                 true
             );
             
@@ -511,7 +512,7 @@ const removeGroupMember = async (groupId, userId, targetUserId) => {
             await FirebaseManager.updateDocument(
                 GROUP_MEMBERS_COLLECTION, 
                 targetMember.membershipId, 
-                { leftAt: Date.now() }, 
+                { leftAt: serverTimestamp() }, 
                 true
             );
         }
@@ -652,7 +653,7 @@ const rejoinGroup = async (groupId, userId) => {
             membershipId, 
             { 
                 leftAt: null, 
-                joinedAt: Date.now() 
+                joinedAt: serverTimestamp()
             }, 
             true
         );

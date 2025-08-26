@@ -19,6 +19,7 @@ import UserManagement from './UserManagementSystem.jsx';
 import HighscoreManager from './HighscoreManager.jsx';
 import RewardSystem from './RewardSystem.jsx';
 import GoalSystem from './GoalSystem.jsx';
+import ChallengeManagement from './ChallengeManagement.jsx';
 
 /**
  * Creates the Firestore collection path for a user's workouts.
@@ -345,6 +346,11 @@ async function handlePostExercise(userId, exercise) {
     if (exercise.stationId) {
         HighscoreManager.create(exercise);
     }
+
+    const challenges = await ChallengeManagement.getUserChallenges(userId);
+    challenges.forEach(obj => {
+        ChallengeManagement.updateProgress(obj.uid);
+    });
 }
 
 

@@ -8,10 +8,10 @@
  * @author Igor, Alexander, Hyunu, Robert
  * @version 1.0.0
  */
-import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
-import { Group, GroupMember } from '../services/interfaces/group.jsx';
+import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { GROUP_ROLE } from '../services/interfaces/constants.jsx';
 import { GROUPS_COLLECTION, GROUP_MEMBERS_COLLECTION, USERS_COLLECTION } from '../services/firebase/collections.jsx';
+import { serverTimestamp } from 'firebase/firestore';
 
 // Mock Firebase configuration
 vi.mock('../services/firebase/FirebaseAppConfiguration', () => ({
@@ -244,7 +244,7 @@ describe('GroupManagementSystem', () => {
                 groupId: 'OG000001',
                 userId: 'test-user-id',
                 role: GROUP_ROLE.ADMIN,
-                joinedAt: Date.now(),
+                joinedAt: serverTimestamp(),
                 leftAt: null
             };
             
@@ -281,7 +281,7 @@ describe('GroupManagementSystem', () => {
                 groupId: 'OG000001',
                 userId: 'test-user-id',
                 role: GROUP_ROLE.ADMIN,
-                joinedAt: Date.now(),
+                joinedAt: serverTimestamp(),
                 leftAt: null
             };
         });
@@ -316,7 +316,7 @@ describe('GroupManagementSystem', () => {
                 groupId: 'OG000001',
                 userId: 'member-user-id',
                 role: GROUP_ROLE.MEMBER,
-                joinedAt: Date.now(),
+                joinedAt: serverTimestamp(),
                 leftAt: null
             };
             
@@ -363,7 +363,7 @@ describe('GroupManagementSystem', () => {
                 groupId: 'OG000001',
                 userId: 'test-user-id',
                 role: GROUP_ROLE.ADMIN,
-                joinedAt: Date.now(),
+                joinedAt: serverTimestamp(),
                 leftAt: null
             };
         });
@@ -433,7 +433,7 @@ describe('GroupManagementSystem', () => {
                 groupId: 'OG000001',
                 userId: 'test-user-id',
                 role: GROUP_ROLE.ADMIN,
-                joinedAt: Date.now(),
+                joinedAt: serverTimestamp(),
                 leftAt: null
             };
             
@@ -443,7 +443,7 @@ describe('GroupManagementSystem', () => {
                 groupId: 'OG000001',
                 userId: 'member-user-id',
                 role: GROUP_ROLE.MEMBER,
-                joinedAt: Date.now(),
+                joinedAt: serverTimestamp(),
                 leftAt: null
             };
         });
@@ -479,7 +479,7 @@ describe('GroupManagementSystem', () => {
                 groupId: 'OG000001',
                 userId: 'another-user-id',
                 role: GROUP_ROLE.MEMBER,
-                joinedAt: Date.now(),
+                joinedAt: serverTimestamp(),
                 leftAt: null
             };
             
@@ -535,7 +535,7 @@ describe('GroupManagementSystem', () => {
                 groupId: 'OG000001',
                 userId: 'test-user-id',
                 role: GROUP_ROLE.ADMIN,
-                joinedAt: Date.now(),
+                joinedAt: serverTimestamp(),
                 leftAt: null
             };
             
@@ -544,7 +544,7 @@ describe('GroupManagementSystem', () => {
                 groupId: 'OG000002',
                 userId: 'test-user-id',
                 role: GROUP_ROLE.MEMBER,
-                joinedAt: Date.now(),
+                joinedAt: serverTimestamp(),
                 leftAt: null
             };
             
@@ -554,8 +554,8 @@ describe('GroupManagementSystem', () => {
                 groupId: 'OG000003',
                 userId: 'test-user-id',
                 role: GROUP_ROLE.MEMBER,
-                joinedAt: Date.now() - 10000,
-                leftAt: Date.now() // User left this group
+                joinedAt: serverTimestamp() - 10000,
+                leftAt: serverTimestamp() // User left this group
             };
         });
         
@@ -587,7 +587,7 @@ describe('GroupManagementSystem', () => {
                 groupId: 'OG000001',
                 userId: 'test-user-id',
                 role: GROUP_ROLE.ADMIN,
-                joinedAt: Date.now(),
+                joinedAt: serverTimestamp(),
                 leftAt: null
             };
             
@@ -596,7 +596,7 @@ describe('GroupManagementSystem', () => {
                 groupId: 'OG000001',
                 userId: 'member-user-id',
                 role: GROUP_ROLE.MEMBER,
-                joinedAt: Date.now(),
+                joinedAt: serverTimestamp(),
                 leftAt: null
             };
         });
@@ -665,7 +665,7 @@ describe('GroupManagementSystem', () => {
                 groupId: 'OG000001',
                 userId: 'test-user-id',
                 role: GROUP_ROLE.ADMIN,
-                joinedAt: Date.now(),
+                joinedAt: serverTimestamp(),
                 leftAt: null
             };
         });
@@ -689,7 +689,7 @@ describe('GroupManagementSystem', () => {
                 groupId: 'OG000001',
                 userId: 'member-user-id',
                 role: GROUP_ROLE.MEMBER,
-                joinedAt: Date.now(),
+                joinedAt: serverTimestamp(),
                 leftAt: null
             };
             

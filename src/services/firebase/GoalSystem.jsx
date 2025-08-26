@@ -17,6 +17,7 @@ import FirebaseManager from './FirestoreManager';
 import UserManagement from './UserManagementSystem';
 import { UserGoal } from '../interfaces/goal';
 import { GOALS_COLLECTION } from './collections';
+import { serverTimestamp } from 'firebase/firestore';
 
 
 /**
@@ -145,7 +146,7 @@ const updateGoalProgress = async (goalId, userId, progressValue) => {
             currentValue: progressValue,
             ...(isCompleted && {
                 isCompleted: true,
-                completedAt: Date.now()
+                completedAt: serverTimestamp()
             })
         };
 
@@ -355,7 +356,7 @@ const getGoalStatistics = async (userId) => {
 const createGoalFromWorkout = async (userId, stationId, currentBest, improvementPercentage = 10, daysToComplete = 30) => {
     try {
         const targetValue = Math.ceil(currentBest * (1 + improvementPercentage / 100));
-        const deadline = Date.now() + (daysToComplete * 24 * 60 * 60 * 1000);
+        const deadline = serverTimestamp() + (daysToComplete * 24 * 60 * 60 * 1000);
 
         const goalData = {
             title: `Improve Personal Best by ${improvementPercentage}%`,

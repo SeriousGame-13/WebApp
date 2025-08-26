@@ -1,14 +1,15 @@
 import { serverTimestamp } from 'firebase/firestore';
 import BaseModel from './base.jsx';
 import { CHALLENGE_STYLE, CHALLENGE_TYPE, CHALLENGE_STATUS, CHALLENGE_PARTICIPATION_STATUS } from './constants.jsx';
+import { CHALLENGE_VISIBILITY } from './constants.jsx';
 
 export class Challenge extends BaseModel {
   constructor(data = {}) {
     super({
       name: '',
       description: '',
-      startDate: 0,
-      endDate: 0,
+      startDate: null,
+      endDate: null,
       creatorId: '',
       rewardPoints: 0,
       challengeType: CHALLENGE_TYPE.TARGET,
@@ -17,6 +18,7 @@ export class Challenge extends BaseModel {
       targetValue: null,
       participants: [],
       status: CHALLENGE_STATUS.OPEN,
+      progress: 0,
       ...data
     });
   }
@@ -24,30 +26,60 @@ export class Challenge extends BaseModel {
   isPublic() {
     return this.visibility === CHALLENGE_VISIBILITY.PUBLIC;
   }
-  
+
   isHidden() {
     return this.visibility === CHALLENGE_VISIBILITY.HIDDEN;
   }
-  
+
   isGroupChallenge() {
     return this.visibility === CHALLENGE_VISIBILITY.GROUP;
   }
 
   isActive() {
     const now = Date.now();
-    return now >= this.startDate && now <= this.endDate;
+    let start = null;
+    if (this.startDate?.toDate) {
+      start = this.startDate.toDate().getMilliseconds();
+    } else {
+      start = this.startDate;
+    }
+    let end = null;
+    if (this.endDate?.toDate) {
+      end = this.endDate.toDate().getMilliseconds();
+    } else {
+      end = this.endDate;
+    }
+    return now >= start && now <= end;
   }
 
   isExpired() {
-    return Date.now() > this.endDate;
-}
+    let end = null;
+    if (this.endDate?.toDate) {
+      end = this.endDate.toDate().getMilliseconds();
+    } else {
+      end = this.endDate;
+    }
+    return Date.now() > end;
+  }
 
   hasStarted() {
-      return Date.now() >= this.startDate;
+    let start = null;
+    if (this.startDate?.toDate) {
+      start = this.startDate.toDate().getMilliseconds();
+    } else {
+      start = this.startDate;
+    }
+    return Date.now() >= start;
   }
 
   hasNotStarted() {
-      return Date.now() < this.startDate;
+    let start = null;
+    if (this.startDate?.toDate) {
+      start = this.startDate.toDate().getMilliseconds();
+    } else {
+      start = this.startDate;
+    }
+    return Date.now() < start;
   }
 
   getDaysRemaining() {
@@ -104,10 +136,9 @@ export class Challenge extends BaseModel {
 export class ChallengeParticipant extends BaseModel {
   constructor(data = {}) {
     super({
-      participantId: '',
       challengeId: '',
       userId: '',
-      joinedAt: Date.now(),
+      joinedAt: serverTimestamp(),
       completedAt: null,
       currentValue: 0,
       status: CHALLENGE_PARTICIPATION_STATUS.ACTIVE,
@@ -116,7 +147,7 @@ export class ChallengeParticipant extends BaseModel {
   }
 
   complete() {
-    this.completedAt = Date.now();
+    this.completedAt = serverTimestamp();
   }
 
   isCompleted() {

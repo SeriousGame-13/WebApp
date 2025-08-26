@@ -20,7 +20,7 @@ export class Workout extends BaseModel {
     if (this.endTime > 0) {
       return this.endTime - this.startTime;
     }
-    return Date.now() - this.startTime;
+    return Date.now() - this.startTime.toDate();
   }
 
   getDurationInMinutes() {

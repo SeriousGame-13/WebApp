@@ -14,11 +14,12 @@ export class Challenge extends BaseModel {
       rewardPoints: 0,
       challengeType: CHALLENGE_TYPE.TARGET,
       challengeStyle: CHALLENGE_STYLE.INDIVIDUAL,
-      targetExerciseId: null,
       targetValue: null,
+      targetField: null,
       participants: [],
       status: CHALLENGE_STATUS.OPEN,
       progress: 0,
+      conditions: [],
       ...data
     });
   }
@@ -39,13 +40,13 @@ export class Challenge extends BaseModel {
     const now = Date.now();
     let start = null;
     if (this.startDate?.toDate) {
-      start = this.startDate.toDate().getMilliseconds();
+      start = this.startDate.seconds * 1000 //to millisecodns
     } else {
       start = this.startDate;
     }
     let end = null;
     if (this.endDate?.toDate) {
-      end = this.endDate.toDate().getMilliseconds();
+      end = this.endDate.seconds * 1000 //to millisecodns
     } else {
       end = this.endDate;
     }
@@ -55,7 +56,7 @@ export class Challenge extends BaseModel {
   isExpired() {
     let end = null;
     if (this.endDate?.toDate) {
-      end = this.endDate.toDate().getMilliseconds();
+      end = this.endDate.seconds * 1000 //to millisecodns
     } else {
       end = this.endDate;
     }
@@ -65,7 +66,7 @@ export class Challenge extends BaseModel {
   hasStarted() {
     let start = null;
     if (this.startDate?.toDate) {
-      start = this.startDate.toDate().getMilliseconds();
+      start = this.startDate.seconds * 1000 //to millisecodns
     } else {
       start = this.startDate;
     }
@@ -75,7 +76,7 @@ export class Challenge extends BaseModel {
   hasNotStarted() {
     let start = null;
     if (this.startDate?.toDate) {
-      start = this.startDate.toDate().getMilliseconds();
+      start = this.startDate.seconds * 1000 //to millisecodns
     } else {
       start = this.startDate;
     }

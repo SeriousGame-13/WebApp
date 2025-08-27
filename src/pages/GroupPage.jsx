@@ -5,7 +5,10 @@ import UserManagement from '../services/firebase/UserManagementSystem';
 import GroupManagement from '../services/firebase/GroupManagementSystem';
 import ChallengeManagement from '../services/firebase/ChallengeManagement';
 import { CHALLENGE_TYPE } from '../services/interfaces/constants';
-import DatamanagerElements from '../utils/dataManager';
+import { localDateTimeStringToTimestamp, toDateTime } from '../utils/DateUtils';
+import { Timestamp } from 'firebase/firestore';
+
+import { Challenge } from '../services/interfaces/challenge';
 
 import '../components/styles/LayoutElements.css'
 import '../components/styles/GroupPage.css'
@@ -15,16 +18,16 @@ const resizeImage = (file, width = 150, height = 150, quality = 0.8) => {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         const img = new Image();
-        
+
         img.onload = () => {
             canvas.width = width;
             canvas.height = height;
             ctx.drawImage(img, 0, 0, width, height);
-            
+
             const base64String = canvas.toDataURL('image/jpeg', quality);
             resolve(base64String);
         };
-        
+
         img.onerror = () => reject(new Error('Image loading failed'));
         img.src = URL.createObjectURL(file);
     });
@@ -91,7 +94,7 @@ function CreateGroupPopup({ onCreateGroup, onCancel, isCreating }) {
         <div className='PopupBackground'>
             <div className='LargePopupContainer'>
                 <h2>Create Group</h2>
-                
+
                 <div className='BadgeCreateContent'>
                     <div className='BadgeInputSection'>
                         <div className='BadgeImageSection'>
@@ -100,22 +103,22 @@ function CreateGroupPopup({ onCreateGroup, onCancel, isCreating }) {
                             </div>
                             <div className="BadgeImageContainer" style={{ textAlign: 'center' }}>
                                 {imagePreview ? (
-                                    <img 
-                                        src={imagePreview} 
-                                        alt="Group Preview" 
-                                        style={{ 
-                                            width: '150px', 
-                                            height: '150px', 
-                                            objectFit: 'cover', 
+                                    <img
+                                        src={imagePreview}
+                                        alt="Group Preview"
+                                        style={{
+                                            width: '150px',
+                                            height: '150px',
+                                            objectFit: 'cover',
                                             borderRadius: '8px',
                                             border: '2px solid var(--main-color)'
-                                        }} 
+                                        }}
                                     />
                                 ) : (
-                                    <div style={{ 
-                                        width: '150px', 
-                                        height: '150px', 
-                                        border: '2px dashed #A0A0A0', 
+                                    <div style={{
+                                        width: '150px',
+                                        height: '150px',
+                                        border: '2px dashed #A0A0A0',
                                         borderRadius: '8px',
                                         display: 'flex',
                                         alignItems: 'center',
@@ -133,7 +136,7 @@ function CreateGroupPopup({ onCreateGroup, onCancel, isCreating }) {
                                     onChange={handleImageUpload}
                                     style={{ display: 'none' }}
                                 />
-                                <button 
+                                <button
                                     className='AdminActionButton'
                                     onClick={handleImageButtonClick}
                                     style={{ marginTop: '10px' }}
@@ -145,7 +148,7 @@ function CreateGroupPopup({ onCreateGroup, onCancel, isCreating }) {
 
                         <div className='BadgeInputGroup'>
                             <label className='BadgeInputLabel'>Group Name</label>
-                            <input 
+                            <input
                                 className='Input'
                                 type="text"
                                 value={groupName}
@@ -154,10 +157,10 @@ function CreateGroupPopup({ onCreateGroup, onCancel, isCreating }) {
                                 maxLength={50}
                             />
                         </div>
-                        
+
                         <div className='BadgeInputGroup'>
                             <label className='BadgeInputLabel'>Description</label>
-                            <input 
+                            <input
                                 className='Input'
                                 type="text"
                                 value={groupDescription}
@@ -199,8 +202,8 @@ function CreateGroupPopup({ onCreateGroup, onCancel, isCreating }) {
                         <button className='CancelButton' onClick={onCancel}>
                             Cancel
                         </button>
-                        <button 
-                            className='ConfirmButton' 
+                        <button
+                            className='ConfirmButton'
                             onClick={handleConfirm}
                             disabled={!groupName.trim()}
                         >
@@ -297,7 +300,7 @@ function EditGroupPopup({ group, onEditGroup, onCancel, isEditing }) {
         <div className='PopupBackground'>
             <div className='LargePopupContainer'>
                 <h2>Edit Group</h2>
-                
+
                 <div className='BadgeCreateContent'>
                     <div className='BadgeInputSection'>
                         <div className='BadgeImageSection'>
@@ -306,10 +309,10 @@ function EditGroupPopup({ group, onEditGroup, onCancel, isEditing }) {
                             </div>
                             <div className="BadgeImageContainer" style={{ textAlign: 'center' }}>
                                 {imageLoading ? (
-                                    <div style={{ 
-                                        width: '150px', 
-                                        height: '150px', 
-                                        border: '2px dashed #A0A0A0', 
+                                    <div style={{
+                                        width: '150px',
+                                        height: '150px',
+                                        border: '2px dashed #A0A0A0',
                                         borderRadius: '8px',
                                         display: 'flex',
                                         alignItems: 'center',
@@ -320,22 +323,22 @@ function EditGroupPopup({ group, onEditGroup, onCancel, isEditing }) {
                                         Loading...
                                     </div>
                                 ) : displayImage ? (
-                                    <img 
-                                        src={displayImage} 
-                                        alt="Group Preview" 
-                                        style={{ 
-                                            width: '150px', 
-                                            height: '150px', 
-                                            objectFit: 'cover', 
+                                    <img
+                                        src={displayImage}
+                                        alt="Group Preview"
+                                        style={{
+                                            width: '150px',
+                                            height: '150px',
+                                            objectFit: 'cover',
                                             borderRadius: '8px',
                                             border: '2px solid var(--main-color)'
-                                        }} 
+                                        }}
                                     />
                                 ) : (
-                                    <div style={{ 
-                                        width: '150px', 
-                                        height: '150px', 
-                                        border: '2px dashed #A0A0A0', 
+                                    <div style={{
+                                        width: '150px',
+                                        height: '150px',
+                                        border: '2px dashed #A0A0A0',
                                         borderRadius: '8px',
                                         display: 'flex',
                                         alignItems: 'center',
@@ -353,21 +356,21 @@ function EditGroupPopup({ group, onEditGroup, onCancel, isEditing }) {
                                     onChange={handleImageUpload}
                                     style={{ display: 'none' }}
                                 />
-                                <button 
+                                <button
                                     className='AdminActionButton'
                                     onClick={handleImageButtonClick}
                                     style={{ marginTop: '10px' }}
                                     disabled={imageLoading}
                                 >
-                                    {imageLoading ? 'Loading...' : 
-                                     displayImage ? 'Change Image' : 'Upload Image'}
+                                    {imageLoading ? 'Loading...' :
+                                        displayImage ? 'Change Image' : 'Upload Image'}
                                 </button>
                             </div>
                         </div>
 
                         <div className='BadgeInputGroup'>
                             <label className='BadgeInputLabel'>Group Name</label>
-                            <input 
+                            <input
                                 className='Input'
                                 type="text"
                                 value={groupName}
@@ -376,10 +379,10 @@ function EditGroupPopup({ group, onEditGroup, onCancel, isEditing }) {
                                 maxLength={50}
                             />
                         </div>
-                        
+
                         <div className='BadgeInputGroup'>
                             <label className='BadgeInputLabel'>Description</label>
-                            <input 
+                            <input
                                 className='Input'
                                 type="text"
                                 value={groupDescription}
@@ -421,8 +424,8 @@ function EditGroupPopup({ group, onEditGroup, onCancel, isEditing }) {
                         <button className='CancelButton' onClick={onCancel}>
                             Cancel
                         </button>
-                        <button 
-                            className='ConfirmButton' 
+                        <button
+                            className='ConfirmButton'
                             onClick={handleConfirm}
                             disabled={!groupName.trim()}
                         >
@@ -459,7 +462,7 @@ function JoinGroupByIdPopup({ onJoinById, onCancel, isJoining }) {
             <div className='PopupContainer'>
                 <h2>Join Group by ID</h2>
                 <div className='Inputfield'>
-                    <input 
+                    <input
                         className='Input'
                         type="text"
                         value={groupId}
@@ -473,8 +476,8 @@ function JoinGroupByIdPopup({ onJoinById, onCancel, isJoining }) {
                     <button className='CancelButton' onClick={onCancel}>
                         Cancel
                     </button>
-                    <button 
-                        className='ConfirmButton' 
+                    <button
+                        className='ConfirmButton'
                         onClick={handleConfirm}
                         disabled={!groupId.trim()}
                     >
@@ -518,18 +521,18 @@ function JoinGroupListPopup({ onCancel, onGroupJoined }) {
         try {
             setIsLoadingGroups(true);
             const currentUser = await UserManagement.getCurrentUser();
-            
+
             const [allGroups, userGroups] = await Promise.all([
                 GroupManagement.getAllGroups(),
                 GroupManagement.getUserGroups(currentUser.uid)
             ]);
 
             const joinedGroupIds = userGroups.map(group => group.groupId);
-            
-            const availablePublicGroups = allGroups.filter(group => 
+
+            const availablePublicGroups = allGroups.filter(group =>
                 !group.isPrivate && !joinedGroupIds.includes(group.groupId)
             );
-            
+
             setPublicGroups(availablePublicGroups);
         } catch (error) {
             console.error('Failed to load public groups:', error);
@@ -541,13 +544,13 @@ function JoinGroupListPopup({ onCancel, onGroupJoined }) {
 
     const handleJoinGroup = async () => {
         if (!selectedGroup) return;
-        
+
         setIsJoining(true);
         try {
             const currentUser = await UserManagement.getCurrentUser();
             await GroupManagement.addGroupMember(selectedGroup.groupId, currentUser.uid);
             onGroupJoined();
-            onCancel(); 
+            onCancel();
         } catch (error) {
             console.error('Failed to join group:', error);
             alert('Failed to join group: ' + error.message);
@@ -577,8 +580,8 @@ function JoinGroupListPopup({ onCancel, onGroupJoined }) {
                         <button className='CancelButton' onClick={() => setSelectedGroup(null)}>
                             Back
                         </button>
-                        <button 
-                            className='ConfirmButton' 
+                        <button
+                            className='ConfirmButton'
                             onClick={handleJoinGroup}
                             disabled={isJoining}
                         >
@@ -605,8 +608,8 @@ function JoinGroupListPopup({ onCancel, onGroupJoined }) {
                         </div>
                     ) : (
                         publicGroups.map(group => (
-                            <div 
-                                key={group.groupId} 
+                            <div
+                                key={group.groupId}
                                 className="GroupListItem"
                                 onClick={() => setSelectedGroup(group)}
                             >
@@ -633,36 +636,61 @@ function JoinGroupListPopup({ onCancel, onGroupJoined }) {
 }
 
 function CreateGroupChallengePopup({ group, onCreateChallenge, onCancel, isCreating }) {
-    const [challengeName, setChallengeName] = useState('');
-    const [challengeDescription, setChallengeDescription] = useState('');
-    const [challengeType, setChallengeType] = useState('target');
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
-    const [rewardPoints, setRewardPoints] = useState(0);
-    const [targetValue, setTargetValue] = useState('');
+    // This array is the single source of truth for the exercise form.
+    const inputFields = [
+        { key: 'name', label: 'Name', type: 'text', maxLength: 50, placeholder: 'Enter name' },
+        { key: 'description', label: 'Description', type: 'text', maxLength: 200, placeholder: 'Enter Description name' },
+        { key: 'rewardPoints', label: 'Reward Points', type: 'number',  placeholder: 'Enter Reward Points' },
+        { key: 'startDate', label: 'Start', type: 'datetime-local' },
+        { key: 'endDate', label: 'End', type: 'datetime-local' },
+         { key: 'conditions', label: 'conditions', type: 'text', maxLength: 200, placeholder: 'Enter conditions name' },
+        { key: 'challengeType', label: 'Challenge Type', type: 'selectType', placeholder: 'Select Type ...' },
+        { key: 'targetField', label: 'Target Field', type: 'text', maxLength: 50, placeholder: 'Enter Target Field' },
+        { key: 'targetValue', label: 'Target Value', type: 'text', maxLength: 50, placeholder: 'Enter Target Value' },
+    ];
 
-    const handleConfirm = async () => {
-        if (!challengeName.trim() || !startDate || !endDate) {
-            alert('Please fill in all required fields');
-            return;
+    const dummyChallenge = new Challenge();
+    dummyChallenge.startDate = Timestamp.now();
+
+    // The initial state is generated dynamically from the inputFields array.
+    const [formData, setFormData] = useState(() => {
+        return inputFields.reduce((acc, field) => {
+            const sourceValue = dummyChallenge?.[field.key];
+            if (field.type === 'datetime-local' && sourceValue?.toDate) {
+                acc[field.key] = toDateTime(sourceValue);
+            } else {
+                acc[field.key] = sourceValue ?? (field.type === 'number' ? 0 : '');
+            }
+            return acc;
+        }, {});
+    });
+
+    // The submission data is generated dynamically from the inputFields array.
+    const handleConfirm = () => {
+        if (formData.name && formData.name.trim()) {
+            const submitData = inputFields.reduce((acc, field) => {
+                const value = formData[field.key];
+                if (field.type === 'number') {
+                    acc[field.key] = parseInt(value, 10) || 0;
+                } else if (field.type === 'datetime-local') {
+                    acc[field.key] = value ? localDateTimeStringToTimestamp(value) : null;
+                } else if (typeof value === 'string') {
+                    acc[field.key] = value.trim();
+                } else {
+                    acc[field.key] = value;
+                }
+                return acc;
+            }, {});
+
+            if (dummyChallenge) {
+                submitData.uid = dummyChallenge.uid;
+            }
+            onCreateChallenge(submitData);
         }
+    };
 
-        if (new Date(endDate) <= new Date(startDate)) {
-            alert('End date must be after start date');
-            return;
-        }
-
-        const challengeData = {
-            name: challengeName.trim(),
-            description: challengeDescription.trim(),
-            challengeType: challengeType,
-            startDate: new Date(startDate).getTime(),
-            endDate: new Date(endDate).getTime(),
-            rewardPoints: parseInt(rewardPoints) || 0,
-            targetValue: targetValue ? parseFloat(targetValue) : null
-        };
-        
-        onCreateChallenge(challengeData);
+    const handleInputChange = (field, value) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
     };
 
     if (isCreating) {
@@ -681,105 +709,60 @@ function CreateGroupChallengePopup({ group, onCreateChallenge, onCancel, isCreat
                 <h2 style={{ margin: '20px 0', textAlign: 'center' }}>
                     Create Challenge for {group.name}
                 </h2>
-                
+
                 <div className='BadgeCreateContent'>
                     <div className='BadgeInputSection'>
-                        <div className='BadgeInputGroup'>
-                            <label className='BadgeInputLabel'>Challenge Name</label>
-                            <input 
-                                className='Input'
-                                type="text"
-                                value={challengeName}
-                                onChange={(e) => setChallengeName(e.target.value)}
-                                placeholder="Enter challenge name"
-                                maxLength={50}
-                            />
-                        </div>
-
-                        <div className='BadgeInputGroup'>
-                            <label className='BadgeInputLabel'>Description</label>
-                            <input 
-                                className='Input'
-                                type="text"
-                                value={challengeDescription}
-                                onChange={(e) => setChallengeDescription(e.target.value)}
-                                placeholder="Enter challenge description"
-                                maxLength={200}
-                            />
-                        </div>
-
-                        <div className='BadgeInputGroup'>
-                            <label className='BadgeInputLabel'>Challenge Type</label>
-                            <select 
-                                className='Input'
-                                value={challengeType}
-                                onChange={(e) => setChallengeType(e.target.value)}
-                            >
-                                <option value="target">Target</option>
-                                <option value="streak">Streak</option>
-                                <option value="endurance">Endurance</option>
-                                <option value="frequency">Frequency</option>
-                            </select>
-                        </div>
-
-                        <div className='BadgeInputGroup'>
-                            <label className='BadgeInputLabel'>Target Value</label>
-                            <input 
-                                className='Input'
-                                type="number"
-                                value={targetValue}
-                                onChange={(e) => setTargetValue(e.target.value)}
-                                placeholder="Enter target value"
-                                min="0"
-                            />
-                        </div>
-                    </div>
-
-                    <div className='BadgeInputSection'>
-                        <div className='BadgeInputGroup'>
-                            <label className='BadgeInputLabel'>Start Date</label>
-                            <input 
-                                className='Input'
-                                type="date"
-                                value={startDate}
-                                onChange={(e) => setStartDate(e.target.value)}
-                            />
-                        </div>
-
-                        <div className='BadgeInputGroup'>
-                            <label className='BadgeInputLabel'>End Date</label>
-                            <input 
-                                className='Input'
-                                type="date"
-                                value={endDate}
-                                onChange={(e) => setEndDate(e.target.value)}
-                            />
-                        </div>
-
-                        <div className='BadgeInputGroup'>
-                            <label className='BadgeInputLabel'>Reward Points</label>
-                            <input 
-                                className='Input'
-                                type="number"
-                                value={rewardPoints}
-                                onChange={(e) => setRewardPoints(e.target.value)}
-                                placeholder="Points awarded when completed"
-                                min="0"
-                            />
-                        </div>
+                        {inputFields.map(field => (
+                            <div key={field.key} className='BadgeInputGroup'>
+                                <label className='BadgeInputLabel'>{field.label}</label>
+                                {
+                                    field.type === 'selectType' ? (
+                                        <select
+                                            className='Input'
+                                            value={formData[field.key]}
+                                            onChange={(e) => handleInputChange(field.key, e.target.value)}
+                                        >
+                                            <option value="" disabled>{field.placeholder}</option>
+                                            {Object.values(CHALLENGE_TYPE) && Object.values(CHALLENGE_TYPE).map(obj => (
+                                                <option key={obj} value={obj}>
+                                                    {obj}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    ) : field.type === 'textarea' ? (
+                                        <textarea
+                                            className='Input'
+                                            value={formData[field.key]}
+                                            onChange={(e) => handleInputChange(field.key, e.target.value)}
+                                            placeholder={field.placeholder}
+                                            rows={4}
+                                            style={{ resize: 'vertical' }}
+                                        />
+                                    ) : (
+                                        <input
+                                            className='Input'
+                                            type={field.type}
+                                            value={formData[field.key]}
+                                            onChange={(e) => handleInputChange(field.key, e.target.value)}
+                                            placeholder={field.placeholder}
+                                            maxLength={field.maxLength}
+                                            min={field.min}
+                                        />
+                                    )}
+                            </div>
+                        ))}
                     </div>
                 </div>
-
                 <div className='BadgeCreateFooter'>
                     <div className='Line'></div>
                     <div className='Buttonfield'>
                         <button className='CancelButton' onClick={onCancel}>
                             Cancel
                         </button>
-                        <button 
-                            className='ConfirmButton' 
+                        <button
+                            className='ConfirmButton'
                             onClick={handleConfirm}
-                            disabled={!challengeName.trim() || !startDate || !endDate}
+                            disabled={!formData.name.trim() || !formData.startDate || !formData.endDate}
                         >
                             Create Challenge
                         </button>
@@ -836,7 +819,7 @@ function JoinedGroupDetailPopup({ group, onClose, onGroupLeft }) {
 
     const handleLeaveGroup = async () => {
         if (!currentUser) return;
-        
+
         setIsProcessing(true);
         try {
             await GroupManagement.removeGroupMember(group.groupId, currentUser.uid, currentUser.uid);
@@ -852,7 +835,7 @@ function JoinedGroupDetailPopup({ group, onClose, onGroupLeft }) {
 
     const handleDeleteGroup = async () => {
         if (!currentUser) return;
-        
+
         const confirmDelete = confirm(`Are you sure you want to delete the group "${group.name}"? This action cannot be undone.`);
         if (!confirmDelete) return;
 
@@ -878,7 +861,7 @@ function JoinedGroupDetailPopup({ group, onClose, onGroupLeft }) {
                 groupId: group.groupId,
                 creatorId: currentUser.uid
             };
-            
+
             await ChallengeManagement.createChallenge(challengeRequest);
             setShowCreateChallengePopup(false);
         } catch (error) {
@@ -897,11 +880,11 @@ function JoinedGroupDetailPopup({ group, onClose, onGroupLeft }) {
                 description: groupData.description,
                 isPrivate: groupData.isPrivate
             });
-            
+
             if (groupData.imageData) {
                 await GroupManagement.saveGroupImage(groupData.imageData, group.groupId);
             }
-            
+
             setShowEditGroupPopup(false);
             onGroupLeft();
             alert('Group updated successfully!');
@@ -915,7 +898,7 @@ function JoinedGroupDetailPopup({ group, onClose, onGroupLeft }) {
 
     const activeMembers = group.members.filter(member => member.isActive());
     const isCreator = currentUser && group.createdBy === currentUser.uid;
-    const isAdmin = currentUser && activeMembers.find(member => 
+    const isAdmin = currentUser && activeMembers.find(member =>
         member.userId === currentUser.uid && member.isAdmin()
     );
 
@@ -923,7 +906,7 @@ function JoinedGroupDetailPopup({ group, onClose, onGroupLeft }) {
         <div className='PopupBackground'>
             <div className='LargePopupContainer'>
                 <h2 style={{ textAlign: 'center' }}>Group Details</h2>
-                
+
                 <div className='GroupDetailContainer'>
                     <div className='GroupDetailHeader' style={{ textAlign: 'left' }}>
                         {group.name} {group.isPrivate && <span style={{ fontSize: '16px', color: '#A0A0A0' }}>(Private)</span>}
@@ -936,31 +919,31 @@ function JoinedGroupDetailPopup({ group, onClose, onGroupLeft }) {
                         <div>Members: {group.getActiveMemberCount()}/{group.maxMembers}</div>
                         <div>Created by: {creatorName}</div>
                     </div>
-                    
+
                     <div style={{ marginTop: '20px' }}>
                         <div className="MemberListContainer">
                             <div className="GuideText" style={{ textAlign: 'center' }}>Members</div>
                             {activeMembers.map(member => (
                                 <div key={member.membershipId} className="GroupJoinItem">
-                                    <div style={{ 
-                                        color: 'var(--main-color)', 
+                                    <div style={{
+                                        color: 'var(--main-color)',
                                         margin: '16px 0px 12px 16px',
                                         lineHeight: '1.4',
                                         fontSize: '15px'
                                     }}>
-                                        {member.user?.displayName || 'Unknown User'} 
+                                        {member.user?.displayName || 'Unknown User'}
                                         {member.isAdmin() && <span style={{ fontSize: '12px', color: '#A0A0A0' }}> (Admin)</span>}
                                     </div>
-                                    <div style={{ 
-                                        color: 'var(--light-color)', 
+                                    <div style={{
+                                        color: 'var(--light-color)',
                                         margin: '0 16px 12px 16px',
                                         lineHeight: '1.4',
                                         fontSize: '13px'
                                     }}>
                                         Joined: {formatJoinDate(member.joinedAt)}
                                     </div>
-                                    <div style={{ 
-                                        color: 'var(--light-color)', 
+                                    <div style={{
+                                        color: 'var(--light-color)',
                                         margin: '0 16px 16px 16px',
                                         fontSize: '12px'
                                     }}>
@@ -968,10 +951,10 @@ function JoinedGroupDetailPopup({ group, onClose, onGroupLeft }) {
                                     </div>
                                 </div>
                             ))}
-                            
+
                             <div className="CancelButtons">
                                 {isAdmin && (
-                                    <button 
+                                    <button
                                         className='AdminActionButton'
                                         onClick={() => setShowCreateChallengePopup(true)}
                                         disabled={isProcessing}
@@ -979,9 +962,9 @@ function JoinedGroupDetailPopup({ group, onClose, onGroupLeft }) {
                                         Add Challenge
                                     </button>
                                 )}
-                                
+
                                 {isCreator && (
-                                    <button 
+                                    <button
                                         className='AdminActionButton'
                                         onClick={() => setShowEditGroupPopup(true)}
                                         disabled={isProcessing}
@@ -989,9 +972,9 @@ function JoinedGroupDetailPopup({ group, onClose, onGroupLeft }) {
                                         Edit Group
                                     </button>
                                 )}
-                                
+
                                 {isCreator && (
-                                    <button 
+                                    <button
                                         className='CancelButton'
                                         onClick={handleDeleteGroup}
                                         disabled={isProcessing}
@@ -1000,7 +983,7 @@ function JoinedGroupDetailPopup({ group, onClose, onGroupLeft }) {
                                         {isProcessing ? 'Deleting...' : 'Delete Group'}
                                     </button>
                                 )}
-                                <button 
+                                <button
                                     className='CancelButton'
                                     onClick={handleLeaveGroup}
                                     disabled={isProcessing}
@@ -1011,7 +994,7 @@ function JoinedGroupDetailPopup({ group, onClose, onGroupLeft }) {
                         </div>
                     </div>
                 </div>
-                
+
                 <div className='Line'></div>
                 <div className='Buttonfield'>
                     <button className='CancelButton' onClick={onClose}>
@@ -1074,8 +1057,8 @@ function GroupCardItem({ group, onClick }) {
                         </div>
                     ) : groupImage ? (
                         <img className='ProfileImageForCard'
-                            src={groupImage} 
-                            alt="Group Profile" 
+                            src={groupImage}
+                            alt="Group Profile"
                         />
                     ) : (
                         <div className='ProfileImageForCardAlt'>
@@ -1096,7 +1079,7 @@ function GroupCardItem({ group, onClick }) {
     );
 }
 
-function Page ({data}) {
+function Page({ data }) {
     const userData = data;
     const [groupName, setGroupName] = useState('');
     const [memberId, setMemberId] = useState('');
@@ -1164,7 +1147,7 @@ function Page ({data}) {
         setIsCreatingGroup(true);
         try {
             const currentUser = await UserManagement.getCurrentUser();
-            
+
             const createdGroup = await GroupManagement.createGroup(
                 currentUser.uid,
                 groupData.name,
@@ -1172,11 +1155,11 @@ function Page ({data}) {
                 50,
                 groupData.isPrivate
             );
-            
+
             if (groupData.imageData && createdGroup && createdGroup.groupId) {
                 await GroupManagement.saveGroupImage(groupData.imageData, createdGroup.groupId);
             }
-            
+
             setShowCreateGroupPopup(false);
             await loadUserGroups();
         } catch (error) {
@@ -1235,8 +1218,8 @@ function Page ({data}) {
                 </div>
             ) : (
                 userGroups.map(group => (
-                    <GroupCardItem 
-                        key={group.groupId} 
+                    <GroupCardItem
+                        key={group.groupId}
                         group={group}
                         onClick={() => setSelectedJoinedGroup(group)}
                     />
@@ -1258,8 +1241,8 @@ function Page ({data}) {
                 </div>
             ) : (
                 userGroups.map(group => (
-                    <GroupCardItem 
-                        key={group.groupId} 
+                    <GroupCardItem
+                        key={group.groupId}
                         group={group}
                         onClick={() => setSelectedJoinedGroup(group)}
                     />
@@ -1270,14 +1253,14 @@ function Page ({data}) {
 
     const ButtonSection = () => (
         <div className="GroupButtonContainer">
-            <button 
+            <button
                 className='ButtonMediumFilled CreateGroupButton'
                 onClick={handleCreateGroup}
             >
                 <div className='ButtonIcon'>+</div>
                 <div className='ButtonText'>Create Group</div>
             </button>
-            <button 
+            <button
                 className="ButtonMedium JoinGroupButton"
                 onClick={() => setShowActionPopup(true)}
             >
@@ -1289,14 +1272,14 @@ function Page ({data}) {
 
     const ButtonSectionHorizontal = () => (
         <div className="GroupButtonContainerHorizontal">
-            <button 
+            <button
                 className='ButtonMediumFilled CreateGroupButton'
                 onClick={handleCreateGroup}
             >
                 <div className='ButtonIcon'>+</div>
                 <div className='ButtonText'>Create Group</div>
             </button>
-            <button 
+            <button
                 className="ButtonMedium JoinGroupButton"
                 onClick={() => setShowActionPopup(true)}
             >
@@ -1322,7 +1305,7 @@ function Page ({data}) {
                                 <ButtonSectionHorizontal />
                             </div>
                         </div>
-                        
+
                         <div className="BottomGridSection" style={{ overflow: 'auto', maxHeight: '100%' }}>
                             <GroupListSectionHorizontal />
                         </div>
@@ -1378,14 +1361,14 @@ function ActionSelectionPopup({ onCreateGroup, onJoinGroup, onJoinGroupViaId, on
             <div className='PopupContainer'>
                 <h2>Find Group</h2>
                 <div className='GroupButtonContainer'>
-                    <button 
+                    <button
                         className='ButtonMediumFilled JoinGroupButton'
                         onClick={onJoinGroup}
                     >
                         <div className='ButtonIcon'>▷</div>
                         <div className='ButtonText'>Join Group</div>
                     </button>
-                    <button 
+                    <button
                         className='ButtonMediumFilled JoinGroupViaIdButton'
                         onClick={onJoinGroupViaId}
                     >

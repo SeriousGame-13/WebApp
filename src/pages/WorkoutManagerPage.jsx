@@ -4,8 +4,8 @@ import WorkoutManager from '../services/firebase/WorkoutManagement';
 import StationManager from '../services/firebase/StationManagement';
 import { Workout } from '../services/interfaces/workout';
 import { localDateTimeStringToTimestamp, localTime } from '../utils/DateUtils';
-
 import StationGameManager from '../services/firebase/GameManager';
+import { Timestamp } from 'firebase/firestore';
 
 
 function EditWorkoutForm({ workout = null, onSubmit, onCancel, isProcessing, submitText }) {

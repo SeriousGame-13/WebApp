@@ -179,10 +179,6 @@ function EditWorkoutForm(props) {
     const inputFields = [
         { key: 'name', label: 'Name', type: 'text', maxLength: 50, placeholder: 'Enter name' },
         { key: 'description', label: 'Description', type: 'textarea', placeholder: 'Enter description' },
-        { key: 'startTime', label: 'Start Time', type: 'datetime-local' },
-        { key: 'endTime', label: 'End Time', type: 'datetime-local' },
-        { key: 'heartRateMax', label: 'Max Heart Rate', type: 'number', min: 0, placeholder: 'Enter max heart rate' },
-        { key: 'heartRateMin', label: 'Min Heart Rate', type: 'number', min: 0, placeholder: 'Enter min heart rate' },
     ];
 
     const title = props.workout ? 'Edit Workout' : 'Create New Workout';

@@ -179,7 +179,6 @@ function HomePage() {
     return (
         <div>
             {renderCurrentPage()}
-            
         </div>
     );
 }

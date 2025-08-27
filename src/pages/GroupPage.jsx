@@ -644,7 +644,7 @@ function CreateGroupChallengePopup({ group, onCreateChallenge, onCancel, isCreat
         { key: 'rewardPoints', label: 'Reward Points', type: 'number', placeholder: 'Enter Reward Points' },
         { key: 'startDate', label: 'Start', type: 'datetime-local' },
         { key: 'endDate', label: 'End', type: 'datetime-local' },
-        { key: 'conditions', label: 'conditions', type: 'text', maxLength: 200, placeholder: 'Enter conditions name' },
+        { key: 'conditions', label: 'conditions', type: 'textarea', maxLength: 200, placeholder: 'Enter conditions name' },
         { key: 'challengeType', label: 'Challenge Type', type: 'selectType', placeholder: 'Select Type ...' },
         { key: 'targetField', label: 'Target Field', type: 'text', maxLength: 50, placeholder: 'Enter Target Field' },
         { key: 'targetValue', label: 'Target Value', type: 'text', maxLength: 50, placeholder: 'Enter Target Value' },

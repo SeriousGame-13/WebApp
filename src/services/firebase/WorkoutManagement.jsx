@@ -108,7 +108,8 @@ function calculateWorkoutTimes(exercises) {
 
     return {
         activeTime: Math.round(activeTime / 1000),
-        idleTime: Math.round(idleTime / 1000)
+        idleTime: Math.round(idleTime / 1000),
+        endTime: sortedExercises[sortedExercises.length - 1].endTime
     };
 }
 
@@ -125,10 +126,10 @@ const calculateAndSaveWorkoutTimes = async (userId, workoutId) => {
         const exerSnap = await FirestoreManager.getAllDocuments(exercisePath);
         const exercises = exerSnap.docs.map(doc => doc.data());
 
-        const { activeTime, idleTime } = calculateWorkoutTimes(exercises);
+        const { activeTime, idleTime, endTime } = calculateWorkoutTimes(exercises);
 
         const workoutPath = createPath(userId);
-        await FirestoreManager.updateDocument(workoutPath, workoutId, { activeTime, idleTime });
+        await FirestoreManager.updateDocument(workoutPath, workoutId, { activeTime, idleTime, endTime });
 
 
     } catch (error) {
@@ -275,7 +276,7 @@ const addExercise = async (userId, workoutId, exerciseData) => {
         UserManagement.addPoints(userId, exercise.points);
         // Recalculate and save times after adding the exercise
         await calculateAndSaveWorkoutTimes(userId, workoutId);
-        handlePostExercise(userId, exerciseData);
+        handlePostExercise(userId, exercise);
     } catch (error) {
         console.error('Error adding exercise:', error);
         throw error;

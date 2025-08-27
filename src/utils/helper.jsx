@@ -27,3 +27,29 @@ export const aggregate = (aggregates, docs) => {
     });
     return results;
 }
+
+export const buildConditions = (rawConditions, mappingData) => {
+    const conditions = [];
+    rawConditions.forEach(str => {
+        const temp = str.split(',');
+        let cond = {};
+        if (temp.length > 1) {
+            temp.forEach(x => {
+                let t = x.split(':');
+                cond[t[0]] = t[1];
+            });
+            if (cond['value'].includes('{')) {
+                const tt = cond['value'].replaceAll('{', '').replaceAll('}', '').split('.');
+                let curData = mappingData;
+                for (let n of tt) {
+                    curData = curData[n];
+                }
+                cond['value'] = curData;
+            }
+            conditions.push(cond);
+
+        }
+    });
+
+    return conditions;
+}

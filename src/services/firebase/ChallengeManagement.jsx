@@ -20,7 +20,7 @@ import GroupManagement from './GroupManagementSystem.jsx';
 import { CHALLENGES_COLLECTION, CHALLENGE_PARTICIPANTS_SUBCOLLECTION } from './collections';
 import { serverTimestamp, Timestamp } from 'firebase/firestore';
 import FirestoreManager from './FirestoreManager.jsx';
-import { aggregate } from '../../utils/helper.jsx';
+import { aggregate, buildConditions } from '../../utils/helper.jsx';
 import RewardSystem from './RewardSystem.jsx';
 /**
  * Creates a new challenge in the database with the provided challenge data.
@@ -458,11 +458,15 @@ const updateProgress = async (challengeId) => {
     const conditions = [];
     const promise = getChallenge(challengeId);
     const participants = await getChallengeParticipants(challengeId);
-
     participants.forEach(part => {
         conditions.push({ field: 'userId', operator: '==', value: part.userId });
     });
+
     const challenge = await promise;
+
+    const challengeConditions = buildConditions(challenge.conditions.split('\n'), []);
+    challengeConditions.map(o => conditions.push(o))
+
     let start = challenge.startDate;
     if (!challenge.startDate?.toDate) {
 

@@ -1,6 +1,6 @@
 import BaseModel from './base.jsx';
-import { 
-    serverTimestamp 
+import {
+  serverTimestamp
 } from 'firebase/firestore';
 
 export class Workout extends BaseModel {
@@ -65,6 +65,13 @@ export class Workout extends BaseModel {
     if (!this.exercises || this.exercises.length === 0) return 0;
     return (this.exercises.reduce((total, exer) => {
       return total + exer.calories;
+    }, 0));
+  }
+
+  getHeartRate() {
+    if (!this.exercises || this.exercises.length === 0) return 0;
+    return (this.exercises.reduce((total, exer) => {
+      return total + exer.heartRateAvg;
     }, 0));
   }
 }

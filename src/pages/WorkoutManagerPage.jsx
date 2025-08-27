@@ -5,7 +5,6 @@ import StationManager from '../services/firebase/StationManagement';
 import { Workout } from '../services/interfaces/workout';
 import { localDateTimeStringToTimestamp, localTime } from '../utils/DateUtils';
 import StationGameManager from '../services/firebase/GameManager';
-import { Timestamp } from 'firebase/firestore';
 
 
 function EditWorkoutForm({ workout = null, onSubmit, onCancel, isProcessing, submitText }) {
@@ -15,8 +14,6 @@ function EditWorkoutForm({ workout = null, onSubmit, onCancel, isProcessing, sub
         { key: 'description', label: 'Description', type: 'textarea', placeholder: 'Enter description' },
         { key: 'startTime', label: 'Start Time', type: 'datetime-local' },
         { key: 'endTime', label: 'End Time', type: 'datetime-local' },
-        { key: 'heartRateMax', label: 'Max Heart Rate', type: 'number', min: 0, placeholder: 'Enter max heart rate' },
-        { key: 'heartRateMin', label: 'Min Heart Rate', type: 'number', min: 0, placeholder: 'Enter min heart rate' },
     ];
 
     // The initial state is generated dynamically from the inputFields array.

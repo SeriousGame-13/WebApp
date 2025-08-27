@@ -8,7 +8,7 @@ import { localDateTimeStringToTimestamp, localTime } from '../utils/DateUtils';
 import StationGameManager from '../services/firebase/GameManager';
 
 
-function EditWorkoutForm({ workout = null, onSubmit, onCancel, isProcessing, submitText, stationGames }) {
+function EditWorkoutForm({ workout = null, onSubmit, onCancel, isProcessing, submitText }) {
     // This array is now the single source of truth for the form's structure.
     const inputFields = [
         { key: 'name', label: 'Name', type: 'text', maxLength: 50, placeholder: 'Enter name' },
@@ -193,6 +193,8 @@ function ExerciseForm({
                     acc[field.key] = value ? localDateTimeStringToTimestamp(value) : null;
                 } else if (field.key === 'stationId') {
                     acc[field.key] = value || null;
+                } else if (field.key === 'gameId') {
+                    acc[field.key] = value || null;
                 } else if (typeof value === 'string') {
                     acc[field.key] = value.trim();
                 } else {
@@ -249,52 +251,52 @@ function ExerciseForm({
                             <div key={field.key} className='BadgeInputGroup'>
                                 <label className='BadgeInputLabel'>{field.label}</label>
                                 {
-                                field.type === 'selectGame' ? (
-                                    <select
-                                        className='Input'
-                                        value={formData[field.key]}
-                                        onChange={(e) => handleInputChange(field.key, e.target.value)}
-                                    >
-                                        <option value="" disabled>{field.placeholder}</option>
-                                        {stationGames && stationGames.map(obj => (
-                                            <option key={obj.uid} value={obj.uid}>
-                                                {obj.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                ) : field.type === 'selectStation' ? (
-                                    <select
-                                        className='Input'
-                                        value={formData[field.key]}
-                                        onChange={(e) => handleInputChange(field.key, e.target.value)}
-                                    >
-                                        <option value="" disabled>{field.placeholder}</option>
-                                        {stations && stations.map(obj => (
-                                            <option key={obj.uid} value={obj.uid}>
-                                                {obj.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                ) : field.type === 'textarea' ? (
-                                    <textarea
-                                        className='Input'
-                                        value={formData[field.key]}
-                                        onChange={(e) => handleInputChange(field.key, e.target.value)}
-                                        placeholder={field.placeholder}
-                                        rows={4}
-                                        style={{ resize: 'vertical' }}
-                                    />
-                                ) : (
-                                    <input
-                                        className='Input'
-                                        type={field.type}
-                                        value={formData[field.key]}
-                                        onChange={(e) => handleInputChange(field.key, e.target.value)}
-                                        placeholder={field.placeholder}
-                                        maxLength={field.maxLength}
-                                        min={field.min}
-                                    />
-                                )}
+                                    field.type === 'selectGame' ? (
+                                        <select
+                                            className='Input'
+                                            value={formData[field.key]}
+                                            onChange={(e) => handleInputChange(field.key, e.target.value)}
+                                        >
+                                            <option value="" disabled>{field.placeholder}</option>
+                                            {stationGames && stationGames.filter(o => o.stationId == formData['stationId']).map(obj => (
+                                                <option key={obj.uid} value={obj.uid}>
+                                                    {obj.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    ) : field.type === 'selectStation' ? (
+                                        <select
+                                            className='Input'
+                                            value={formData[field.key]}
+                                            onChange={(e) => handleInputChange(field.key, e.target.value)}
+                                        >
+                                            <option value="" disabled>{field.placeholder}</option>
+                                            {stations && stations.map(obj => (
+                                                <option key={obj.uid} value={obj.uid}>
+                                                    {obj.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    ) : field.type === 'textarea' ? (
+                                        <textarea
+                                            className='Input'
+                                            value={formData[field.key]}
+                                            onChange={(e) => handleInputChange(field.key, e.target.value)}
+                                            placeholder={field.placeholder}
+                                            rows={4}
+                                            style={{ resize: 'vertical' }}
+                                        />
+                                    ) : (
+                                        <input
+                                            className='Input'
+                                            type={field.type}
+                                            value={formData[field.key]}
+                                            onChange={(e) => handleInputChange(field.key, e.target.value)}
+                                            placeholder={field.placeholder}
+                                            maxLength={field.maxLength}
+                                            min={field.min}
+                                        />
+                                    )}
                             </div>
                         ))}
                     </div>

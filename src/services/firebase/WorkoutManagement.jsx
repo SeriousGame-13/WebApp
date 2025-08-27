@@ -343,7 +343,8 @@ const deleteExercise = async (userId, workoutId, exerciseId) => {
 async function handlePostExercise(userId, exercise) {
     RewardSystem.awardBadges(userId);
     GoalSystem.updateGoalsFromWorkout(userId, exercise.stationId, exercise.points);
-    if (exercise.stationId) {
+    exercise.userId = userId;
+    if (exercise.stationId && exercise.userId) {
         HighscoreManager.create(exercise);
     }
 

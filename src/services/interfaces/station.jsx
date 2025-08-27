@@ -14,6 +14,7 @@ export class StationGame extends BaseModel {
     constructor(data = {}) {
         super({
             name: data.name || "",
+            stationId: data.stationId || null,
             ...data
         });
     }

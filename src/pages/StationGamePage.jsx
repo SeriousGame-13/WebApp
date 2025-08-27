@@ -1,10 +1,21 @@
 import { useState, useEffect } from 'react';
 import '../components/styles/LayoutElements.css';
 import StationGameManager from '../services/firebase/GameManager';
+import StationManager from '../services/firebase/StationManagement';
 
-function EditForm({ object = null, onSubmit, onCancel, isProcessing, submitText }) {
-    const [formData, setFormData] = useState({
-        name: '',
+function EditForm({ object = null, onSubmit, onCancel, isProcessing, submitText, stations }) {
+    const inputFields = [
+        { key: 'name', label: 'Name', type: 'text', maxLength: 50, placeholder: 'Enter name' },
+        { key: 'stationId', label: 'Station', type: 'selectStation', placeholder: 'Select Station...' },
+    ];
+
+    // The initial state is generated dynamically from the inputFields array.
+    const [formData, setFormData] = useState(() => {
+        return inputFields.reduce((acc, field) => {
+            const sourceValue = object?.[field.key];
+            acc[field.key] = sourceValue ?? (field.type === 'number' ? 0 : '');
+            return acc;
+        }, {});
     });
 
     useEffect(() => {
@@ -18,12 +29,21 @@ function EditForm({ object = null, onSubmit, onCancel, isProcessing, submitText 
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
+    // The submission data is generated dynamically from the inputFields array.
     const handleSubmit = () => {
-        if (formData.name.trim()) {
-            onSubmit({
-                ...formData,
-                name: formData.name.trim(),
-            });
+        if (formData.name && formData.name.trim()) {
+            const submitData = inputFields.reduce((acc, field) => {
+                const value = formData[field.key];
+                if (field.type === 'number') {
+                    acc[field.key] = parseInt(value, 10) || 0;
+                } else if (typeof value === 'string') {
+                    acc[field.key] = value.trim();
+                } else {
+                    acc[field.key] = value;
+                }
+                return acc;
+            }, {});
+            onSubmit(submitData);
         }
     };
 
@@ -56,12 +76,6 @@ function EditForm({ object = null, onSubmit, onCancel, isProcessing, submitText 
         );
     }
 
-    const inputFields = [
-        { key: 'name', label: 'Name', type: 'text', maxLength: 50, placeholder: 'Enter name' },
-    ];
-
-
-
     return (
         <div className='PopupBackground'>
             <div className='LargePopupContainer'>
@@ -74,7 +88,7 @@ function EditForm({ object = null, onSubmit, onCancel, isProcessing, submitText 
 
                             <div key={field.key} className='BadgeInputGroup'>
                                 <label className='BadgeInputLabel'>{field.label}</label>
-                                { field.type === 'textarea' ? (
+                                {field.type === 'textarea' ? (
                                     <textarea
                                         className='Input'
                                         value={formData[field.key]}
@@ -83,6 +97,19 @@ function EditForm({ object = null, onSubmit, onCancel, isProcessing, submitText 
                                         rows={4}
                                         style={{ resize: 'vertical' }}
                                     />
+                                ) : field.type === 'selectStation' ? (
+                                    <select
+                                        className='Input'
+                                        value={formData[field.key]}
+                                        onChange={(e) => handleInputChange(field.key, e.target.value)}
+                                    >
+                                        <option value="" disabled>{field.placeholder}</option>
+                                        {stations && stations.map(obj => (
+                                            <option key={obj.uid} value={obj.uid}>
+                                                {obj.name}
+                                            </option>
+                                        ))}
+                                    </select>
                                 ) : (
                                     <input
                                         className='Input'
@@ -118,7 +145,7 @@ function EditForm({ object = null, onSubmit, onCancel, isProcessing, submitText 
     );
 }
 
-function DetailPopup({ object, onClose, onUpdated }) {
+function DetailPopup({ object, onClose, onUpdated, stations }) {
     const [isProcessing, setIsProcessing] = useState(false);
     const [showEditPopup, setShowEditPopup] = useState(false);
 
@@ -145,8 +172,8 @@ function DetailPopup({ object, onClose, onUpdated }) {
         setIsProcessing(true);
         try {
             await StationGameManager.update({
-                uid: object.uid,
-                name: updates.name,
+                ...updates,
+                uid:object.uid
             });
             setShowEditPopup(false);
             onUpdated();
@@ -168,7 +195,6 @@ function DetailPopup({ object, onClose, onUpdated }) {
                             {object.name}
                         </div>
                     </div>
-
                     <div className="GroupActionButtons" style={{ marginTop: '40px' }}>
                         <button className='AdminActionButton' onClick={() => setShowEditPopup(true)} disabled={isProcessing}>
                             Edit Info
@@ -190,6 +216,7 @@ function DetailPopup({ object, onClose, onUpdated }) {
                         onCancel={() => setShowEditPopup(false)}
                         isProcessing={isProcessing}
                         submitText="Update"
+                        stations={stations}
                     />
                 )}
             </div>
@@ -205,12 +232,16 @@ function StationGamePage({ user }) {
     const [selectedObject, setSelected] = useState(null);
     const [showCreatePopup, setShowCreatePopup] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
+    const [stations, setStations] = useState([]);
 
     const loadObjects = async () => {
         setIsLoading(true);
         try {
             const data = await StationGameManager.loadAll();
             sets(data);
+
+            const stationData = await StationManager.loadAll();
+            setStations(stationData);
 
             if (selectedObject) {
                 const updatedSelected = data.find(s => s.uid === selectedObject.uid);
@@ -284,6 +315,7 @@ function StationGamePage({ user }) {
                     onCancel={() => setShowCreatePopup(false)}
                     isProcessing={isCreating}
                     submitText="Create "
+                    stations={stations}
                 />
             )}
 
@@ -292,6 +324,7 @@ function StationGamePage({ user }) {
                     object={selectedObject}
                     onClose={() => setSelected(null)}
                     onUpdated={loadObjects}
+                    stations={stations}
                 />
             )}
         </div>

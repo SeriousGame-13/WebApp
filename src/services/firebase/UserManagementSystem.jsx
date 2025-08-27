@@ -154,7 +154,7 @@ const addPoints = async (uid, points) => {
         const { goals, badges, workouts, friends, ...updateData } = user;
 
         await FirebaseManager.updateDocument(USERS_COLLECTION, uid, updateData, true);
-        return getUser(uid);
+        return true;
     } catch (error) {
         console.error('Failed to update user:', error);
         throw error;

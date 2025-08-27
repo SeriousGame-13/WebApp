@@ -4,7 +4,7 @@ import IconElements from '../components/ui/IconElements';
 import UserManagement from '../services/firebase/UserManagementSystem';
 import GroupManagement from '../services/firebase/GroupManagementSystem';
 import ChallengeManagement from '../services/firebase/ChallengeManagement';
-import { CHALLENGE_TYPE } from '../services/interfaces/constants';
+import { CHALLENGE_STYLE, CHALLENGE_TYPE } from '../services/interfaces/constants';
 import { localDateTimeStringToTimestamp, toDateTime } from '../utils/DateUtils';
 import { Timestamp } from 'firebase/firestore';
 
@@ -640,10 +640,11 @@ function CreateGroupChallengePopup({ group, onCreateChallenge, onCancel, isCreat
     const inputFields = [
         { key: 'name', label: 'Name', type: 'text', maxLength: 50, placeholder: 'Enter name' },
         { key: 'description', label: 'Description', type: 'text', maxLength: 200, placeholder: 'Enter Description name' },
-        { key: 'rewardPoints', label: 'Reward Points', type: 'number',  placeholder: 'Enter Reward Points' },
+        { key: 'challengeStyle', label: 'Challenge Style', type: 'selectStyle', placeholder: 'Select Style ...' },
+        { key: 'rewardPoints', label: 'Reward Points', type: 'number', placeholder: 'Enter Reward Points' },
         { key: 'startDate', label: 'Start', type: 'datetime-local' },
         { key: 'endDate', label: 'End', type: 'datetime-local' },
-         { key: 'conditions', label: 'conditions', type: 'text', maxLength: 200, placeholder: 'Enter conditions name' },
+        { key: 'conditions', label: 'conditions', type: 'text', maxLength: 200, placeholder: 'Enter conditions name' },
         { key: 'challengeType', label: 'Challenge Type', type: 'selectType', placeholder: 'Select Type ...' },
         { key: 'targetField', label: 'Target Field', type: 'text', maxLength: 50, placeholder: 'Enter Target Field' },
         { key: 'targetValue', label: 'Target Value', type: 'text', maxLength: 50, placeholder: 'Enter Target Value' },
@@ -651,6 +652,7 @@ function CreateGroupChallengePopup({ group, onCreateChallenge, onCancel, isCreat
 
     const dummyChallenge = new Challenge();
     dummyChallenge.startDate = Timestamp.now();
+    dummyChallenge.challengeStyle = CHALLENGE_STYLE.GROUP;
 
     // The initial state is generated dynamically from the inputFields array.
     const [formData, setFormData] = useState(() => {
@@ -716,7 +718,20 @@ function CreateGroupChallengePopup({ group, onCreateChallenge, onCancel, isCreat
                             <div key={field.key} className='BadgeInputGroup'>
                                 <label className='BadgeInputLabel'>{field.label}</label>
                                 {
-                                    field.type === 'selectType' ? (
+                                    field.type === 'selectStyle' ? (
+                                        <select
+                                            className='Input'
+                                            value={formData[field.key]}
+                                            onChange={(e) => handleInputChange(field.key, e.target.value)}
+                                        >
+                                            <option value="" disabled>{field.placeholder}</option>
+                                            {Object.values(CHALLENGE_STYLE) && Object.values(CHALLENGE_STYLE).map(obj => (
+                                                <option key={obj} value={obj}>
+                                                    {obj}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    ) : field.type === 'selectType' ? (
                                         <select
                                             className='Input'
                                             value={formData[field.key]}

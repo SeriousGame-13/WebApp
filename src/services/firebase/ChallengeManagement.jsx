@@ -21,6 +21,7 @@ import { CHALLENGES_COLLECTION, CHALLENGE_PARTICIPANTS_SUBCOLLECTION } from './c
 import { serverTimestamp, Timestamp } from 'firebase/firestore';
 import FirestoreManager from './FirestoreManager.jsx';
 import { aggregate } from '../../utils/helper.jsx';
+import RewardSystem from './RewardSystem.jsx';
 /**
  * Creates a new challenge in the database with the provided challenge data.
  * Automatically assigns participants based on challenge visibility and type.
@@ -41,19 +42,7 @@ import { aggregate } from '../../utils/helper.jsx';
  */
 const createChallenge = async (challengeData) => {
     try {
-        const challenge = new Challenge({
-            name: challengeData.name,
-            description: challengeData.description,
-            startDate: challengeData.startDate,
-            endDate: challengeData.endDate,
-            creatorId: challengeData.creatorId,
-            rewardPoints: challengeData.rewardPoints,
-            challengeType: challengeData.challengeType,
-            visibility: challengeData.visibility,
-            groupId: challengeData.groupId || null,
-            targetExerciseId: challengeData.targetExerciseId || null,
-            targetValue: challengeData.targetValue || null
-        });
+        const challenge = new Challenge(challengeData);
 
         const { challengeId, participants, creator, targetExercise, ...challengeDataForFirebase } = challenge;
 
@@ -248,14 +237,6 @@ const getGroupChallenges = async (groupId) => {
  * Merges the provided challenge data with the existing challenge document.
  * @param {string} challengeId - The unique identifier of the challenge to update
  * @param {Object} challengeData - The challenge data to update
- * @param {string} [challengeData.name] - The updated name of the challenge
- * @param {string} [challengeData.description] - The updated description of the challenge
- * @param {number} [challengeData.startDate] - The updated start date timestamp
- * @param {number} [challengeData.endDate] - The updated end date timestamp
- * @param {number} [challengeData.rewardPoints] - The updated reward points value
- * @param {string} [challengeData.challengeType] - The updated challenge type
- * @param {string} [challengeData.visibility] - The updated visibility level
- * @param {number} [challengeData.targetValue] - The updated target value
  * @returns {Promise<boolean>} True if update was successful
  * @throws {Error} If challenge update fails
  */
@@ -477,27 +458,27 @@ const updateProgress = async (challengeId) => {
     const conditions = [];
     const promise = getChallenge(challengeId);
     const participants = await getChallengeParticipants(challengeId);
-    
+
     participants.forEach(part => {
-        conditions.push({field:'userId', operator:'==', value:part.userId});
+        conditions.push({ field: 'userId', operator: '==', value: part.userId });
     });
     const challenge = await promise;
     let start = challenge.startDate;
-    if(!challenge.startDate?.toDate){
-        
+    if (!challenge.startDate?.toDate) {
+
         start = Timestamp.fromMillis(start);
         console.log(start.toDate())
     }
-    conditions.push({field:'startTime', operator:'>=', value:start})
+    conditions.push({ field: 'startTime', operator: '>=', value: start })
     const docs = await FirestoreManager.queryDocuments('exercises', conditions);
-    if(docs == null)
+    if (docs == null)
         return;
     const result = aggregate([{ function: 'sum', field: 'points' }], docs.docs);
-    const update = {progress: result[Object.keys(result)[0]]};
+    const update = { progress: result[Object.keys(result)[0]] };
     console.log(result[Object.keys(result)[0]]);
-    
-    if (result[Object.keys(result)[0]] >= challenge.targetValue) {
-        update['status'] = CHALLENGE_STATUS.FINISHED;
+
+    if (challenge.status !== CHALLENGE_STATUS.FINISHED && result[Object.keys(result)[0]] >= challenge.targetValue) {
+        RewardSystem.awardChallengeRewards(challengeId);
     }
     updateChallenge(challengeId, update)
 }

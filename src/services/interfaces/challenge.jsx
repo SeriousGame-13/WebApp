@@ -6,20 +6,20 @@ import { CHALLENGE_VISIBILITY } from './constants.jsx';
 export class Challenge extends BaseModel {
   constructor(data = {}) {
     super({
-      name: '',
-      description: '',
-      startDate: null,
-      endDate: null,
-      creatorId: '',
-      rewardPoints: 0,
-      challengeType: CHALLENGE_TYPE.TARGET,
-      challengeStyle: CHALLENGE_STYLE.INDIVIDUAL,
-      targetValue: null,
-      targetField: null,
-      participants: [],
-      status: CHALLENGE_STATUS.OPEN,
-      progress: 0,
-      conditions: [],
+      name: data.name || '',
+      description: data.description || '',
+      startDate: data.startDate || null,
+      endDate: data.endDate || null,
+      creatorId: data.creatorId || '',
+      rewardPoints: data.rewardPoints || 0,
+      challengeType: data.challengeType || CHALLENGE_TYPE.TARGET,
+      challengeStyle: data.challengeStyle || CHALLENGE_STYLE.INDIVIDUAL,
+      targetValue: data.targetValue || null,
+      targetField: data.targetField || null,
+      participants: data.participants || [],
+      status: data.status || CHALLENGE_STATUS.OPEN,
+      progress: data.progress || 0,
+      conditions: data.conditions || [],
       ...data
     });
   }

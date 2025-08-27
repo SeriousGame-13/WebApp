@@ -1,8 +1,10 @@
 import CompetitonSystem from './CompetitionSystem';
 import UserManagement from './UserManagementSystem';
 import BadgeManagement from "./BadgeManagement";
-import { createCustomAnalytics } from "../../utils/FirestoreAnalytics";
-import { CHALLENGE_STYLE } from '../interfaces/constants';
+import { CHALLENGE_STATUS, CHALLENGE_STYLE } from '../interfaces/constants';
+import FirestoreManager from './FirestoreManager';
+import { aggregate, buildConditions } from '../../utils/helper';
+import ChallengeManagement from './ChallengeManagement';
 
 /**
  * Awards rewards to challenge participants
@@ -77,7 +79,6 @@ const awardTournamentRewards = async (challengeId) => {
  */
 const awardBadges = async (userId) => {
     const user = await UserManagement.getUser(userId);
-
     const mappingData = { user: user };
 
     const badges = await BadgeManagement.getAllBadges();
@@ -104,37 +105,16 @@ const awardBadges = async (userId) => {
         });
 
         const rawConditions = badge.conditions.split('\n');
+        const conditions = buildConditions(rawConditions, mappingData);
 
-        let conditions = [];
-        rawConditions.forEach(str => {
-            const temp = str.split(',');
-            let cond = {};
-            if (temp.length > 1) {
-                temp.forEach(x => {
-                    let t = x.split(':');
-                    cond[t[0]] = t[1];
-                });
-                if (cond['value'].includes('{')) {
-                    const tt = cond['value'].replaceAll('{', '').replaceAll('}', '').split('.');
-                    let curData = mappingData;
-                    for(let n of tt){
-                        curData = curData[n];
-                    }
-                    cond['value'] = curData;
-                }
-                conditions.push(cond);
-
-            }
-        });
-
-
-        const analytics = createCustomAnalytics(structure, mapping);
-        const totalCalories = await analytics.query({
-            targetDepth: 2,
-            sumField: 'calories',
-            conditions: conditions,
-        });
-        console.log(totalCalories);
+        const docs = await FirestoreManager.queryDocuments(badge.collection, conditions);
+        if (!docs) {
+            continue;
+        }
+        const result = aggregate([{ function: badge.aggregate, field: badge.field }], docs.docs);
+        if (result[Object.keys(result)[0]] >= badge.valueToReach) {
+            UserManagement.awardBadge(userId, badge.uid);
+        }
     }
 };
 

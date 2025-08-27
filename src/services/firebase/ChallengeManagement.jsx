@@ -1,12 +1,31 @@
 import FirebaseManager from './FirestoreManager.jsx';
-import { serverTimestamp } from 'firebase/firestore';
 import { Challenge, ChallengeParticipant } from '../interfaces/challenge.jsx';
 import { CHALLENGE_VISIBILITY, CHALLENGE_PARTICIPATION_STATUS } from '../interfaces/constants.jsx';
 import UserManagement from './UserManagementSystem.jsx';
 import GroupManagement from './GroupManagementSystem.jsx';
-import { CHALLENGES_COLLECTION, CHALLENGE_PARTICIPANTS_SUBCOLLECTION, EXERCISE_COLLECTION } from './collections.jsx';
-import { buildConditions } from '../../utils/helper.jsx';
-
+import { CHALLENGES_COLLECTION, CHALLENGE_PARTICIPANTS_SUBCOLLECTION } from './collections';
+import { serverTimestamp, Timestamp } from 'firebase/firestore';
+import FirestoreManager from './FirestoreManager.jsx';
+import { aggregate, buildConditions } from '../../utils/helper.jsx';
+import RewardSystem from './RewardSystem.jsx';
+/**
+ * Creates a new challenge in the database with the provided challenge data.
+ * Automatically assigns participants based on challenge visibility and type.
+ * @param {Object} challengeData - The challenge data object
+ * @param {string} challengeData.name - The name of the challenge
+ * @param {string} challengeData.description - The description of the challenge
+ * @param {number} challengeData.startDate - The start date timestamp
+ * @param {number} challengeData.endDate - The end date timestamp
+ * @param {string} challengeData.creatorId - The ID of the user creating the challenge
+ * @param {number} challengeData.rewardPoints - The reward points for completing the challenge
+ * @param {string} challengeData.challengeType - The type of challenge
+ * @param {string} challengeData.visibility - The visibility level (PUBLIC, PRIVATE, GROUP, HIDDEN)
+ * @param {string} [challengeData.groupId] - The group ID if this is a group challenge
+ * @param {string} [challengeData.targetExerciseId] - The target exercise ID if applicable
+ * @param {number} [challengeData.targetValue] - The target value to achieve
+ * @returns {Promise<Challenge>} The created Challenge object with assigned challengeId
+ * @throws {Error} If challenge creation fails or document creation fails
+ */
 const createChallenge = async (challengeData) => {
     try {
         const challenge = new Challenge({
@@ -440,6 +459,55 @@ const completeChallengeForUser = async (challengeId, userId) => {
     }
 };
 
+const updateProgress = async (challengeId) => {
+    const conditions = [];
+    const promise = getChallenge(challengeId);
+    const participants = await getChallengeParticipants(challengeId);
+    participants.forEach(part => {
+        conditions.push({ field: 'userId', operator: '==', value: part.userId });
+    });
+
+    const challenge = await promise;
+
+    const challengeConditions = buildConditions(challenge.conditions.split('\n'), []);
+    challengeConditions.map(o => conditions.push(o))
+
+    let start = challenge.startDate;
+    if (!challenge.startDate?.toDate) {
+
+        start = Timestamp.fromMillis(start);
+        console.log(start.toDate())
+    }
+    conditions.push({ field: 'startTime', operator: '>=', value: start })
+    const docs = await FirestoreManager.queryDocuments('exercises', conditions);
+    if (docs == null)
+        return;
+    const result = aggregate([{ function: 'sum', field: 'points' }], docs.docs);
+    const update = { progress: result[Object.keys(result)[0]] };
+    console.log(result[Object.keys(result)[0]]);
+
+    if (challenge.status !== CHALLENGE_STATUS.FINISHED && result[Object.keys(result)[0]] >= challenge.targetValue) {
+        RewardSystem.awardChallengeRewards(challengeId);
+    }
+    updateChallenge(challengeId, update)
+}
+
+/**
+ * Challenge Management System
+ * 
+ * Provides comprehensive challenge management functionality including:
+ * - Creating new challenges with automatic participant assignment
+ * - Retrieving challenges by various filters (all, public, group-specific, user-specific)
+ * - Managing challenge participation (join/leave)
+ * - Updating and deleting challenges
+ * - Handling challenge completion for users
+ * - Managing group-based challenge assignments
+ * 
+ * Supports different challenge visibility levels and automatic user assignment
+ * based on challenge type and user group memberships.
+ * 
+ * @namespace ChallengeManagement
+ */
 const ChallengeManagement = {
     createChallenge,
     getAllChallenges,

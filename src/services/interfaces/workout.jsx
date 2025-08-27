@@ -67,6 +67,13 @@ export class Workout extends BaseModel {
       return total + exer.calories;
     }, 0));
   }
+
+  getHeartRate() {
+    if (!this.exercises || this.exercises.length === 0) return 0;
+    return (this.exercises.reduce((total, exer) => {
+      return total + exer.heartRateAvg;
+    }, 0));
+  }
 }
 
 

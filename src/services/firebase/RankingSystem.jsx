@@ -12,8 +12,10 @@
  * @version 1.0.0
  */
 
-import FirebaseManager from './FirestoreManager';
 import UserManagement from './UserManagementSystem.jsx'
+import StationManager from './StationManagement.jsx';
+import { HIGHSCORE_COLLECTION } from './collections.jsx';
+import FirestoreManager from './FirestoreManager.jsx';
 
 /**
  * Retrieves the points ranking position for a specific user.
@@ -68,6 +70,82 @@ const getTopUsersLevelRankings = async (limit = 10) => {
 };
 
 /**
+ * Retrieves all stations available in the system.
+ * @returns {Promise<Object[]>} Array of station objects
+ */
+const getAllStations = async () => {
+    try {
+        return await StationManager.loadAll();
+    } catch (error) {
+        console.error('Failed to get stations:', error);
+        return [];
+    }
+};
+
+/**
+ * Retrieves the top users ranked by their performance at a specific station.
+ * Returns a leaderboard of users sorted by their points at the specified station.
+ * @param {string} stationId - The ID of the station to get rankings for
+ * @param {number} [limit=10] - The maximum number of top users to return
+ * @returns {Promise<Object[]>} Array of highscore objects with user information
+ */
+const getStationRankings = async (stationId, limit = 10) => {
+    try {
+        // Get all highscores for this station
+        const snapshot = await FirestoreManager.queryDocumentsByFieldValue(HIGHSCORE_COLLECTION, 'stationId', stationId);
+
+        // Filter only points metric and group by user
+        const userScores = {};
+        
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.metric === 'points') {
+                const userId = data.userId;
+                
+                // Initialize user entry if it doesn't exist
+                if (!userScores[userId]) {
+                    userScores[userId] = {
+                        userId: userId,
+                        points: 0,
+                        exerciseCount: 0
+                    };
+                }
+                
+                // Add this score to the user's total
+                userScores[userId].points += data.score;
+                userScores[userId].exerciseCount += 1;
+            }
+        });
+        
+        // Convert to array and sort by total points
+        const rankedUsers = Object.values(userScores)
+            .sort((a, b) => b.points - a.points)
+            .slice(0, limit);
+        
+        // Get user details to add display names
+        const users = await UserManagement.getAllActiveUsers();
+        const userMap = {};
+        users.forEach(user => {
+            userMap[user.uid] = user;
+        });
+        
+        // Map to final format expected by the UI
+        return rankedUsers.map((score, index) => ({
+            uid: score.userId,
+            displayName: userMap[score.userId]?.displayName || 'Unknown User',
+            stationId: stationId,
+            points: score.points,
+            exerciseCount: score.exerciseCount,
+            rank: index + 1,
+            level: userMap[score.userId]?.level || 0
+        }));
+    } catch (error) {
+        console.error('Failed to get station rankings:', error);
+        return [];
+    }
+};
+
+/**
  * @namespace RankingSystem
  * @description Firebase service module for user ranking and leaderboard functionality.
  * Provides methods to retrieve user rankings based on points and levels,
@@ -77,6 +155,8 @@ const RankingSystem = {
     getUserPointsRank,
     getTopUsersPointsRankings,
     getTopUsersLevelRankings,
+    getStationRankings,
+    getAllStations
 }
 
 export default RankingSystem;

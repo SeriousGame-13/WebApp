@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import RankingSystem from '../services/firebase/RankingSystem';
+import StationManager from '../services/firebase/StationManagement';
 import '../components/styles/LayoutElements.css';
 
 function Page({ data }) {
@@ -9,6 +10,8 @@ function Page({ data }) {
     const [isLoading, setIsLoading] = useState(true);
     const [userRank, setUserRank] = useState(null);
     const [orientation, setOrientation] = useState('landscape');
+    const [stations, setStations] = useState([]);
+    const [selectedStation, setSelectedStation] = useState(null);
 
     useEffect(() => {
         const checkOrientation = () => {
@@ -20,6 +23,14 @@ function Page({ data }) {
         window.addEventListener('resize', checkOrientation);
         window.addEventListener('orientationchange', checkOrientation);
 
+        // Load all stations for the dropdown
+        const loadStations = async () => {
+            const stationsList = await StationManager.loadAll();
+            setStations(stationsList);
+        };
+        
+        loadStations();
+
         return () => {
             window.removeEventListener('resize', checkOrientation);
             window.removeEventListener('orientationchange', checkOrientation);
@@ -28,20 +39,21 @@ function Page({ data }) {
 
     useEffect(() => {
         loadRankings();
-    }, [leaderboardType]);
+    }, [leaderboardType, selectedStation]);
 
     const loadRankings = async () => {
         try {
             setIsLoading(true);
             let rankingData = [];
 
-            switch (leaderboardType) {
-                case 'level':
-                    rankingData = await RankingSystem.getTopUsersLevelRankings(50);
-                    break;
-                case 'points':
-                    rankingData = await RankingSystem.getTopUsersPointsRankings(50);
-                    break;
+            if (selectedStation) {
+                rankingData = await RankingSystem.getStationRankings(selectedStation.uid, 50);
+            } else {
+                switch (leaderboardType) {
+                    case 'points':
+                        rankingData = await RankingSystem.getTopUsersPointsRankings(50);
+                        break;
+                }
             }
 
             const enrichedRankings = enrichRankingsWithUserData(rankingData);
@@ -66,9 +78,11 @@ function Page({ data }) {
     };
 
     const getLeaderboardTitle = () => {
+        if (selectedStation) {
+            return `${selectedStation.name} Station Leaderboard`;
+        }
+        
         switch (leaderboardType) {
-            case 'level':
-                return 'Level Leaderboard';
             case 'points':
                 return 'Points Leaderboard';
             default:
@@ -77,9 +91,11 @@ function Page({ data }) {
     };
 
     const getScoreLabel = () => {
+        if (selectedStation) {
+            return 'Station Points';
+        }
+        
         switch (leaderboardType) {
-            case 'level':
-                return 'Level';
             case 'points':
                 return 'Points';
             default:
@@ -88,9 +104,11 @@ function Page({ data }) {
     };
 
     const getScoreValue = (ranking) => {
+        if (selectedStation) {
+            return ranking.points || 0;
+        }
+        
         switch (leaderboardType) {
-            case 'level':
-                return ranking.level || 0;
             case 'points':
                 return ranking.points || 0;
             default:
@@ -113,6 +131,21 @@ function Page({ data }) {
 
     const handleLeaderboardTypeChange = (e) => {
         setLeaderboardType(e.target.value);
+        setSelectedStation(null);
+    };
+    
+    const handleStationChange = (e) => {
+        const stationId = e.target.value;
+        if (stationId === 'points') {
+            setSelectedStation(null);
+            setLeaderboardType('points');
+        } else if (stationId === 'level') {
+            setSelectedStation(null);
+            setLeaderboardType('level');
+        } else {
+            const station = stations.find(s => s.uid === stationId);
+            setSelectedStation(station);
+        }
     };
 
     return (
@@ -131,8 +164,8 @@ function Page({ data }) {
                             <div className='GuideText'>Leaderboard Type</div>
                             <div className='GroupExerciseContents'>
                                 <select 
-                                    value={leaderboardType}
-                                    onChange={handleLeaderboardTypeChange}
+                                    value={selectedStation ? selectedStation.uid : leaderboardType}
+                                    onChange={handleStationChange}
                                     style={{
                                         padding: '8px 12px',
                                         border: '1px solid var(--border-glass)',
@@ -144,8 +177,16 @@ function Page({ data }) {
                                         width: '100%'
                                     }}
                                 >
-                                    <option value="level">Level Rankings</option>
                                     <option value="points">Total Points</option>
+                                    {stations.length > 0 && (
+                                        <>
+                                            {stations.map((station) => (
+                                                <option key={station.uid} value={station.uid}>
+                                                    {station.name}
+                                                </option>
+                                            ))}
+                                        </>
+                                    )}
                                 </select>
                             </div>
 
@@ -157,7 +198,7 @@ function Page({ data }) {
                                     textAlign: 'center',
                                     margin: '30px 0'
                                 }}>
-                                    Mein Ranking: Rank {userRank.rank}
+                                    My Ranking: #{userRank.rank}
                                 </div>
                             )}
 
@@ -214,11 +255,11 @@ function Page({ data }) {
                                         </div>
                                         <div className='CardContents'>
                                             {getScoreLabel()}: {getScoreValue(ranking).toLocaleString()}
-                                        </div>
-                                        <div className='CardContents'>
-                                            Rank: #{ranking.rank} |
-                                            Level: {ranking.level || 1} |
-                                            Points: {ranking.points || 0}
+                                            {selectedStation && ranking.exerciseCount !== undefined && (
+                                                <span style={{ marginLeft: '10px', fontSize: '14px', color: 'var(--light-color)' }}>
+                                                    ({ranking.exerciseCount} {ranking.exerciseCount === 1 ? 'exercise' : 'exercises'})
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
                                 ))
@@ -233,8 +274,8 @@ function Page({ data }) {
                                 <div className='GuideText'>Leaderboard Type</div>
                                 <div className='GroupExerciseContents'>
                                     <select 
-                                        value={leaderboardType}
-                                        onChange={handleLeaderboardTypeChange}
+                                        value={selectedStation ? selectedStation.uid : leaderboardType}
+                                        onChange={handleStationChange}
                                         style={{
                                             padding: '8px 12px',
                                             border: '1px solid var(--border-glass)',
@@ -246,8 +287,16 @@ function Page({ data }) {
                                             width: '100%'
                                         }}
                                     >
-                                        <option value="level">Level Rankings</option>
                                         <option value="points">Total Points</option>
+                                        {stations.length > 0 && (
+                                            <>
+                                                {stations.map((station) => (
+                                                    <option key={station.uid} value={station.uid}>
+                                                        {station.name}
+                                                    </option>
+                                                ))}
+                                            </>
+                                        )}
                                     </select>
                                 </div>
 
@@ -315,6 +364,11 @@ function Page({ data }) {
                                             </div>
                                             <div className='CardContents'>
                                                 {getScoreLabel()}: {getScoreValue(ranking).toLocaleString()}
+                                                {selectedStation && ranking.exerciseCount !== undefined && (
+                                                    <span style={{ marginLeft: '10px', fontSize: '14px', color: 'var(--light-color)' }}>
+                                                        ({ranking.exerciseCount} {ranking.exerciseCount === 1 ? 'exercise' : 'exercises'})
+                                                    </span>
+                                                )}
                                             </div>
                                             <div className='CardContents'>
                                                 Points: {ranking.points || 0}

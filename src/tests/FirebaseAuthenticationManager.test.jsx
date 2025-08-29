@@ -8,7 +8,6 @@
  * @author Igor, Alexander, Hyunu, Robert
  * @version 1.0.0
  */
-import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Define mock user object for testing
 const mockUser = {

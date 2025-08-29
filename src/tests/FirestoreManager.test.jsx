@@ -8,7 +8,6 @@
  * @author Igor, Alexander, Hyunu, Robert
  * @version 1.0.0
  */
-import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Mock Firebase configuration first
 vi.mock('../services/firebase/FirebaseAppConfiguration', () => ({

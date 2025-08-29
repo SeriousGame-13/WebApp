@@ -69,18 +69,6 @@ const getTopUsersLevelRankings = async (limit = 10) => {
     }
 };
 
-/**
- * Retrieves all stations available in the system.
- * @returns {Promise<Object[]>} Array of station objects
- */
-const getAllStations = async () => {
-    try {
-        return await StationManager.loadAll();
-    } catch (error) {
-        console.error('Failed to get stations:', error);
-        return [];
-    }
-};
 
 /**
  * Retrieves the top users ranked by their performance at a specific station.
@@ -156,7 +144,6 @@ const RankingSystem = {
     getTopUsersPointsRankings,
     getTopUsersLevelRankings,
     getStationRankings,
-    getAllStations
 }
 
 export default RankingSystem;

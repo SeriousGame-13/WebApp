@@ -88,11 +88,14 @@ body, html {
   -webkit-background-clip: text;
   color: transparent;
   letter-spacing: -0.025em;
+  margin: 0%;
 }
 
 .screen-subtitle {
   color: #94a3b8;
-  margin-top: 0.25rem;
+  text-align: left;
+  margin-top: -0.5rem;
+  margin-left: 0rem;
 }
 
 .screen-main {
@@ -100,6 +103,16 @@ body, html {
   padding: 0 1.25rem 8rem;
   position: relative;
   z-index: 10;
+}
+
+.Badge-title {
+  letter-spacing: -0.025em;
+  margin: 0%;
+}
+
+.Badge-subtitle {
+  text-align: left;
+  margin-top: -0.5rem;
 }
 
 /* Cards */

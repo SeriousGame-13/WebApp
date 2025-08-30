@@ -115,18 +115,44 @@ function Screen({ children, title, subtitle, titleNode }) {
   );
 }
 
-function Legend() {
-  const item = (lvl, cls) => (
+function Legend({ userBadgesMap, allBadges }) {
+  // Count badges by rarity that the user has unlocked
+  const rarityCount = {
+    common: 0,
+    uncommon: 0,
+    rare: 0,
+    epic: 0,
+    legendary: 0
+  };
+
+  allBadges.forEach(badge => {
+    const badgeId = badge.id || badge.badgeId;
+    if (userBadgesMap && userBadgesMap.has(badgeId)) {
+      const rarity = badge.rarity?.toLowerCase() || 'common';
+      if (rarityCount.hasOwnProperty(rarity)) {
+        rarityCount[rarity]++;
+      }
+    }
+  });
+
+  const item = (label, count, color) => (
     <div className="flex items-center gap-2">
-      <span className={`inline-block w-4 h-4 rounded ${cls}`} />
-      <span className="text-xs text-slate-300">Level {lvl}</span>
+      <span className="inline-block w-4 h-4 rounded" style={{ backgroundColor: color }} />
+      <span className="text-xs text-slate-300">{label}: {count}</span>
     </div>
   );
+  
   return (
-    <div className="flex items-center gap-4">
-      {item(1, badgeLevelColor(1))}
-      {item(2, badgeLevelColor(2))}
-      {item(3, badgeLevelColor(3))}
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center gap-4">
+        {item("Common", rarityCount.common, '#808080')}
+        {item("Uncommon", rarityCount.uncommon, '#1eff00')}
+        {item("Rare", rarityCount.rare, '#0070dd')}
+      </div>
+      <div className="flex items-center gap-4">
+        {item("Epic", rarityCount.epic, '#a335ee')}
+        {item("Legendary", rarityCount.legendary, '#ff8000')}
+      </div>
     </div>
   );
 }
@@ -178,25 +204,137 @@ const ALL_BADGES = [
   { id: "club", name: "Club Member", icon: <Users className="w-5 h-5" /> },
 ];
 
+// ---------- Badge Item Component ----------
+function BadgeItem({ badge, userBadgeLevel, onClick }) {
+  const [badgeImage, setBadgeImage] = useState(null);
+  const [imageLoading, setImageLoading] = useState(true);
+
+  useEffect(() => {
+    const loadBadgeImage = async () => {
+      if (!badge?.badgeId) {
+        setImageLoading(false);
+        return;
+      }
+
+      setImageLoading(true);
+      try {
+        const imageBase64 = await BadgeManagement.getBadgeImage(badge.badgeId);
+        setBadgeImage(imageBase64);
+      } catch (error) {
+        console.error('Failed to load badge image:', error);
+        setBadgeImage(null);
+      } finally {
+        setImageLoading(false);
+      }
+    };
+
+    loadBadgeImage();
+  }, [badge?.badgeId]);
+
+  const badgeId = badge.id || badge.badgeId;
+  const unlocked = !!userBadgeLevel;
+
+  // Fallback to static icon if no image
+  const staticBadge = ALL_BADGES.find(sb => sb.id === badgeId);
+  
+  // Get rarity color
+  const getRarityColor = (rarity) => {
+    const colors = {
+      'common': '#808080',
+      'uncommon': '#1eff00', 
+      'rare': '#0070dd',
+      'epic': '#a335ee',
+      'legendary': '#ff8000'
+    };
+    return colors[rarity?.toLowerCase()] || colors.common;
+  };
+
+  // Get rarity style class
+  const getRarityClass = (rarity) => {
+    if (!unlocked) return "badge-locked";
+    
+    const rarityClasses = {
+      'common': "badge-level-1",
+      'uncommon': "badge-level-2", 
+      'rare': "badge-level-3",
+      'epic': "badge-level-3",
+      'legendary': "badge-level-3"
+    };
+    return rarityClasses[rarity?.toLowerCase()] || "badge-level-1";
+  };
+  
+  return (
+    <Card onClick={() => onClick(badgeId)}>
+      <div className="flex flex-col items-center gap-2">
+        <div className={`p-3 rounded-xl ${getRarityClass(badge.rarity)}`}>
+          {imageLoading ? (
+            <div className="w-5 h-5 bg-slate-600 rounded animate-pulse" />
+          ) : badgeImage ? (
+            <img 
+              src={badgeImage} 
+              alt={badge.name}
+              className="w-5 h-5 object-contain"
+            />
+          ) : staticBadge?.icon ? (
+            staticBadge.icon
+          ) : (
+            <Star className="w-5 h-5" />
+          )}
+        </div>
+        <div className="text-center">
+          <p className="text-sm font-medium truncate" style={{ maxWidth: '8rem' }}>
+            {badge.name}
+          </p>
+          <p 
+            className="text-xs font-medium truncate capitalize" 
+            style={{ 
+              maxWidth: '8rem',
+              color: unlocked ? getRarityColor(badge.rarity) : '#9CA3AF'
+            }}
+          >
+            {unlocked ? (badge.rarity || 'Common') : "Locked"}
+          </p>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
 // ---------- Badge Detail Modal ----------
 function BadgeDetailModal({ badgeId, open, onClose, allBadges, userBadgesMap }) {
   const [badge, setBadge] = useState(null);
+  const [badgeImage, setBadgeImage] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!open || !badgeId) return;
 
-    setLoading(true);
-    try {
-      // Find badge from allBadges array
-      const foundBadge = allBadges.find(b => (b.id || b.badgeId) === badgeId);
-      setBadge(foundBadge || null);
-    } catch (error) {
-      console.error('Failed to load badge details:', error);
-      setBadge(null);
-    } finally {
-      setLoading(false);
-    }
+    const loadBadgeDetails = async () => {
+      setLoading(true);
+      try {
+        // Find badge from allBadges array
+        const foundBadge = allBadges.find(b => (b.id || b.badgeId) === badgeId);
+        setBadge(foundBadge || null);
+
+        // Load badge image if it's a Firebase badge
+        if (foundBadge?.badgeId) {
+          try {
+            const imageBase64 = await BadgeManagement.getBadgeImage(foundBadge.badgeId);
+            setBadgeImage(imageBase64);
+          } catch (error) {
+            console.error('Failed to load badge image:', error);
+            setBadgeImage(null);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load badge details:', error);
+        setBadge(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadBadgeDetails();
   }, [badgeId, open, allBadges]);
 
   if (!open) return null;
@@ -204,35 +342,83 @@ function BadgeDetailModal({ badgeId, open, onClose, allBadges, userBadgesMap }) 
   const userBadgeLevel = userBadgesMap?.get(badgeId);
   const unlocked = !!userBadgeLevel;
 
+  // Fallback to static icon
+  const staticBadge = ALL_BADGES.find(sb => sb.id === badgeId);
+
+  // Get rarity color
+  const getRarityColor = (rarity) => {
+    const colors = {
+      'common': '#808080',
+      'uncommon': '#1eff00', 
+      'rare': '#0070dd',
+      'epic': '#a335ee',
+      'legendary': '#ff8000'
+    };
+    return colors[rarity?.toLowerCase()] || colors.common;
+  };
+
+  // Get rarity style class
+  const getRarityClass = (rarity) => {
+    if (!unlocked) return "badge-locked";
+    
+    const rarityClasses = {
+      'common': "badge-level-1",
+      'uncommon': "badge-level-2", 
+      'rare': "badge-level-3",
+      'epic': "badge-level-3",
+      'legendary': "badge-level-3"
+    };
+    return rarityClasses[rarity?.toLowerCase()] || "badge-level-1";
+  };
+
   return (
-    <Modal open={open} onClose={onClose} title="Badge Details" size="sm">
+    <Modal open={open} onClose={onClose} title={badge?.name || "Badge Details"} size="md">
       <div className="p-4">
         {loading ? (
           <div className="text-center text-slate-400 py-4">Loading...</div>
         ) : badge ? (
-          <div className="text-center space-y-4">
-            <div className="flex justify-center">
-              <div className={`p-4 rounded-xl ${unlocked ? badgeLevelColor(userBadgeLevel) : "badge-locked"}`}>
-                {badge.icon}
+          <div className="space-y-4">
+            {/* Badge Header */}
+            <div className="flex items-center gap-4">
+              <div className={`p-4 rounded-xl ${getRarityClass(badge.rarity)}`}>
+                {badgeImage ? (
+                  <img 
+                    src={badgeImage} 
+                    alt={badge.name}
+                    className="w-8 h-8 object-contain"
+                  />
+                ) : staticBadge?.icon ? (
+                  staticBadge.icon
+                ) : (
+                  <Star className="w-8 h-8" />
+                )}
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-white Badge-title">{badge.name}</h3>
+                <p className="text-sm text-slate-400 Badge-subtitle">
+                  {unlocked ? "Freigeschaltet" : "Gesperrt"}
+                </p>
               </div>
             </div>
-            <div>
-              <h3 className="text-lg font-semibold text-white">{badge.name}</h3>
-              {badge.description ? (
-                <p className="text-sm text-slate-400 mt-2">{badge.description}</p>
-              ) : (
-                <p className="text-sm text-slate-400 mt-2">
-                  Complete specific challenges to unlock and upgrade this badge.
-                </p>
-              )}
+
+            {/* Badge Description */}
+            {badge.description && (
+              <p className="text-sm text-slate-300 Badge-subtitle">{badge.description}</p>
+            )}
+
+            {/* Badge Info */}
+            <div className="pt-4 border-t border-white/10 space-y-2">
               {badge.rarity && (
-                <p className="text-xs text-slate-500 mt-1 capitalize">
-                  Rarity: {badge.rarity}
+                <p 
+                  className="text-sm font-medium capitalize"
+                  style={{ color: getRarityColor(badge.rarity) }}
+                >
+                  {badge.rarity} Badge
                 </p>
               )}
-              {unlocked && (
-                <p className="text-sm text-green-400 mt-2 font-medium">
-                  Unlocked - Level {userBadgeLevel}
+              {badge.rewardPoints && (
+                <p className="text-xs text-slate-500">
+                  Belohnungspunkte: {badge.rewardPoints}
                 </p>
               )}
             </div>
@@ -412,62 +598,46 @@ function Page({ data, onOpenBadge, onOpenSettings, onUserUpdated }) {
       try {
         setIsLoadingBadges(true);
         
-        // Try to load all badges from Firebase
-        let firebaseBadges = [];
-        try {
-          firebaseBadges = await BadgeManagement.getAllBadges();
-        } catch (error) {
-          console.warn('Failed to load badges from Firebase:', error);
-        }
-
-        // Merge Firebase badges with static badges
-        const badgeMap = new Map();
+        // Load all badges from Firebase
+        const firebaseBadges = await BadgeManagement.getAllBadges();
         
-        // Add static badges first
-        ALL_BADGES.forEach(badge => {
-          badgeMap.set(badge.id, {
-            id: badge.id,
-            name: badge.name,
-            icon: badge.icon,
-            source: 'static'
-          });
-        });
-
-        // Override/add Firebase badges
         if (firebaseBadges && firebaseBadges.length > 0) {
-          firebaseBadges.forEach(badge => {
-            const badgeId = badge.badgeId || badge.id;
-            if (badgeId) {
-              // Find corresponding static badge for icon
-              const staticBadge = ALL_BADGES.find(sb => sb.id === badgeId);
-              badgeMap.set(badgeId, {
-                id: badgeId,
-                badgeId: badge.badgeId,
-                name: badge.name,
-                icon: staticBadge?.icon || <Star className="w-5 h-5" />,
-                rarity: badge.rarity,
-                description: badge.description,
-                source: 'firebase'
-              });
-            }
+          // Use Firebase badges
+          const sortedBadges = firebaseBadges.sort((a, b) => {
+            // Put owned badges first
+            const badgeIdA = a.id || a.badgeId;
+            const badgeIdB = b.id || b.badgeId;
+            const aOwned = userBadgesMap.has(badgeIdA);
+            const bOwned = userBadgesMap.has(badgeIdB);
+            if (aOwned && !bOwned) return -1;
+            if (!aOwned && bOwned) return 1;
+            return a.name.localeCompare(b.name);
           });
+          
+          setAllBadges(sortedBadges);
+        } else {
+          // Fallback to static badges if no Firebase badges
+          console.warn('No badges found in Firebase, using static badges');
+          const sortedStaticBadges = ALL_BADGES.sort((a, b) => {
+            const aOwned = userBadgesMap.has(a.id);
+            const bOwned = userBadgesMap.has(b.id);
+            if (aOwned && !bOwned) return -1;
+            if (!aOwned && bOwned) return 1;
+            return a.name.localeCompare(b.name);
+          });
+          setAllBadges(sortedStaticBadges);
         }
-
-        // Convert map to array and sort
-        const finalBadges = Array.from(badgeMap.values()).sort((a, b) => {
-          // Put owned badges first
+      } catch (error) {
+        console.error('Failed to load badges:', error);
+        // Fallback to static badges on error
+        const sortedStaticBadges = ALL_BADGES.sort((a, b) => {
           const aOwned = userBadgesMap.has(a.id);
           const bOwned = userBadgesMap.has(b.id);
           if (aOwned && !bOwned) return -1;
           if (!aOwned && bOwned) return 1;
           return a.name.localeCompare(b.name);
         });
-
-        setAllBadges(finalBadges);
-      } catch (error) {
-        console.error('Failed to load badges:', error);
-        // Fallback to static badges only
-        setAllBadges(ALL_BADGES);
+        setAllBadges(sortedStaticBadges);
       } finally {
         setIsLoadingBadges(false);
       }
@@ -519,7 +689,7 @@ function Page({ data, onOpenBadge, onOpenSettings, onUserUpdated }) {
               <p className="text-slate-300 text-sm">Badges gesammelt</p>
               <p className="text-xl font-semibold">{ownedCount} / {total}</p>
             </div>
-            <Legend />
+            <Legend userBadgesMap={userBadgesMap} allBadges={allBadges} />
           </div>
         </Card>
 
@@ -534,24 +704,14 @@ function Page({ data, onOpenBadge, onOpenSettings, onUserUpdated }) {
             {allBadges.map((badge) => {
               const badgeId = badge.id || badge.badgeId;
               const userBadgeLevel = userBadgesMap.get(badgeId);
-              const unlocked = !!userBadgeLevel;
               
               return (
-                <Card key={badgeId} onClick={() => handleBadgeClick(badgeId)}>
-                  <div className="flex flex-col items-center gap-2">
-                    <div className={`p-3 rounded-xl ${unlocked ? badgeLevelColor(userBadgeLevel) : "badge-locked"}`}>
-                      {badge.icon}
-                    </div>
-                    <div className="text-center">
-                      <p className="text-sm font-medium truncate" style={{ maxWidth: '8rem' }}>
-                        {badge.name}
-                      </p>
-                      <p className="text-xs text-slate-400">
-                        {unlocked ? `Lvl ${userBadgeLevel}` : "Locked"}
-                      </p>
-                    </div>
-                  </div>
-                </Card>
+                <BadgeItem
+                  key={badgeId}
+                  badge={badge}
+                  userBadgeLevel={userBadgeLevel}
+                  onClick={handleBadgeClick}
+                />
               );
             })}
           </div>

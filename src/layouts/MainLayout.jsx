@@ -87,16 +87,6 @@ function HomePage() {
             case 'user':
                 return (
                 <div className='app-container'>
-                    <header className="screen-header flex justify-between items-center">
-                        <UserInfoHeaderContainer user={userData} />
-                        {/*
-                        <IconContainer />
-                        */}
-                        <button className='btn-secondary'
-                            onClick={UserManagement.logoutUser}>
-                            Logout
-                        </button>
-                    </header>
                     <div className='border-t border-white/10' />
                     <UserPageElements.Page data={userData} />
                     <div className='border-t border-white/10' />

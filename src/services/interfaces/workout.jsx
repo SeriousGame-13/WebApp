@@ -55,7 +55,7 @@ export class Workout extends BaseModel {
 
     return (this.exercises.reduce((total, exercise) => {
       if (exercise.startTime && exercise.endTime) {
-        return total + exercise.getDurationMs(exercise.startTime, exercise.endTime);
+        return total + exercise.getDurationMinutes(exercise.startTime, exercise.endTime);
       }
       return total;
     }, 0));

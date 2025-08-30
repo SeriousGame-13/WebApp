@@ -1,15 +1,13 @@
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 
 import UserManagement from '../services/firebase/UserManagementSystem';
 import ChallengeManagement from '../services/firebase/ChallengeManagement';
-import IconElements from '../components/ui/IconElements';
 import AdminPage from './AdminPage';
-import LayoutElements from '../layouts/LayoutElements';
+import MainLayout from '../layouts/MainLayout';
 
-import '../components/styles/LoginPage.css';
+const NewApp = lazy(() => import('../layouts/newApp.jsx'));
 
-//temp
-//For Test - Hyunu P.
+import '../sphere-styles.css';
 
 function AppLogin() {
     const [showLoginPopup, setShowLoginPopup] = useState(false);
@@ -57,8 +55,11 @@ function AppLogin() {
         }
     };
 
-    // Admin check after log-in
-    if (isLoggedIn && user) {
+    // Admin check after log-in and app selection
+    const [showAppSelectionPopup, setShowAppSelectionPopup] = useState(false);
+    const [selectedApp, setSelectedApp] = useState(null);
+
+    if (isLoggedIn && user && !showAppSelectionPopup && !selectedApp) {
         console.log('Login check - user:', user);
         console.log('Login check - user.isAdmin:', user.isAdmin);
         console.log('Login check - typeof user.isAdmin:', typeof user.isAdmin);
@@ -67,50 +68,85 @@ function AppLogin() {
             console.log('Redirecting to Admin page');
             return <AdminPage.AdminPageMain user={user} />;
         } else {
+            console.log('Showing app selection popup');
+            setShowAppSelectionPopup(true);
+        }
+    }
+
+    // Handle app selection
+    if (isLoggedIn && user && selectedApp) {
+        if (selectedApp === "main") {
             console.log('Redirecting to regular HomePage');
-            return <LayoutElements.HomePage />;
+            return <MainLayout.HomePage />;
+        } else if (selectedApp === "new") {
+            console.log('Redirecting to new App');
+            return (
+                <Suspense fallback={<div>Loading...</div>}>
+                    <NewApp />
+                </Suspense>
+            );
         }
     }
 
     return (
-        <div className='MainContainerWithHeader'>
-            <header />
-            <div />
-            <div className="FirstContainer">
-                <div className='Title'>
-                    This is demo-app
-                </div>
-                <button className='LoginButton'
-                    onClick={() => setShowLoginPopup(true)}>
-                    Login
-                </button>
-                <button className='RegisterButton'
-                    onClick={() => setShowSignupPopup(true)}>
-                    Register
-                </button>
-
-                {showLoginPopup && (
-                    <LoginPopup
-                        onLogin={handleLogin}
-                        onCancel={() => setShowLoginPopup(false)}
-                        isLoading={isLoggingIn}
-                    />
-                )}
-
-                {showSignupPopup && (
-                    <SignupPopup
-                        onSignup={handleSignup}
-                        onCancel={() => setShowSignupPopup(false)}
-                        isLoading={isSigningUp}
-                    />
-                )}
+        <div className='app-container'>
+            <div className='background'>
+                <div className='bg-gradient-1'></div>
+                <div className='bg-gradient-2'></div>
             </div>
-            <div className='Line' />
-            <div className='AppFooter'>
-                <div className='Author'>
-                    <p>Made by. Serious Games Gruppe 13</p>
-                    <p>Alexander Link, Hyunu Park, Igor Ricarte, Robert Rothenberger</p>
+            <div className='screen'>
+                <div className='screen-header'>
+                    <h1 className='screen-title'>Serious Games App</h1>
+                    <p className='screen-subtitle'>Group 13</p>
                 </div>
+                <div className='screen-main'>
+                    <div className='card space-y-4'>
+                        <h2 className='text-center text-xl font-semibold'>Welcome</h2>
+                        <button className='btn-primary w-full'
+                            onClick={() => setShowLoginPopup(true)}>
+                            Login
+                        </button>
+                        <button className='btn-secondary w-full'
+                            onClick={() => setShowSignupPopup(true)}>
+                            Register
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {showLoginPopup && (
+                <LoginPopup
+                    onLogin={handleLogin}
+                    onCancel={() => setShowLoginPopup(false)}
+                    isLoading={isLoggingIn}
+                />
+            )}
+
+            {showSignupPopup && (
+                <SignupPopup
+                    onSignup={handleSignup}
+                    onCancel={() => setShowSignupPopup(false)}
+                    isLoading={isSigningUp}
+                />
+            )}
+            
+            {showAppSelectionPopup && (
+                <AppSelectionPopup
+                    onSelect={(app) => {
+                        setSelectedApp(app);
+                        setShowAppSelectionPopup(false);
+                    }}
+                    onCancel={() => {
+                        // Default to main app if user cancels
+                        setSelectedApp("main");
+                        setShowAppSelectionPopup(false);
+                    }}
+                />
+            )}
+            
+            <div className='footer text-center py-4 text-slate-400 text-sm'>
+                <p>Made by Serious Games Gruppe 13</p>
+                <p>Alexander Link, Hyunu Park, Igor Ricarte, Robert Rothenberger</p>
             </div>
         </div>
     );
@@ -128,38 +164,40 @@ function LoginPopup({ onLogin, onCancel, isLoading }) {
 
     if (isLoading) {
         return (
-            <div className='PopupBackground'>
-                <div className='PopupContainer'>
-                    <h2>...Loging-in...</h2>
+            <div className='modal-overlay'>
+                <div className='modal-backdrop'></div>
+                <div className='modal-content card'>
+                    <h2 className='text-xl font-semibold text-center'>Logging in...</h2>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className='PopupBackground'>
-            <div className='PopupContainer'>
-                <h2>Login</h2>
-                <div className='Inputfield'>
-                    <input className='Input'
+        <div className='modal-overlay'>
+            <div className='modal-backdrop'></div>
+            <div className='modal-content card'>
+                <h2 className='text-xl font-semibold mb-4'>Login</h2>
+                <div className='space-y-3'>
+                    <input className='form-input'
                         type="email"
                         value={id}
                         onChange={(e) => setId(e.target.value)}
                         placeholder="Email"
                     />
-                    <input className='Input'
+                    <input className='form-input'
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="Password"
                     />
                 </div>
-                <div className='Line'></div>
-                <div className='Buttonfield'>
-                    <button className='CancelButton' onClick={onCancel}>
+                <div className='border-t border-white/10 my-4'></div>
+                <div className='flex justify-end gap-2'>
+                    <button className='btn-secondary' onClick={onCancel}>
                         Cancel
                     </button>
-                    <button className='ConfirmButton' onClick={handleConfirm}>
+                    <button className='btn-primary' onClick={handleConfirm}>
                         Confirm
                     </button>
                 </div>
@@ -181,45 +219,81 @@ function SignupPopup({ onSignup, onCancel, isLoading }) {
 
     if (isLoading) {
         return (
-            <div className='PopupBackground'>
-                <div className='PopupContainer'>
-                    <h2>...Registering...</h2>
+            <div className='modal-overlay'>
+                <div className='modal-backdrop'></div>
+                <div className='modal-content card'>
+                    <h2 className='text-xl font-semibold text-center'>Registering...</h2>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className='PopupBackground'>
-            <div className='PopupContainer'>
-                <h2>Register</h2>
-                <div className='Inputfield'>
-                    <input className='Input'
+        <div className='modal-overlay'>
+            <div className='modal-backdrop'></div>
+            <div className='modal-content card'>
+                <h2 className='text-xl font-semibold mb-4'>Register</h2>
+                <div className='space-y-3'>
+                    <input className='form-input'
                         type="text"
                         value={nickname}
                         onChange={(e) => setNickname(e.target.value)}
                         placeholder="Name"
                     />
-                    <input className='Input'
+                    <input className='form-input'
                         type="email"
                         value={id}
                         onChange={(e) => setId(e.target.value)}
                         placeholder="Email"
                     />
-                    <input className='Input'
+                    <input className='form-input'
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="Password"
                     />
                 </div>
-                <div className='Line'></div>
-                <div className='Buttonfield'>
-                    <button className='CancelButton' onClick={onCancel}>
+                <div className='border-t border-white/10 my-4'></div>
+                <div className='flex justify-end gap-2'>
+                    <button className='btn-secondary' onClick={onCancel}>
                         Cancel
                     </button>
-                    <button className='ConfirmButton' onClick={handleConfirm}>
+                    <button className='btn-primary' onClick={handleConfirm}>
                         Confirm
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function AppSelectionPopup({ onSelect, onCancel }) {
+    return (
+        <div className='modal-overlay'>
+            <div className='modal-backdrop'></div>
+            <div className='modal-content card'>
+                <h2 className='text-xl font-semibold mb-4'>Choose Application</h2>
+                <p className='text-sm text-slate-300 mb-4'>Select which version of the app you'd like to use:</p>
+                
+                <div className='space-y-3'>
+                    <button 
+                        className='btn-primary w-full'
+                        onClick={() => onSelect('main')}
+                    >
+                        Main Application
+                    </button>
+                    <button 
+                        className='btn-secondary w-full'
+                        onClick={() => onSelect('new')}
+                    >
+                        New Application
+                    </button>
+                </div>
+                
+                <div className='border-t border-white/10 my-4'></div>
+                <div className='flex justify-end'>
+                    <button className='btn-tertiary' onClick={onCancel}>
+                        Cancel
                     </button>
                 </div>
             </div>

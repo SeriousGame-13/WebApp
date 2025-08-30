@@ -1,31 +1,15 @@
-//import LoginPage from './pages/LoginPage';
-//import './App.css';
-
-//function App() {
-//  return (
-//    <>
-//      <div className="App">
-//        <LoginPage.AppLogin />
-//      </div> 
-//    </>
-//  );
-//}
-
-//export default App;
-
-
-import Layout from './newpages/Layout';
+import LoginPage from './pages/LoginPage';
 import './App.css';
+
 
 function App() {
   return (
     <>
       <div className="App">
-        <Layout />
+        <LoginPage.AppLogin />
       </div> 
     </>
   );
 }
 
 export default App;
-

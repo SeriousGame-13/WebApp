@@ -4,11 +4,192 @@ import IconElements from '../components/ui/IconElements';
 import UserManagement from '../services/firebase/UserManagementSystem';
 import GroupManagement from '../services/firebase/GroupManagementSystem';
 import ChallengeManagement from '../services/firebase/ChallengeManagement';
-import { CHALLENGE_TYPE } from '../services/interfaces/constants';
-import DatamanagerElements from '../utils/dataManager';
 
 import '../components/styles/LayoutElements.css'
 import '../components/styles/GroupPage.css'
+
+function newGroups({ groups, setGroups, joinedIds, setJoinedIds }) {
+  const [search, setSearch] = useState("");
+  const [opened, setOpened] = useState(null);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newDesc, setNewDesc] = useState("");
+
+  const filtered = useMemo(() => 
+    groups.filter(g => g.name.toLowerCase().includes(search.toLowerCase())), 
+    [groups, search]
+  );
+  
+  const current = opened ? groups.find(g => g.id === opened) : null;
+
+  const createGroup = () => {
+    if (!newName.trim()) return;
+    const id = `g${Math.random().toString(36).slice(2, 7)}`;
+    const g = { 
+      id, 
+      name: newName, 
+      members: 1, 
+      description: newDesc || "", 
+      memberIds: ["me"] 
+    };
+    setGroups(prev => [g, ...prev]);
+    setCreateOpen(false); 
+    setNewName(""); 
+    setNewDesc("");
+  };
+
+  const toggleJoin = (gid) => {
+    setGroups(prev => prev.map(g => {
+      if (g.id !== gid) return g;
+      const already = (g.memberIds || []).includes("me");
+      const memberIds = already 
+        ? g.memberIds.filter(id => id !== "me") 
+        : [...(g.memberIds || []), "me"]; 
+      const members = Math.max(0, (g.members || memberIds.length) + (already ? -1 : 1));
+      return { ...g, memberIds, members };
+    }));
+    const set = new Set(joinedIds);
+    if (set.has(gid)) set.delete(gid); else set.add(gid);
+    setJoinedIds(Array.from(set));
+  };
+
+  const getUserById = (id) => {
+    if (id === "me") return { id: "me", name: DUMMY_USER.name };
+    const u = BASE_USERS.find(u => u.id === id);
+    return u ? { id: u.id, name: u.name } : { id, name: `Member ${id}` };
+  };
+
+  return (
+    <Screen title="Groups" subtitle={opened ? current?.name : "My Groups"}>
+      {!opened && (
+        <>
+          <div className="mb-4 flex items-center gap-2">
+            <div className="search-container">
+              <Search className="search-icon" />
+              <input
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Search groups"
+                className="search-input"
+              />
+            </div>
+            <button 
+              onClick={() => setCreateOpen(true)} 
+              className="btn-primary flex items-center gap-2 px-3 py-2"
+            >
+              <Plus className="w-4 h-4" /> Create
+            </button>
+          </div>
+
+          <div className="space-y-3">
+            {filtered.map(g => (
+              <Card key={g.id}>
+                <div className="flex items-center gap-3">
+                  <div className="rounded-full bg-white/10 p-3">
+                    <Users className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-lg font-semibold">{g.name}</p>
+                    <p className="text-slate-400 text-sm">{g.members} members</p>
+                  </div>
+                  <button 
+                    onClick={() => setOpened(g.id)} 
+                    className="btn-secondary"
+                  >
+                    Open
+                  </button>
+                </div>
+              </Card>
+            ))}
+          </div>
+
+          <Modal open={createOpen} onClose={() => setCreateOpen(false)} title="Create Group" size="sm">
+            <div className="space-y-3">
+              <label className="form-label">
+                Name
+                <input 
+                  value={newName} 
+                  onChange={e=>setNewName(e.target.value)} 
+                  className="form-input mt-1" 
+                />
+              </label>
+              <label className="form-label">
+                Description
+                <textarea 
+                  value={newDesc} 
+                  onChange={e=>setNewDesc(e.target.value)} 
+                  className="form-textarea mt-1" 
+                  rows={3} 
+                />
+              </label>
+              <div className="flex justify-end gap-2">
+                <button 
+                  onClick={()=>setCreateOpen(false)} 
+                  className="btn-secondary"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={createGroup} 
+                  className="btn-primary"
+                >
+                  Create
+                </button>
+              </div>
+            </div>
+          </Modal>
+        </>
+      )}
+
+      {opened && current && (
+        <div className="space-y-4">
+          <button 
+            onClick={() => setOpened(null)} 
+            className="text-sm text-slate-300 hover:text-white cursor-pointer"
+            style={{ background: 'none', border: 'none' }}
+          >
+            ← Back
+          </button>
+          
+          <Card>
+            <p className="text-slate-300 mb-2">{current.description}</p>
+            <p className="text-slate-400 text-sm">Members: {current.members}</p>
+          </Card>
+
+          <div>
+            <h4 className="mb-2 text-slate-200 font-semibold">Members</h4>
+            <div className="space-y-2">
+              {(current.memberIds || []).map((mid) => {
+                const m = getUserById(mid);
+                return (
+                  <Card key={mid}>
+                    <div className="flex items-center gap-3">
+                      <Avatar name={m.name} size={36} seed={mid} />
+                      <span className="font-medium">{m.name}</span>
+                    </div>
+                  </Card>
+                );
+              })}
+              {!(current.memberIds && current.memberIds.length) && (
+                <p className="text-slate-400 text-sm">No members yet.</p>
+              )}
+            </div>
+          </div>
+
+          <div className="flex gap-2">
+            <button 
+              onClick={() => toggleJoin(current.id)} 
+              className={joinedIds.includes(current.id) ? "btn-secondary" : "btn-primary"}
+            >
+              {joinedIds.includes(current.id) ? "Joined" : "Join Group"}
+            </button>
+          </div>
+        </div>
+      )}
+    </Screen>
+  );
+}
+
 
 const resizeImage = (file, width = 150, height = 150, quality = 0.8) => {
     return new Promise((resolve, reject) => {
@@ -79,26 +260,28 @@ function CreateGroupPopup({ onCreateGroup, onCancel, isCreating }) {
 
     if (isCreating) {
         return (
-            <div className='PopupBackground'>
-                <div className='PopupContainer'>
-                    <h2>Creating Group...</h2>
+            <div className='modal-overlay'>
+                <div className='modal-backdrop'></div>
+                <div className='modal-content'>
+                    <h2 className='modal-title'>Creating Group...</h2>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className='PopupBackground'>
-            <div className='LargePopupContainer'>
-                <h2>Create Group</h2>
+        <div className='modal-overlay'>
+            <div className='modal-backdrop'></div>
+            <div className='modal-content'>
+                <h2 className='modal-title'>Create Group</h2>
                 
-                <div className='BadgeCreateContent'>
-                    <div className='BadgeInputSection'>
-                        <div className='BadgeImageSection'>
-                            <div className="GuideText" style={{ textAlign: 'center', marginBottom: '16px' }}>
+                <div className='space-y-4'>
+                    <div className='form-group'>
+                        <div className='text-center mb-4'>
+                            <div className="text-slate-300 mb-4">
                                 Group Image
                             </div>
-                            <div className="BadgeImageContainer" style={{ textAlign: 'center' }}>
+                            <div className="text-center">
                                 {imagePreview ? (
                                     <img 
                                         src={imagePreview} 
@@ -134,19 +317,18 @@ function CreateGroupPopup({ onCreateGroup, onCancel, isCreating }) {
                                     style={{ display: 'none' }}
                                 />
                                 <button 
-                                    className='AdminActionButton'
+                                    className='btn-secondary mt-2'
                                     onClick={handleImageButtonClick}
-                                    style={{ marginTop: '10px' }}
                                 >
                                     {imagePreview ? 'Change Image' : 'Upload Image'}
                                 </button>
                             </div>
                         </div>
 
-                        <div className='BadgeInputGroup'>
-                            <label className='BadgeInputLabel'>Group Name</label>
+                        <div className='form-group'>
+                            <label className='form-label'>Group Name</label>
                             <input 
-                                className='Input'
+                                className='form-input'
                                 type="text"
                                 value={groupName}
                                 onChange={(e) => setGroupName(e.target.value)}
@@ -155,10 +337,10 @@ function CreateGroupPopup({ onCreateGroup, onCancel, isCreating }) {
                             />
                         </div>
                         
-                        <div className='BadgeInputGroup'>
-                            <label className='BadgeInputLabel'>Description</label>
+                        <div className='form-group'>
+                            <label className='form-label'>Description</label>
                             <input 
-                                className='Input'
+                                className='form-input'
                                 type="text"
                                 value={groupDescription}
                                 onChange={(e) => setGroupDescription(e.target.value)}
@@ -167,46 +349,45 @@ function CreateGroupPopup({ onCreateGroup, onCancel, isCreating }) {
                             />
                         </div>
 
-                        <div className='BadgeInputGroup'>
-                            <label className='BadgeInputLabel'>Privacy Setting</label>
-                            <div className='PrivacySelector'>
-                                <label className='PrivacyOption'>
+                        <div className='form-group'>
+                            <label className='form-label'>Privacy Setting</label>
+                            <div className='flex space-x-4'>
+                                <label className='flex items-center'>
                                     <input
                                         type="radio"
                                         name="privacy"
                                         checked={!isPrivate}
                                         onChange={() => setIsPrivate(false)}
+                                        className="mr-2"
                                     />
-                                    <span>Public Group</span>
+                                    <span className="text-slate-200">Public Group</span>
                                 </label>
-                                <label className='PrivacyOption'>
+                                <label className='flex items-center'>
                                     <input
                                         type="radio"
                                         name="privacy"
                                         checked={isPrivate}
                                         onChange={() => setIsPrivate(true)}
+                                        className="mr-2"
                                     />
-                                    <span>Private Group</span>
+                                    <span className="text-slate-200">Private Group</span>
                                 </label>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div className='BadgeCreateFooter'>
-                    <div className='Line'></div>
-                    <div className='Buttonfield'>
-                        <button className='CancelButton' onClick={onCancel}>
-                            Cancel
-                        </button>
-                        <button 
-                            className='ConfirmButton' 
-                            onClick={handleConfirm}
-                            disabled={!groupName.trim()}
-                        >
-                            Create
-                        </button>
-                    </div>
+                <div className='flex justify-between items-center mt-6 border-t pt-4'>
+                    <button className='btn-secondary' onClick={onCancel}>
+                        Cancel
+                    </button>
+                    <button 
+                        className='btn-primary' 
+                        onClick={handleConfirm}
+                        disabled={!groupName.trim()}
+                    >
+                        Create
+                    </button>
                 </div>
             </div>
         </div>
@@ -285,26 +466,28 @@ function EditGroupPopup({ group, onEditGroup, onCancel, isEditing }) {
 
     if (isEditing) {
         return (
-            <div className='PopupBackground'>
-                <div className='PopupContainer'>
-                    <h2>Updating Group...</h2>
+            <div className='modal-overlay'>
+                <div className='modal-backdrop'></div>
+                <div className='modal-content'>
+                    <h2 className='modal-title'>Updating Group...</h2>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className='PopupBackground'>
-            <div className='LargePopupContainer'>
-                <h2>Edit Group</h2>
+        <div className='modal-overlay'>
+            <div className='modal-backdrop'></div>
+            <div className='modal-content'>
+                <h2 className='modal-title'>Edit Group</h2>
                 
-                <div className='BadgeCreateContent'>
-                    <div className='BadgeInputSection'>
-                        <div className='BadgeImageSection'>
-                            <div className="GuideText" style={{ textAlign: 'center', marginBottom: '16px' }}>
+                <div className='space-y-4'>
+                    <div className='form-group'>
+                        <div className='text-center mb-4'>
+                            <div className="text-slate-300 mb-4">
                                 Group Image
                             </div>
-                            <div className="BadgeImageContainer" style={{ textAlign: 'center' }}>
+                            <div className="text-center">
                                 {imageLoading ? (
                                     <div style={{ 
                                         width: '150px', 
@@ -354,9 +537,8 @@ function EditGroupPopup({ group, onEditGroup, onCancel, isEditing }) {
                                     style={{ display: 'none' }}
                                 />
                                 <button 
-                                    className='AdminActionButton'
+                                    className='btn-secondary mt-2'
                                     onClick={handleImageButtonClick}
-                                    style={{ marginTop: '10px' }}
                                     disabled={imageLoading}
                                 >
                                     {imageLoading ? 'Loading...' : 
@@ -365,10 +547,10 @@ function EditGroupPopup({ group, onEditGroup, onCancel, isEditing }) {
                             </div>
                         </div>
 
-                        <div className='BadgeInputGroup'>
-                            <label className='BadgeInputLabel'>Group Name</label>
+                        <div className='form-group'>
+                            <label className='form-label'>Group Name</label>
                             <input 
-                                className='Input'
+                                className='form-input'
                                 type="text"
                                 value={groupName}
                                 onChange={(e) => setGroupName(e.target.value)}
@@ -377,10 +559,10 @@ function EditGroupPopup({ group, onEditGroup, onCancel, isEditing }) {
                             />
                         </div>
                         
-                        <div className='BadgeInputGroup'>
-                            <label className='BadgeInputLabel'>Description</label>
+                        <div className='form-group'>
+                            <label className='form-label'>Description</label>
                             <input 
-                                className='Input'
+                                className='form-input'
                                 type="text"
                                 value={groupDescription}
                                 onChange={(e) => setGroupDescription(e.target.value)}
@@ -389,46 +571,45 @@ function EditGroupPopup({ group, onEditGroup, onCancel, isEditing }) {
                             />
                         </div>
 
-                        <div className='BadgeInputGroup'>
-                            <label className='BadgeInputLabel'>Privacy Setting</label>
-                            <div className='PrivacySelector'>
-                                <label className='PrivacyOption'>
+                        <div className='form-group'>
+                            <label className='form-label'>Privacy Setting</label>
+                            <div className='flex space-x-4'>
+                                <label className='flex items-center'>
                                     <input
                                         type="radio"
                                         name="privacy"
                                         checked={!isPrivate}
                                         onChange={() => setIsPrivate(false)}
+                                        className="mr-2"
                                     />
-                                    <span>Public Group</span>
+                                    <span className="text-slate-200">Public Group</span>
                                 </label>
-                                <label className='PrivacyOption'>
+                                <label className='flex items-center'>
                                     <input
                                         type="radio"
                                         name="privacy"
                                         checked={isPrivate}
                                         onChange={() => setIsPrivate(true)}
+                                        className="mr-2"
                                     />
-                                    <span>Private Group</span>
+                                    <span className="text-slate-200">Private Group</span>
                                 </label>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div className='BadgeCreateFooter'>
-                    <div className='Line'></div>
-                    <div className='Buttonfield'>
-                        <button className='CancelButton' onClick={onCancel}>
-                            Cancel
-                        </button>
-                        <button 
-                            className='ConfirmButton' 
-                            onClick={handleConfirm}
-                            disabled={!groupName.trim()}
-                        >
-                            Save Changes
-                        </button>
-                    </div>
+                <div className='flex justify-between items-center mt-6 border-t pt-4'>
+                    <button className='btn-secondary' onClick={onCancel}>
+                        Cancel
+                    </button>
+                    <button 
+                        className='btn-primary' 
+                        onClick={handleConfirm}
+                        disabled={!groupName.trim()}
+                    >
+                        Save Changes
+                    </button>
                 </div>
             </div>
         </div>
@@ -446,21 +627,23 @@ function JoinGroupByIdPopup({ onJoinById, onCancel, isJoining }) {
 
     if (isJoining) {
         return (
-            <div className='PopupBackground'>
-                <div className='PopupContainer'>
-                    <h2>Joining Group...</h2>
+            <div className='modal-overlay'>
+                <div className='modal-backdrop'></div>
+                <div className='modal-content'>
+                    <h2 className='modal-title'>Joining Group...</h2>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className='PopupBackground'>
-            <div className='PopupContainer'>
-                <h2>Join Group by ID</h2>
-                <div className='Inputfield'>
+        <div className='modal-overlay'>
+            <div className='modal-backdrop'></div>
+            <div className='modal-content'>
+                <h2 className='modal-title'>Join Group by ID</h2>
+                <div className='form-group my-4'>
                     <input 
-                        className='Input'
+                        className='form-input'
                         type="text"
                         value={groupId}
                         onChange={(e) => setGroupId(e.target.value.toUpperCase())}
@@ -468,13 +651,12 @@ function JoinGroupByIdPopup({ onJoinById, onCancel, isJoining }) {
                         maxLength={8}
                     />
                 </div>
-                <div className='Line'></div>
-                <div className='Buttonfield'>
-                    <button className='CancelButton' onClick={onCancel}>
+                <div className='flex justify-between items-center mt-6 border-t pt-4'>
+                    <button className='btn-secondary' onClick={onCancel}>
                         Cancel
                     </button>
                     <button 
-                        className='ConfirmButton' 
+                        className='btn-primary' 
                         onClick={handleConfirm}
                         disabled={!groupId.trim()}
                     >
@@ -558,27 +740,27 @@ function JoinGroupListPopup({ onCancel, onGroupJoined }) {
 
     if (selectedGroup) {
         return (
-            <div className='PopupBackground'>
-                <div className='LargePopupContainer'>
-                    <h2>Group Details</h2>
-                    <div className='GroupDetailContainer'>
-                        <div className='GroupDetailHeader'>{selectedGroup.name}</div>
-                        <div className='GroupDetailDescription'>
+            <div className='modal-overlay'>
+                <div className='modal-backdrop'></div>
+                <div className='modal-content'>
+                    <h2 className='modal-title'>Group Details</h2>
+                    <div className='card mt-4'>
+                        <h3 className='text-gradient text-lg font-semibold'>{selectedGroup.name}</h3>
+                        <p className='text-slate-300 mt-2'>
                             {selectedGroup.description || 'No description available.'}
-                        </div>
-                        <div className='GroupDetailInfo'>
+                        </p>
+                        <div className='text-slate-400 text-sm mt-4 space-y-1'>
                             <div>Group ID: {selectedGroup.groupId}</div>
                             <div>Members: {selectedGroup.getActiveMemberCount()}/{selectedGroup.maxMembers}</div>
                             <div>Created by: {creatorName || 'Loading...'}</div>
                         </div>
                     </div>
-                    <div className='Line'></div>
-                    <div className='Buttonfield'>
-                        <button className='CancelButton' onClick={() => setSelectedGroup(null)}>
+                    <div className='flex justify-between items-center mt-6 border-t pt-4'>
+                        <button className='btn-secondary' onClick={() => setSelectedGroup(null)}>
                             Back
                         </button>
                         <button 
-                            className='ConfirmButton' 
+                            className='btn-primary' 
                             onClick={handleJoinGroup}
                             disabled={isJoining}
                         >
@@ -591,39 +773,39 @@ function JoinGroupListPopup({ onCancel, onGroupJoined }) {
     }
 
     return (
-        <div className='PopupBackground'>
-            <div className='LargePopupContainer'>
-                <h2>Join Public Group</h2>
-                <div className='GroupDetailContainer'>
+        <div className='modal-overlay'>
+            <div className='modal-backdrop'></div>
+            <div className='modal-content'>
+                <h2 className='modal-title'>Join Public Group</h2>
+                <div className='mt-4 space-y-4'>
                     {isLoadingGroups ? (
-                        <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>
+                        <div className='text-slate-400 text-center py-6'>
                             Loading groups...
                         </div>
                     ) : publicGroups.length === 0 ? (
-                        <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>
+                        <div className='text-slate-400 text-center py-6'>
                             No public groups available
                         </div>
                     ) : (
                         publicGroups.map(group => (
                             <div 
                                 key={group.groupId} 
-                                className="GroupListItem"
+                                className="card-button"
                                 onClick={() => setSelectedGroup(group)}
                             >
-                                <div className="GroupListHeader">{group.name}</div>
-                                <div className="GroupListDescription">
+                                <h3 className='text-gradient font-semibold'>{group.name}</h3>
+                                <p className='text-slate-300 mt-2 text-sm'>
                                     {group.description || 'No description available.'}
-                                </div>
-                                <div className="GroupListInfo">
+                                </p>
+                                <div className='text-slate-400 text-xs mt-2'>
                                     Group ID: {group.groupId} | Members: {group.getActiveMemberCount()}/{group.maxMembers}
                                 </div>
                             </div>
                         ))
                     )}
                 </div>
-                <div className='Line'></div>
-                <div className='Buttonfield'>
-                    <button className='CancelButton' onClick={onCancel}>
+                <div className='flex justify-end items-center mt-6 border-t pt-4'>
+                    <button className='btn-secondary' onClick={onCancel}>
                         Cancel
                     </button>
                 </div>
@@ -667,27 +849,29 @@ function CreateGroupChallengePopup({ group, onCreateChallenge, onCancel, isCreat
 
     if (isCreating) {
         return (
-            <div className='PopupBackground'>
-                <div className='PopupContainer'>
-                    <h2>Creating Challenge...</h2>
+            <div className='modal-overlay'>
+                <div className='modal-backdrop'></div>
+                <div className='modal-content'>
+                    <h2 className='modal-title'>Creating Challenge...</h2>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className='PopupBackground'>
-            <div className='LargePopupContainer'>
-                <h2 style={{ margin: '20px 0', textAlign: 'center' }}>
+        <div className='modal-overlay'>
+            <div className='modal-backdrop'></div>
+            <div className='modal-content'>
+                <h2 className='modal-title text-center mb-4'>
                     Create Challenge for {group.name}
                 </h2>
                 
-                <div className='BadgeCreateContent'>
-                    <div className='BadgeInputSection'>
-                        <div className='BadgeInputGroup'>
-                            <label className='BadgeInputLabel'>Challenge Name</label>
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                    <div className='space-y-4'>
+                        <div className='form-group'>
+                            <label className='form-label'>Challenge Name</label>
                             <input 
-                                className='Input'
+                                className='form-input'
                                 type="text"
                                 value={challengeName}
                                 onChange={(e) => setChallengeName(e.target.value)}
@@ -696,10 +880,10 @@ function CreateGroupChallengePopup({ group, onCreateChallenge, onCancel, isCreat
                             />
                         </div>
 
-                        <div className='BadgeInputGroup'>
-                            <label className='BadgeInputLabel'>Description</label>
+                        <div className='form-group'>
+                            <label className='form-label'>Description</label>
                             <input 
-                                className='Input'
+                                className='form-input'
                                 type="text"
                                 value={challengeDescription}
                                 onChange={(e) => setChallengeDescription(e.target.value)}
@@ -708,10 +892,10 @@ function CreateGroupChallengePopup({ group, onCreateChallenge, onCancel, isCreat
                             />
                         </div>
 
-                        <div className='BadgeInputGroup'>
-                            <label className='BadgeInputLabel'>Challenge Type</label>
+                        <div className='form-group'>
+                            <label className='form-label'>Challenge Type</label>
                             <select 
-                                className='Input'
+                                className='form-input'
                                 value={challengeType}
                                 onChange={(e) => setChallengeType(e.target.value)}
                             >
@@ -722,10 +906,10 @@ function CreateGroupChallengePopup({ group, onCreateChallenge, onCancel, isCreat
                             </select>
                         </div>
 
-                        <div className='BadgeInputGroup'>
-                            <label className='BadgeInputLabel'>Target Value</label>
+                        <div className='form-group'>
+                            <label className='form-label'>Target Value</label>
                             <input 
-                                className='Input'
+                                className='form-input'
                                 type="number"
                                 value={targetValue}
                                 onChange={(e) => setTargetValue(e.target.value)}
@@ -735,31 +919,31 @@ function CreateGroupChallengePopup({ group, onCreateChallenge, onCancel, isCreat
                         </div>
                     </div>
 
-                    <div className='BadgeInputSection'>
-                        <div className='BadgeInputGroup'>
-                            <label className='BadgeInputLabel'>Start Date</label>
+                    <div className='space-y-4'>
+                        <div className='form-group'>
+                            <label className='form-label'>Start Date</label>
                             <input 
-                                className='Input'
+                                className='form-input'
                                 type="date"
                                 value={startDate}
                                 onChange={(e) => setStartDate(e.target.value)}
                             />
                         </div>
 
-                        <div className='BadgeInputGroup'>
-                            <label className='BadgeInputLabel'>End Date</label>
+                        <div className='form-group'>
+                            <label className='form-label'>End Date</label>
                             <input 
-                                className='Input'
+                                className='form-input'
                                 type="date"
                                 value={endDate}
                                 onChange={(e) => setEndDate(e.target.value)}
                             />
                         </div>
 
-                        <div className='BadgeInputGroup'>
-                            <label className='BadgeInputLabel'>Reward Points</label>
+                        <div className='form-group'>
+                            <label className='form-label'>Reward Points</label>
                             <input 
-                                className='Input'
+                                className='form-input'
                                 type="number"
                                 value={rewardPoints}
                                 onChange={(e) => setRewardPoints(e.target.value)}
@@ -770,20 +954,17 @@ function CreateGroupChallengePopup({ group, onCreateChallenge, onCancel, isCreat
                     </div>
                 </div>
 
-                <div className='BadgeCreateFooter'>
-                    <div className='Line'></div>
-                    <div className='Buttonfield'>
-                        <button className='CancelButton' onClick={onCancel}>
-                            Cancel
-                        </button>
-                        <button 
-                            className='ConfirmButton' 
-                            onClick={handleConfirm}
-                            disabled={!challengeName.trim() || !startDate || !endDate}
-                        >
-                            Create Challenge
-                        </button>
-                    </div>
+                <div className='flex justify-between items-center mt-6 border-t pt-4'>
+                    <button className='btn-secondary' onClick={onCancel}>
+                        Cancel
+                    </button>
+                    <button 
+                        className='btn-primary' 
+                        onClick={handleConfirm}
+                        disabled={!challengeName.trim() || !startDate || !endDate}
+                    >
+                        Create Challenge
+                    </button>
                 </div>
             </div>
         </div>
@@ -920,101 +1101,88 @@ function JoinedGroupDetailPopup({ group, onClose, onGroupLeft }) {
     );
 
     return (
-        <div className='PopupBackground'>
-            <div className='LargePopupContainer'>
-                <h2 style={{ textAlign: 'center' }}>Group Details</h2>
+        <div className='modal-overlay'>
+            <div className='modal-backdrop'></div>
+            <div className='modal-content'>
+                <h2 className='modal-title text-center'>Group Details</h2>
                 
-                <div className='GroupDetailContainer'>
-                    <div className='GroupDetailHeader' style={{ textAlign: 'left' }}>
-                        {group.name} {group.isPrivate && <span style={{ fontSize: '16px', color: '#A0A0A0' }}>(Private)</span>}
-                    </div>
-                    <div className='GroupDetailDescription' style={{ textAlign: 'left' }}>
-                        {group.description || 'No description available.'}
-                    </div>
-                    <div className='GroupDetailInfo' style={{ textAlign: 'left' }}>
-                        <div>Group ID: {group.groupId}</div>
-                        <div>Members: {group.getActiveMemberCount()}/{group.maxMembers}</div>
-                        <div>Created by: {creatorName}</div>
+                <div className='space-y-4 mt-4'>
+                    <div className='card'>
+                        <h3 className='text-gradient font-semibold'>
+                            {group.name} {group.isPrivate && <span className='text-slate-400 text-sm'>(Private)</span>}
+                        </h3>
+                        <p className='text-slate-300 mt-2'>
+                            {group.description || 'No description available.'}
+                        </p>
+                        <div className='text-slate-400 text-sm mt-4 space-y-1'>
+                            <div>Group ID: {group.groupId}</div>
+                            <div>Members: {group.getActiveMemberCount()}/{group.maxMembers}</div>
+                            <div>Created by: {creatorName}</div>
+                        </div>
                     </div>
                     
-                    <div style={{ marginTop: '20px' }}>
-                        <div className="MemberListContainer">
-                            <div className="GuideText" style={{ textAlign: 'center' }}>Members</div>
+                    <div className='card'>
+                        <h3 className='text-slate-200 font-semibold text-center mb-4'>Members</h3>
+                        <div className='space-y-3'>
                             {activeMembers.map(member => (
-                                <div key={member.membershipId} className="GroupJoinItem">
-                                    <div style={{ 
-                                        color: 'var(--main-color)', 
-                                        margin: '16px 0px 12px 16px',
-                                        lineHeight: '1.4',
-                                        fontSize: '15px'
-                                    }}>
+                                <div key={member.membershipId} className='bg-white/5 p-3 rounded-lg'>
+                                    <div className='text-gradient font-medium'>
                                         {member.user?.displayName || 'Unknown User'} 
-                                        {member.isAdmin() && <span style={{ fontSize: '12px', color: '#A0A0A0' }}> (Admin)</span>}
+                                        {member.isAdmin() && <span className='text-slate-400 text-xs ml-1'>(Admin)</span>}
                                     </div>
-                                    <div style={{ 
-                                        color: 'var(--light-color)', 
-                                        margin: '0 16px 12px 16px',
-                                        lineHeight: '1.4',
-                                        fontSize: '13px'
-                                    }}>
+                                    <div className='text-slate-300 text-sm mt-1'>
                                         Joined: {formatJoinDate(member.joinedAt)}
                                     </div>
-                                    <div style={{ 
-                                        color: 'var(--light-color)', 
-                                        margin: '0 16px 16px 16px',
-                                        fontSize: '12px'
-                                    }}>
+                                    <div className='text-slate-400 text-xs mt-1'>
                                         Role: {member.role} | User ID: {member.userId}
                                     </div>
                                 </div>
                             ))}
+                        </div>
                             
-                            <div className="CancelButtons">
-                                {isAdmin && (
-                                    <button 
-                                        className='AdminActionButton'
-                                        onClick={() => setShowCreateChallengePopup(true)}
-                                        disabled={isProcessing}
-                                    >
-                                        Add Challenge
-                                    </button>
-                                )}
-                                
-                                {isCreator && (
-                                    <button 
-                                        className='AdminActionButton'
-                                        onClick={() => setShowEditGroupPopup(true)}
-                                        disabled={isProcessing}
-                                    >
-                                        Edit Group
-                                    </button>
-                                )}
-                                
-                                {isCreator && (
-                                    <button 
-                                        className='CancelButton'
-                                        onClick={handleDeleteGroup}
-                                        disabled={isProcessing}
-                                        style={{ marginBottom: '12px' }}
-                                    >
-                                        {isProcessing ? 'Deleting...' : 'Delete Group'}
-                                    </button>
-                                )}
+                        <div className='flex flex-wrap gap-2 mt-4 justify-center'>
+                            {isAdmin && (
                                 <button 
-                                    className='CancelButton'
-                                    onClick={handleLeaveGroup}
+                                    className='btn-secondary'
+                                    onClick={() => setShowCreateChallengePopup(true)}
                                     disabled={isProcessing}
                                 >
-                                    {isProcessing ? 'Leaving...' : 'Leave Group'}
+                                    Add Challenge
                                 </button>
-                            </div>
+                            )}
+                            
+                            {isCreator && (
+                                <button 
+                                    className='btn-secondary'
+                                    onClick={() => setShowEditGroupPopup(true)}
+                                    disabled={isProcessing}
+                                >
+                                    Edit Group
+                                </button>
+                            )}
+                            
+                            {isCreator && (
+                                <button 
+                                    className='btn-secondary text-red-400'
+                                    onClick={handleDeleteGroup}
+                                    disabled={isProcessing}
+                                >
+                                    {isProcessing ? 'Deleting...' : 'Delete Group'}
+                                </button>
+                            )}
+                            <button 
+                                className='btn-secondary text-red-400'
+                                onClick={handleLeaveGroup}
+                                disabled={isProcessing}
+                            >
+                                {isProcessing ? 'Leaving...' : 'Leave Group'}
+                            </button>
                         </div>
                     </div>
                 </div>
                 
-                <div className='Line'></div>
-                <div className='Buttonfield'>
-                    <button className='CancelButton' onClick={onClose}>
+                <div className='flex justify-end items-center mt-6 border-t pt-4'>
+                    <button className='btn-secondary' onClick={onClose}>
                         Close
                     </button>
                 </div>
@@ -1065,29 +1233,29 @@ function GroupCardItem({ group, onClick }) {
     }, [group.groupId]);
 
     return (
-        <div className="CardContainer" onClick={onClick}>
-            <div className="CardContainerOut">
-                <div className="ProfileImageForCard">
+        <div className="card-button" onClick={onClick}>
+            <div className="flex items-center gap-4">
+                <div className="w-10 h-10 relative flex-shrink-0">
                     {imageLoading ? (
-                        <div className='ProfileImageForCardAlt'>
-                            <div>Loading...</div>
+                        <div className='bg-white/5 rounded-full w-10 h-10 flex items-center justify-center'>
+                            <span className='text-slate-400 text-xs'>Loading...</span>
                         </div>
                     ) : groupImage ? (
-                        <img className='ProfileImageForCard'
+                        <img className='w-10 h-10 rounded-full object-cover'
                             src={groupImage} 
                             alt="Group Profile" 
                         />
                     ) : (
-                        <div className='ProfileImageForCardAlt'>
+                        <div className='bg-white/5 rounded-full w-10 h-10 flex items-center justify-center'>
                             <IconElements.UserIcon />
                         </div>
                     )}
                 </div>
-                <div className="CardContainerIn">
-                    <div className="CardHeader">
-                        {group.name} {group.isPrivate && <span style={{ fontSize: '12px', color: '#A0A0A0' }}>(Private)</span>}
+                <div className="flex-1">
+                    <div className="text-gradient font-semibold">
+                        {group.name} {group.isPrivate && <span className='text-slate-400 text-xs'>(Private)</span>}
                     </div>
-                    <div className="CardContents">
+                    <div className="text-slate-400 text-sm">
                         {group.getActiveMemberCount()}/{group.maxMembers} Members
                     </div>
                 </div>
@@ -1221,113 +1389,123 @@ function Page ({data}) {
     };
 
     const GroupListSection = () => (
-        <div className="GroupContainer">
-            <div className="GuideTitle">Groups</div>
-            <div className="GuideText">My Groups</div>
+        <div className="space-y-4 mb-6">
+            <h2 className="screen-title mb-2">Groups</h2>
+            <h3 className="text-slate-200 font-semibold">My Groups</h3>
 
             {isLoadingGroups ? (
-                <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>
+                <div className='text-slate-400 text-center py-6'>
                     Loading...
                 </div>
             ) : userGroups.length === 0 ? (
-                <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>
+                <div className='text-slate-400 text-center py-6'>
                     No Joined Groups
                 </div>
             ) : (
-                userGroups.map(group => (
-                    <GroupCardItem 
-                        key={group.groupId} 
-                        group={group}
-                        onClick={() => setSelectedJoinedGroup(group)}
-                    />
-                ))
+                <div className="space-y-3">
+                    {userGroups.map(group => (
+                        <GroupCardItem 
+                            key={group.groupId} 
+                            group={group}
+                            onClick={() => setSelectedJoinedGroup(group)}
+                        />
+                    ))}
+                </div>
             )}
         </div>
     );
 
     const GroupListSectionHorizontal = () => (
-        <div className="GroupContainer">
-            <div className="GuideText">My Groups</div>
+        <div className="space-y-4 mb-6">
+            <h3 className="text-slate-200 font-semibold">My Groups</h3>
             {isLoadingGroups ? (
-                <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>
+                <div className='text-slate-400 text-center py-6'>
                     Loading...
                 </div>
             ) : userGroups.length === 0 ? (
-                <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>
+                <div className='text-slate-400 text-center py-6'>
                     No Joined Groups
                 </div>
             ) : (
-                userGroups.map(group => (
-                    <GroupCardItem 
-                        key={group.groupId} 
-                        group={group}
-                        onClick={() => setSelectedJoinedGroup(group)}
-                    />
-                ))
+                <div className="space-y-3">
+                    {userGroups.map(group => (
+                        <GroupCardItem 
+                            key={group.groupId} 
+                            group={group}
+                            onClick={() => setSelectedJoinedGroup(group)}
+                        />
+                    ))}
+                </div>
             )}
         </div>
     );
 
     const ButtonSection = () => (
-        <div className="GroupButtonContainer">
+        <div className="flex flex-wrap gap-2 justify-center mt-4">
             <button 
-                className='ButtonMediumFilled CreateGroupButton'
+                className='btn-primary'
                 onClick={handleCreateGroup}
             >
-                <div className='ButtonIcon'>+</div>
-                <div className='ButtonText'>Create Group</div>
+                <span className='mr-2'>+</span>
+                <span>Create Group</span>
             </button>
             <button 
-                className="ButtonMedium JoinGroupButton"
+                className="btn-secondary"
                 onClick={() => setShowActionPopup(true)}
             >
-                <div className='ButtonIcon'>▷</div>
-                <div className='ButtonText'>Find Group</div>
+                <span className='mr-2'>▷</span>
+                <span>Find Group</span>
             </button>
         </div>
     );
 
     const ButtonSectionHorizontal = () => (
-        <div className="GroupButtonContainerHorizontal">
+        <div className="flex flex-wrap gap-2 mb-4">
             <button 
-                className='ButtonMediumFilled CreateGroupButton'
+                className='btn-primary'
                 onClick={handleCreateGroup}
             >
-                <div className='ButtonIcon'>+</div>
-                <div className='ButtonText'>Create Group</div>
+                <span className='mr-2'>+</span>
+                <span>Create Group</span>
             </button>
             <button 
-                className="ButtonMedium JoinGroupButton"
+                className="btn-secondary"
                 onClick={() => setShowActionPopup(true)}
             >
-                <div className='ButtonIcon'>▷</div>
-                <div className='ButtonText'>Find Group</div>
+                <span className='mr-2'>▷</span>
+                <span>Find Group</span>
             </button>
         </div>
     );
 
     return (
-        <div className="AppContents">
-            <div className={`MainContentWrapper ${orientation}`}>
-                {orientation === 'portrait' ? (
-                    <div className="GroupContents">
-                        <GroupListSection />
-                        <ButtonSection />
-                    </div>
-                ) : (
-                    <>
-                        <div className="TopGridSection">
-                            <div className="GroupActionsSectionHorizontal">
-                                <div className="GuideTitle">Groups</div>
+        <div className="app-container">
+            <div className="screen">
+                <div className="background">
+                    <div className="bg-gradient-1"></div>
+                    <div className="bg-gradient-2"></div>
+                    <div className="bg-overlay"></div>
+                </div>
+                
+                <div className="screen-main">
+                    {orientation === 'portrait' ? (
+                        <div className="space-y-4">
+                            <GroupListSection />
+                            <ButtonSection />
+                        </div>
+                    ) : (
+                        <>
+                            <div className="mb-6">
+                                <h2 className="screen-title mb-4">Groups</h2>
                                 <ButtonSectionHorizontal />
                             </div>
-                        </div>
-                        
-                        <div className="BottomGridSection" style={{ overflow: 'auto', maxHeight: '100%' }}>
-                            <GroupListSectionHorizontal />
-                        </div>
-                    </>
-                )}
+                            
+                            <div className="overflow-auto">
+                                <GroupListSectionHorizontal />
+                            </div>
+                        </>
+                    )}
+                </div>
             </div>
 
             {showActionPopup && (
@@ -1374,28 +1552,28 @@ function Page ({data}) {
 
 function ActionSelectionPopup({ onCreateGroup, onJoinGroup, onJoinGroupViaId, onCancel }) {
     return (
-        <div className='PopupBackground'>
-            <div className='PopupContainer'>
-                <h2>Find Group</h2>
-                <div className='GroupButtonContainer'>
+        <div className='modal-overlay'>
+            <div className='modal-backdrop'></div>
+            <div className='modal-content'>
+                <h2 className='modal-title'>Find Group</h2>
+                <div className='flex flex-col gap-2 my-4'>
                     <button 
-                        className='ButtonMediumFilled JoinGroupButton'
+                        className='btn-primary'
                         onClick={onJoinGroup}
                     >
-                        <div className='ButtonIcon'>▷</div>
-                        <div className='ButtonText'>Join Group</div>
+                        <span className='mr-2'>▷</span>
+                        <span>Join Group</span>
                     </button>
                     <button 
-                        className='ButtonMediumFilled JoinGroupViaIdButton'
+                        className='btn-secondary'
                         onClick={onJoinGroupViaId}
                     >
-                        <div className='ButtonIcon'>▷</div>
-                        <div className='ButtonText'>Join Group via ID</div>
+                        <span className='mr-2'>▷</span>
+                        <span>Join Group via ID</span>
                     </button>
                 </div>
-                <div className='Line' style={{ margin: '20px 0 0 0' }}></div>
-                <div className='Buttonfield'>
-                    <button className='CancelButton' onClick={onCancel}>
+                <div className='flex justify-end items-center mt-6 border-t pt-4'>
+                    <button className='btn-secondary' onClick={onCancel}>
                         Cancel
                     </button>
                 </div>

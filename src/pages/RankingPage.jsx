@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import RankingSystem from '../services/firebase/RankingSystem';
 import StationManager from '../services/firebase/StationManagement';
+import {Card, Modal, Legend, Pill,Screen,Stat} from '../components/ui/UIComponents';
+
 import '../sphere-styles.css';
 
 function newRanking({ onPreviewUser }) {

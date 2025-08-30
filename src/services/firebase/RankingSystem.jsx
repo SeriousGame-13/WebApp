@@ -28,7 +28,10 @@ const getUserPointsRank = async (userid) => {
         const users = await UserManagement.getAllActiveUsers();
         users.sort((a, b) => b.points - a.points);
         return users.findIndex(user => user.uid === userid) + 1;
+        return users.findIndex(user => user.uid === userid) + 1;
     } catch (error) {
+        console.error('Failed to get top workout rankings:', error);
+        return [];
         console.error('Failed to get top workout rankings:', error);
         return [];
     }
@@ -36,7 +39,11 @@ const getUserPointsRank = async (userid) => {
 
 
 
+
+
 /**
+ * Retrieves the top points rankings
+ * @returns {Promise<object|null>} The ranking data for the users with highest points
  * Retrieves the top points rankings
  * @returns {Promise<object|null>} The ranking data for the users with highest points
  */
@@ -47,11 +54,15 @@ const getTopUsersPointsRankings = async (limit = 10) => {
         return users.slice(0, limit);
     } catch (error) {
         console.error('Failed to get top workout rankings:', error);
+        console.error('Failed to get top workout rankings:', error);
         return [];
     }
 };
 
 /**
+ * 
+ * Retrieves the top level rankings
+ * @returns {Promise<object|null>} The ranking data for the users with highest level
  * 
  * Retrieves the top level rankings
  * @returns {Promise<object|null>} The ranking data for the users with highest level
@@ -131,12 +142,6 @@ const getStationRankings = async (stationId, limit = 10) => {
     }
 };
 
-/**
- * @namespace RankingSystem
- * @description Firebase service module for user ranking and leaderboard functionality.
- * Provides methods to retrieve user rankings based on points and levels,
- * supporting leaderboard displays and competitive features in the fitness application.
- */
 const RankingSystem = {
     getUserPointsRank,
     getTopUsersPointsRankings,

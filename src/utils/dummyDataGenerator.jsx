@@ -120,7 +120,7 @@ async function createSingleDummyUser(userData, index) {
     const badges = getDummyBadges();
     badges.map(badge => {
       BadgeManager.createBadge(badge);
-      UserManagement.awardBadge(user.uid, badge.uid)
+      BadgeManager.awardBadge(user.uid, badge.uid)
     }
     );
 

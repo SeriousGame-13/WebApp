@@ -1,27 +1,10 @@
-/**
- * @fileoverview Station Management Service
- * 
- * This module provides comprehensive station management functionality for the fitness application.
- * It handles station creation, updating, deletion, and retrieval operations using Firestore as the backend.
- * Stations represent exercise equipment or workout areas within the fitness environment.
- * 
- * @author Igor, Alexander, Hyunu, Robert
- * @version 1.0.0
- */
-
 import FirestoreManager from './FirestoreManager.jsx';
 import { HIGHSCORE_COLLECTION, STATION_COLLECTION } from './collections.jsx';
 
 import { Station } from '../interfaces/station.jsx';
 import HighscoreManager from './HighscoreManager.jsx';
 
-/**
- * Saves a new station to the database.
- * Automatically converts plain objects to Station instances if needed.
- * @param {Station|Object} station - The station data to save (Station instance or plain object)
- * @returns {Promise<string>} The ID of the created station document
- * @throws {Error} When station cannot be saved or validation fails
- */
+
 const saveStation = async (station) => {
     if (!(station instanceof Station)) {
         station = new Station(station);
@@ -36,14 +19,7 @@ const saveStation = async (station) => {
     }
 }
 
-/**
- * Updates an existing station in the database.
- * Extracts the station UID and updates all other provided fields.
- * @param {Object} stationData - The station data containing uid and fields to update
- * @param {string} stationData.uid - The unique identifier of the station to update
- * @returns {Promise<void>} Resolves when the station is successfully updated
- * @throws {Error} When the station cannot be updated or UID is missing
- */
+// Added: Function to update an existing station
 const update = async (stationData) => {
     try {
         const { uid, ...dataToUpdate } = stationData;
@@ -54,13 +30,7 @@ const update = async (stationData) => {
     }
 };
 
-/**
- * Deletes a station from the database.
- * Note: Future enhancement should include cleanup of references to this station in exercises.
- * @param {string} stationId - The unique identifier of the station to delete
- * @returns {Promise<void>} Resolves when the station is successfully deleted
- * @throws {Error} When the station cannot be deleted or ID is invalid
- */
+// Added: Function to delete a station
 const deleteStation = async (stationId) => {
     try {
         // Future enhancement: Clean up references to this station in exercises.
@@ -71,11 +41,7 @@ const deleteStation = async (stationId) => {
     }
 };
 
-/**
- * Retrieves all stations from the database.
- * Converts raw Firestore data to Station instances for consistent data handling.
- * @returns {Promise<Station[]>} Array of Station instances, or empty array if retrieval fails
- */
+
 const loadAll = async () => {
     try {
         const snapshot = await FirestoreManager.getAllDocuments(STATION_COLLECTION);
@@ -92,12 +58,6 @@ const loadAll = async () => {
     }
 }
 
-/**
- * @namespace StationManager
- * @description Firebase service module for comprehensive station management.
- * Provides functionality to create, read, update, and delete exercise stations
- * in the fitness application, with proper data validation and error handling.
- */
 const StationManager = {
     save: saveStation,
     update, 

@@ -10,7 +10,6 @@ export const CHALLENGES_COLLECTION = 'challenges';
 export const CHALLENGE_PARTICIPANTS_SUBCOLLECTION = 'participants';
 
 export const BADGES_COLLECTION = 'badges';
-export const BADGES_USER_COLLECTION = 'ubadges';
 export const BADGE_IMAGES_COLLECTION = 'badgeimages';
 
 export const WORKOUT_COLLECTION = 'workouts';
@@ -21,5 +20,3 @@ export const EXERCISE_COLLECTION = 'exercises';
 export const GOALS_COLLECTION = 'goals';
 
 export const GROUP_IMAGES_COLLECTION = 'groupimages';
-
-export const STATION_GAMES_COLLECTION = 'station_games'

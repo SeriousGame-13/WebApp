@@ -3,8 +3,26 @@ import '../components/styles/LayoutElements.css';
 import WorkoutManager from '../services/firebase/WorkoutManagement';
 import StationManager from '../services/firebase/StationManagement';
 import { Workout } from '../services/interfaces/workout';
-import { localDateTimeStringToTimestamp, localTime } from '../utils/DateUtils';
-import StationGameManager from '../services/firebase/GameManager';
+import { Timestamp } from 'firebase/firestore';
+
+function localDateTimeStringToTimestamp(value) {
+    const [date, time] = value.split('T');
+    const [year, month, day] = date.split('-').map(Number);
+    const [hour, minute] = time.split(':').map(Number);
+    const localDate = new Date(year, month - 1, day, hour, minute); // interpreted in local timezone
+    return Timestamp.fromDate(localDate);
+}
+
+const localISODateTime = (date) => {
+    date = date.toDate();
+    const pad = (n) => n.toString().padStart(2, '0');
+    const y = date.getFullYear();
+    const m = pad(date.getMonth() + 1);
+    const d = pad(date.getDate());
+    const h = pad(date.getHours());
+    const min = pad(date.getMinutes());
+    return `${y}-${m}-${d}T${h}:${min}`;
+};
 
 
 function EditWorkoutForm({ workout = null, onSubmit, onCancel, isProcessing, submitText }) {
@@ -14,6 +32,8 @@ function EditWorkoutForm({ workout = null, onSubmit, onCancel, isProcessing, sub
         { key: 'description', label: 'Description', type: 'textarea', placeholder: 'Enter description' },
         { key: 'startTime', label: 'Start Time', type: 'datetime-local' },
         { key: 'endTime', label: 'End Time', type: 'datetime-local' },
+        { key: 'heartRateMax', label: 'Max Heart Rate', type: 'number', min: 0, placeholder: 'Enter max heart rate' },
+        { key: 'heartRateMin', label: 'Min Heart Rate', type: 'number', min: 0, placeholder: 'Enter min heart rate' },
     ];
 
     // The initial state is generated dynamically from the inputFields array.
@@ -21,7 +41,7 @@ function EditWorkoutForm({ workout = null, onSubmit, onCancel, isProcessing, sub
         return inputFields.reduce((acc, field) => {
             const sourceValue = workout?.[field.key];
             if (field.type === 'datetime-local' && sourceValue?.toDate) {
-                acc[field.key] = localTime(sourceValue);
+                acc[field.key] = localISODateTime(sourceValue);
             } else {
                 acc[field.key] = sourceValue ?? (field.type === 'number' ? 0 : '');
             }
@@ -144,14 +164,12 @@ function ExerciseForm({
     onCancel,
     isProcessing,
     submitText,
-    stations,
-    stationGames
+    stations
 }) {
     // This array is the single source of truth for the exercise form.
     const inputFields = [
         { key: 'name', label: 'Name', type: 'text', maxLength: 50, placeholder: 'Enter exercise name' },
-        { key: 'stationId', label: 'Station', type: 'selectStation', placeholder: 'Select Station...' },
-        { key: 'gameId', label: 'Game', type: 'selectGame', placeholder: 'Select Game...' },
+        { key: 'stationId', label: 'Station', type: 'select', placeholder: 'Select Station...' },
         { key: 'startTime', label: 'Start Time', type: 'datetime-local' },
         { key: 'endTime', label: 'End Time', type: 'datetime-local' },
         { key: 'points', label: 'Points', type: 'number', min: 0, placeholder: 'Enter points for completing' },
@@ -166,7 +184,7 @@ function ExerciseForm({
         return inputFields.reduce((acc, field) => {
             const sourceValue = exerciseToEdit?.[field.key];
             if (field.type === 'datetime-local' && sourceValue?.toDate) {
-                acc[field.key] = localTime(sourceValue);
+                acc[field.key] = localISODateTime(sourceValue);
             } else {
                 acc[field.key] = sourceValue ?? (field.type === 'number' ? 0 : '');
             }
@@ -190,8 +208,6 @@ function ExerciseForm({
                     acc[field.key] = value ? localDateTimeStringToTimestamp(value) : null;
                 } else if (field.key === 'stationId') {
                     acc[field.key] = value || null;
-                } else if (field.key === 'gameId') {
-                    acc[field.key] = value || null;
                 } else if (typeof value === 'string') {
                     acc[field.key] = value.trim();
                 } else {
@@ -199,7 +215,7 @@ function ExerciseForm({
                 }
                 return acc;
             }, {});
-
+            
             if (exerciseToEdit) {
                 submitData.uid = exerciseToEdit.uid;
             }
@@ -235,7 +251,7 @@ function ExerciseForm({
             </div>
         );
     }
-
+    
     return (
         <div className='PopupBackground'>
             <div className='LargePopupContainer'>
@@ -247,53 +263,39 @@ function ExerciseForm({
                         {inputFields.map(field => (
                             <div key={field.key} className='BadgeInputGroup'>
                                 <label className='BadgeInputLabel'>{field.label}</label>
-                                {
-                                    field.type === 'selectGame' ? (
-                                        <select
-                                            className='Input'
-                                            value={formData[field.key]}
-                                            onChange={(e) => handleInputChange(field.key, e.target.value)}
-                                        >
-                                            <option value="" disabled>{field.placeholder}</option>
-                                            {stationGames && stationGames.filter(o => o.stationId == formData['stationId']).map(obj => (
-                                                <option key={obj.uid} value={obj.uid}>
-                                                    {obj.name}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    ) : field.type === 'selectStation' ? (
-                                        <select
-                                            className='Input'
-                                            value={formData[field.key]}
-                                            onChange={(e) => handleInputChange(field.key, e.target.value)}
-                                        >
-                                            <option value="" disabled>{field.placeholder}</option>
-                                            {stations && stations.map(obj => (
-                                                <option key={obj.uid} value={obj.uid}>
-                                                    {obj.name}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    ) : field.type === 'textarea' ? (
-                                        <textarea
-                                            className='Input'
-                                            value={formData[field.key]}
-                                            onChange={(e) => handleInputChange(field.key, e.target.value)}
-                                            placeholder={field.placeholder}
-                                            rows={4}
-                                            style={{ resize: 'vertical' }}
-                                        />
-                                    ) : (
-                                        <input
-                                            className='Input'
-                                            type={field.type}
-                                            value={formData[field.key]}
-                                            onChange={(e) => handleInputChange(field.key, e.target.value)}
-                                            placeholder={field.placeholder}
-                                            maxLength={field.maxLength}
-                                            min={field.min}
-                                        />
-                                    )}
+                                {field.type === 'select' ? (
+                                    <select
+                                        className='Input'
+                                        value={formData[field.key]}
+                                        onChange={(e) => handleInputChange(field.key, e.target.value)}
+                                    >
+                                        <option value="" disabled>{field.placeholder}</option>
+                                        {stations && stations.map(station => (
+                                            <option key={station.uid} value={station.uid}>
+                                                {station.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                ) : field.type === 'textarea' ? (
+                                    <textarea
+                                        className='Input'
+                                        value={formData[field.key]}
+                                        onChange={(e) => handleInputChange(field.key, e.target.value)}
+                                        placeholder={field.placeholder}
+                                        rows={4}
+                                        style={{ resize: 'vertical' }}
+                                    />
+                                ) : (
+                                    <input
+                                        className='Input'
+                                        type={field.type}
+                                        value={formData[field.key]}
+                                        onChange={(e) => handleInputChange(field.key, e.target.value)}
+                                        placeholder={field.placeholder}
+                                        maxLength={field.maxLength}
+                                        min={field.min}
+                                    />
+                                )}
                             </div>
                         ))}
                     </div>
@@ -319,11 +321,11 @@ function ExerciseForm({
 }
 
 
-function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations, stationGames }) {
+function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations }) {
     const [isProcessing, setIsProcessing] = useState(false);
     const [showEditPopup, setShowEditPopup] = useState(false);
     const [showAddExercisePopup, setShowAddExercisePopup] = useState(false);
-    const [editingExercise, setEditingExercise] = useState(null);
+    const [editingExercise, setEditingExercise] = useState(null); 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     workout = Workout.fromJSON(workout);
@@ -357,7 +359,7 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations
             }
         }
     };
-
+    
     const handleUpdateWorkout = async (updates) => {
         setIsSubmitting(true);
         try {
@@ -376,13 +378,13 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations
         }
     };
 
-
+    
     const handleExerciseSubmit = async (exerciseData) => {
         setIsSubmitting(true);
         try {
-            if (editingExercise) {
+            if (editingExercise) { 
                 await WorkoutManager.updateExercise(user.uid, workout.uid, exerciseData);
-            } else {
+            } else { 
                 await WorkoutManager.addExercise(user.uid, workout.uid, exerciseData);
             }
             setEditingExercise(null);
@@ -395,8 +397,8 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations
             setIsSubmitting(false);
         }
     };
-
-
+    
+    
     const handleDeleteExercise = async (exerciseId) => {
         if (confirm('Are you sure you want to delete this exercise?')) {
             setIsProcessing(true);
@@ -441,7 +443,7 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations
                                 [...workout.exercises]
                                     .sort((a, b) => (b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0) - (a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0))
                                     .map(exercise => {
-
+                                        
                                         const station = stations.find(s => s.uid === exercise.stationId);
                                         return (
                                             <div key={exercise.uid} className="StationItem" style={{ border: '1px solid #444', borderRadius: '8px', padding: '10px', marginBottom: '10px', background: '#2C2C2C' }}>
@@ -449,8 +451,8 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations
                                                     <strong style={{ color: '#E5E5E5' }}>{exercise.name}</strong>
                                                     {/* Edit and Delete buttons for each exercise */}
                                                     <div className='ActionButtons'>
-                                                        <button onClick={() => setEditingExercise(exercise)} style={{ marginRight: '10px' }}>Edit</button>
-                                                        <button onClick={() => handleDeleteExercise(exercise.uid)}>Delete</button>
+                                                         <button onClick={() => setEditingExercise(exercise)} style={{marginRight: '10px'}}>Edit</button>
+                                                         <button onClick={() => handleDeleteExercise(exercise.uid)}>Delete</button>
                                                     </div>
                                                 </div>
                                                 <p style={{ margin: '5px 0', color: '#A0A0A0' }}>{exercise.description || 'No description.'}</p>
@@ -516,7 +518,6 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations
                         isProcessing={isSubmitting}
                         submitText={editingExercise ? "Update Exercise" : "Add Exercise"}
                         stations={stations}
-                        stationGames={stationGames}
                     />
                 )}
             </div>
@@ -531,7 +532,6 @@ function WorkoutManagerPage({ user }) {
     const [selectedWorkout, setSelectedWorkout] = useState(null);
     const [showCreatePopup, setShowCreatePopup] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
-    const [stationGames, setStationGames] = useState([]);
 
     const loadData = async () => {
         setIsLoading(true);
@@ -541,9 +541,6 @@ function WorkoutManagerPage({ user }) {
 
             const stationData = await StationManager.loadAll();
             setStations(stationData);
-
-            const stationGamesData = await StationGameManager.loadAll();
-            setStationGames(stationGamesData);
 
             if (selectedWorkout) {
                 const updatedSelectedWorkout = workoutData.find(w => w.uid === selectedWorkout.uid);
@@ -631,7 +628,6 @@ function WorkoutManagerPage({ user }) {
                     onCancel={() => setShowCreatePopup(false)}
                     isProcessing={isCreating}
                     submitText="Create Workout"
-                    stationGames={stationGames}
                 />
             )}
 
@@ -642,7 +638,6 @@ function WorkoutManagerPage({ user }) {
                     onWorkoutUpdated={loadData}
                     user={user}
                     stations={stations}
-                    stationGames={stationGames}
                 />
             )}
         </div>

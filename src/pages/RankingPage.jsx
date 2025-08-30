@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import ExpElements from '../components/ui/ExpBar';
+import IconElements from '../components/ui/IconElements';
 import RankingSystem from '../services/firebase/RankingSystem';
 import '../components/styles/LayoutElements.css';
 
@@ -317,6 +319,8 @@ function Page({ data }) {
                                                 {getScoreLabel()}: {getScoreValue(ranking).toLocaleString()}
                                             </div>
                                             <div className='CardContents'>
+                                                Rank: #{ranking.rank} | 
+                                                Level: {ranking.level || 1} | 
                                                 Points: {ranking.points || 0}
                                             </div>
                                         </div>

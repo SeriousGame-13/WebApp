@@ -1,25 +1,22 @@
 import { serverTimestamp } from 'firebase/firestore';
 import BaseModel from './base.jsx';
 import { CHALLENGE_STYLE, CHALLENGE_TYPE, CHALLENGE_STATUS, CHALLENGE_PARTICIPATION_STATUS } from './constants.jsx';
-import { CHALLENGE_VISIBILITY } from './constants.jsx';
 
 export class Challenge extends BaseModel {
   constructor(data = {}) {
     super({
-      name: data.name || '',
-      description: data.description || '',
-      startDate: data.startDate || null,
-      endDate: data.endDate || null,
-      creatorId: data.creatorId || '',
-      rewardPoints: data.rewardPoints || 0,
-      challengeType: data.challengeType || CHALLENGE_TYPE.TARGET,
-      challengeStyle: data.challengeStyle || CHALLENGE_STYLE.INDIVIDUAL,
-      targetValue: data.targetValue || null,
-      targetField: data.targetField || null,
-      participants: data.participants || [],
-      status: data.status || CHALLENGE_STATUS.OPEN,
-      progress: data.progress || 0,
-      conditions: data.conditions || [],
+      name: '',
+      description: '',
+      startDate: 0,
+      endDate: 0,
+      creatorId: '',
+      rewardPoints: 0,
+      challengeType: CHALLENGE_TYPE.TARGET,
+      challengeStyle: CHALLENGE_STYLE.INDIVIDUAL,
+      targetExerciseId: null,
+      targetValue: null,
+      participants: [],
+      status: CHALLENGE_STATUS.OPEN,
       ...data
     });
   }
@@ -27,60 +24,30 @@ export class Challenge extends BaseModel {
   isPublic() {
     return this.visibility === CHALLENGE_VISIBILITY.PUBLIC;
   }
-
+  
   isHidden() {
     return this.visibility === CHALLENGE_VISIBILITY.HIDDEN;
   }
-
+  
   isGroupChallenge() {
     return this.visibility === CHALLENGE_VISIBILITY.GROUP;
   }
 
   isActive() {
     const now = Date.now();
-    let start = null;
-    if (this.startDate?.toDate) {
-      start = this.startDate.seconds * 1000 //to millisecodns
-    } else {
-      start = this.startDate;
-    }
-    let end = null;
-    if (this.endDate?.toDate) {
-      end = this.endDate.seconds * 1000 //to millisecodns
-    } else {
-      end = this.endDate;
-    }
-    return now >= start && now <= end;
+    return now >= this.startDate && now <= this.endDate;
   }
 
   isExpired() {
-    let end = null;
-    if (this.endDate?.toDate) {
-      end = this.endDate.seconds * 1000 //to millisecodns
-    } else {
-      end = this.endDate;
-    }
-    return Date.now() > end;
-  }
+    return Date.now() > this.endDate;
+}
 
   hasStarted() {
-    let start = null;
-    if (this.startDate?.toDate) {
-      start = this.startDate.seconds * 1000 //to millisecodns
-    } else {
-      start = this.startDate;
-    }
-    return Date.now() >= start;
+      return Date.now() >= this.startDate;
   }
 
   hasNotStarted() {
-    let start = null;
-    if (this.startDate?.toDate) {
-      start = this.startDate.seconds * 1000 //to millisecodns
-    } else {
-      start = this.startDate;
-    }
-    return Date.now() < start;
+      return Date.now() < this.startDate;
   }
 
   getDaysRemaining() {
@@ -137,9 +104,10 @@ export class Challenge extends BaseModel {
 export class ChallengeParticipant extends BaseModel {
   constructor(data = {}) {
     super({
+      participantId: '',
       challengeId: '',
       userId: '',
-      joinedAt: serverTimestamp(),
+      joinedAt: Date.now(),
       completedAt: null,
       currentValue: 0,
       status: CHALLENGE_PARTICIPATION_STATUS.ACTIVE,
@@ -148,7 +116,7 @@ export class ChallengeParticipant extends BaseModel {
   }
 
   complete() {
-    this.completedAt = serverTimestamp();
+    this.completedAt = Date.now();
   }
 
   isCompleted() {

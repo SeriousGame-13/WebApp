@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from "react";
 import { Trophy, Users, Home as HomeIcon, User, CalendarDays, Flame, Star, Moon, Settings, Search, Plus, Check, X, Dumbbell, Bike, HeartPulse, Activity, Info, Medal } from "lucide-react";
 import './sphere-styles.css';
+import Helper from "./Helper.jsx"
+
 
 // ---------- Dummy Data ----------
 const DUMMY_USER = {
@@ -93,7 +95,7 @@ export default function Home({ onStartWorkout }) {
   const header = (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-3">
-        <Avatar name={name} size={48} />
+        <Helper.Avatar name={name} size={48} />
         <div>
           <h1 className="screen-title">{name}</h1>
           <p className="screen-subtitle">Level {level}</p>
@@ -103,8 +105,8 @@ export default function Home({ onStartWorkout }) {
   );
 
   return (
-    <Screen titleNode={header}>
-      <Card>
+    <Helper.Screen titleNode={header}>
+      <Helper.Card>
         <div className="flex items-center justify-between mb-2">
           <span className="text-slate-400 text-sm">Level Progress</span>
           <span className="text-slate-300 text-sm">{xp}/{nextLevelXp} XP</span>
@@ -112,13 +114,13 @@ export default function Home({ onStartWorkout }) {
         <div className="progress-bar">
           <div className="progress-fill" style={{ width: `${progress}%` }} />
         </div>
-      </Card>
+      </Helper.Card>
 
       <div className="grid-2 mt-4">
-        <Card><Stat label="TIME" value={secondsToClock(lastWorkout.time)} /></Card>
-        <Card><Stat label="HEART RATE" value={<>{lastWorkout.heartRate} bpm</>} /></Card>
-        <Card><Stat label="POINTS" value={lastWorkout.points} /></Card>
-        <Card><Stat label="CALORIES" value={<>{lastWorkout.calories} kcal</>} /></Card>
+        <Helper.Card><Helper.Stat label="TIME" value={Helper.secondsToClock(lastWorkout.time)} /></Helper.Card>
+        <Helper.Card><Helper.Stat label="HEART RATE" value={<>{lastWorkout.heartRate} bpm</>} /></Helper.Card>
+        <Helper.Card><Helper.Stat label="POINTS" value={lastWorkout.points} /></Helper.Card>
+        <Helper.Card><Helper.Stat label="CALORIES" value={<>{lastWorkout.calories} kcal</>} /></Helper.Card>
       </div>
 
       <div className="mt-6">
@@ -131,7 +133,7 @@ export default function Home({ onStartWorkout }) {
         <h3 className="text-lg font-semibold text-gradient mb-3">Stations</h3>
         <div className="grid-2 gap-3">
           {STATIONS.map(s => (
-            <Card key={s.id} onClick={() => setStationOpen(s.id)}>
+            <Helper.Card key={s.id} onClick={() => Helper.setStationOpen(s.id)}>
               <div className="flex items-center gap-3">
                 <div className="rounded-xl bg-white/10 p-3">{s.icon}</div>
                 <div className="flex-1">
@@ -140,24 +142,24 @@ export default function Home({ onStartWorkout }) {
                 </div>
                 <Info className="w-4 h-4 text-slate-400" />
               </div>
-            </Card>
+            </Helper.Card>
           ))}
         </div>
       </div>
 
-      <Modal open={!!currentStation} onClose={() => setStationOpen(null)} title={currentStation?.name} size="sm">
+      <Helper.Modal open={!!currentStation} onClose={() => Helper.setStationOpen(null)} title={currentStation?.name} size="sm">
         {currentStation && (
           <div className="space-y-3">
             <div className="grid-2 gap-3">
-              <Card><Stat label="TIME" value={secondsToClock(currentStation.last.time)} /></Card>
-              <Card><Stat label="HR" value={`${currentStation.last.heartRate} bpm`} /></Card>
-              <Card><Stat label="POINTS" value={currentStation.last.points} /></Card>
-              <Card><Stat label="CAL" value={`${currentStation.last.calories} kcal`} /></Card>
+              <Helper.Card><Helper.Stat label="TIME" value={Helper.secondsToClock(currentStation.last.time)} /></Helper.Card>
+              <Helper.Card><Helper.Stat label="HR" value={`${currentStation.last.heartRate} bpm`} /></Helper.Card>
+              <Helper.Card><Helper.Stat label="POINTS" value={currentStation.last.points} /></Helper.Card>
+              <Helper.Card><Helper.Stat label="CAL" value={`${currentStation.last.calories} kcal`} /></Helper.Card>
             </div>
             <p className="text-slate-400 text-sm">Zuletzt am {currentStation.last.date}</p>
           </div>
         )}
-      </Modal>
-    </Screen>
+      </Helper.Modal>
+    </Helper.Screen>
   );
 }

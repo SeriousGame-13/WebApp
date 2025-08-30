@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from "react";
 import { Trophy, Users, Home as HomeIcon, User, CalendarDays, Flame, Star, Moon, Settings, Search, Plus, Check, X, Dumbbell, Bike, HeartPulse, Activity, Info, Medal } from "lucide-react";
 import './sphere-styles.css';
+import Helper from "./Helper.jsx"
+
 
 // ---------- Dummy Data ----------
 const DUMMY_USER = {

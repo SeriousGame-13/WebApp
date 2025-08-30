@@ -8,7 +8,6 @@
  * @author Igor, Alexander, Hyunu, Robert
  * @version 1.0.0
  */
-import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { GROUP_ROLE } from '../services/interfaces/constants.jsx';
 import { GROUPS_COLLECTION, GROUP_MEMBERS_COLLECTION, USERS_COLLECTION } from '../services/firebase/collections.jsx';
 import { serverTimestamp } from 'firebase/firestore';

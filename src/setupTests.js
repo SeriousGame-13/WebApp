@@ -1,7 +1,6 @@
-import { expect, afterEach } from 'vitest';
+import { describe, test, expect, vi, beforeEach, afterEach, it } from 'vitest';
 
 // Add any global test setup here
-// For now, we'll keep it simple without testing-library dependencies
 
 afterEach(() => {
   // Cleanup after each test

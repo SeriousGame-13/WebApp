@@ -5,18 +5,20 @@ import { CHALLENGE_STYLE, CHALLENGE_TYPE, CHALLENGE_STATUS, CHALLENGE_PARTICIPAT
 export class Challenge extends BaseModel {
   constructor(data = {}) {
     super({
-      name: '',
-      description: '',
-      startDate: 0,
-      endDate: 0,
-      creatorId: '',
-      rewardPoints: 0,
-      challengeType: CHALLENGE_TYPE.TARGET,
-      challengeStyle: CHALLENGE_STYLE.INDIVIDUAL,
-      targetExerciseId: null,
-      targetValue: null,
-      participants: [],
-      status: CHALLENGE_STATUS.OPEN,
+      name: data.name || '',
+      description: data.description || '',
+      startDate: data.startDate || null,
+      endDate: data.endDate || null,
+      creatorId: data.creatorId || '',
+      rewardPoints: data.rewardPoints || 0,
+      challengeType: data.challengeType || CHALLENGE_TYPE.TARGET,
+      challengeStyle: data.challengeStyle || CHALLENGE_STYLE.INDIVIDUAL,
+      targetValue: data.targetValue || null,
+      targetField: data.targetField || null,
+      participants: data.participants || [],
+      status: data.status || CHALLENGE_STATUS.OPEN,
+      progress: data.progress || 0,
+      conditions: data.conditions || [],
       ...data
     });
   }
@@ -24,11 +26,11 @@ export class Challenge extends BaseModel {
   isPublic() {
     return this.visibility === CHALLENGE_VISIBILITY.PUBLIC;
   }
-  
+
   isHidden() {
     return this.visibility === CHALLENGE_VISIBILITY.HIDDEN;
   }
-  
+
   isGroupChallenge() {
     return this.visibility === CHALLENGE_VISIBILITY.GROUP;
   }
@@ -40,14 +42,14 @@ export class Challenge extends BaseModel {
 
   isExpired() {
     return Date.now() > this.endDate;
-}
+  }
 
   hasStarted() {
-      return Date.now() >= this.startDate;
+    return Date.now() >= this.startDate;
   }
 
   hasNotStarted() {
-      return Date.now() < this.startDate;
+    return Date.now() < this.startDate;
   }
 
   getDaysRemaining() {

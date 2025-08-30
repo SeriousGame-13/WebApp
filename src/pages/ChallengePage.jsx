@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import ExpElements from '../components/ui/ExpBar';
+import IconElements from '../components/ui/IconElements';
 import ChallengeManagement from '../services/firebase/ChallengeManagement';
 import GroupManagement from '../services/firebase/GroupManagementSystem';
+import UserManagement from '../services/firebase/UserManagementSystem';
 
 function Page({ data }) {
     const userData = data;
@@ -121,7 +123,7 @@ function Page({ data }) {
                             </div>
                             <div className='GroupExpContainer'>
                                 <ExpElements.NewLinearExpContainerSimple 
-                                    expnow={challenge.progress || 0} 
+                                    expnow={0} 
                                     expmax={challenge.targetValue || 100} 
                                 />
                             </div>

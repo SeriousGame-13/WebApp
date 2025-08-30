@@ -3,8 +3,9 @@ import { serverTimestamp } from 'firebase/firestore';
 export class UserGoal extends BaseModel {
   constructor(data = {}) {
     super({
+      goalId: '',
       userId: '',
-      stationId: '',
+      exerciseDefId: '',
       deadline: 0,
       exercise: null,
       ...data
@@ -12,20 +13,20 @@ export class UserGoal extends BaseModel {
   }
 
   isExpired() {
-    return  Date.now() > this.deadline.toDate();
+    return serverTimestamp() > this.deadline;
   }
 
   daysUntilDeadline() {
-    const diff = this.deadline.toDate() - Date.now();
+    const diff = this.deadline - serverTimestamp();
     return Math.ceil(diff / (1000 * 60 * 60 * 24));
   }
 
   hoursUntilDeadline() {
-    const diff = this.deadline.toDate() - Date.now();
+    const diff = this.deadline - serverTimestamp();
     return Math.ceil(diff / (1000 * 60 * 60));
   }
 
   validate() {
-    return this.uid && this.userId && this.stationId && this.deadline.toDate() > Date.now();
+    return this.goalId && this.userId && this.exerciseDefId && this.deadline > serverTimestamp();
   }
 }

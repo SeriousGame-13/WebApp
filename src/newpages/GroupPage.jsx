@@ -137,12 +137,12 @@ export default function Groups({ groups, setGroups, joinedIds, setJoinedIds }) {
   };
 
   return (
-    <Screen title="Groups" subtitle={opened ? current?.name : "My Groups"}>
+    <Helper.Screen title="Groups" subtitle={opened ? current?.name : "My Groups"}>
       {!opened && (
         <>
           <div className="mb-4 flex items-center gap-2">
             <div className="search-container">
-              <Search className="search-icon" />
+              <Helper.Search className="search-icon" />
               <input
                 value={search}
                 onChange={e => setSearch(e.target.value)}
@@ -154,16 +154,16 @@ export default function Groups({ groups, setGroups, joinedIds, setJoinedIds }) {
               onClick={() => setCreateOpen(true)} 
               className="btn-primary flex items-center gap-2 px-3 py-2"
             >
-              <Plus className="w-4 h-4" /> Create
+              <Helper.Plus className="w-4 h-4" /> Create
             </button>
           </div>
 
           <div className="space-y-3">
             {filtered.map(g => (
-              <Card key={g.id}>
+              <Helper.Card key={g.id}>
                 <div className="flex items-center gap-3">
                   <div className="rounded-full bg-white/10 p-3">
-                    <Users className="w-5 h-5" />
+                    <Helper.Users className="w-5 h-5" />
                   </div>
                   <div className="flex-1">
                     <p className="text-lg font-semibold">{g.name}</p>
@@ -176,11 +176,11 @@ export default function Groups({ groups, setGroups, joinedIds, setJoinedIds }) {
                     Open
                   </button>
                 </div>
-              </Card>
+              </Helper.Card>
             ))}
           </div>
 
-          <Modal open={createOpen} onClose={() => setCreateOpen(false)} title="Create Group" size="sm">
+          <Helper.Modal open={createOpen} onClose={() => setCreateOpen(false)} title="Create Group" size="sm">
             <div className="space-y-3">
               <label className="form-label">
                 Name
@@ -214,7 +214,7 @@ export default function Groups({ groups, setGroups, joinedIds, setJoinedIds }) {
                 </button>
               </div>
             </div>
-          </Modal>
+          </Helper.Modal>
         </>
       )}
 
@@ -228,10 +228,10 @@ export default function Groups({ groups, setGroups, joinedIds, setJoinedIds }) {
             ← Back
           </button>
           
-          <Card>
+          <Helper.Card>
             <p className="text-slate-300 mb-2">{current.description}</p>
             <p className="text-slate-400 text-sm">Members: {current.members}</p>
-          </Card>
+          </Helper.Card>
 
           <div>
             <h4 className="mb-2 text-slate-200 font-semibold">Members</h4>
@@ -239,12 +239,12 @@ export default function Groups({ groups, setGroups, joinedIds, setJoinedIds }) {
               {(current.memberIds || []).map((mid) => {
                 const m = getUserById(mid);
                 return (
-                  <Card key={mid}>
+                  <Helper.Card key={mid}>
                     <div className="flex items-center gap-3">
-                      <Avatar name={m.name} size={36} seed={mid} />
+                      <Helper.Avatar name={m.name} size={36} seed={mid} />
                       <span className="font-medium">{m.name}</span>
                     </div>
-                  </Card>
+                  </Helper.Card>
                 );
               })}
               {!(current.memberIds && current.memberIds.length) && (
@@ -263,6 +263,6 @@ export default function Groups({ groups, setGroups, joinedIds, setJoinedIds }) {
           </div>
         </div>
       )}
-    </Screen>
+    </Helper.Screen>
   );
 }

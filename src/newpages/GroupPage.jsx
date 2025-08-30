@@ -142,7 +142,7 @@ export default function Groups({ groups, setGroups, joinedIds, setJoinedIds }) {
         <>
           <div className="mb-4 flex items-center gap-2">
             <div className="search-container">
-              <Helper.Search className="search-icon" />
+              <Search className="search-icon" />
               <input
                 value={search}
                 onChange={e => setSearch(e.target.value)}
@@ -154,7 +154,7 @@ export default function Groups({ groups, setGroups, joinedIds, setJoinedIds }) {
               onClick={() => setCreateOpen(true)} 
               className="btn-primary flex items-center gap-2 px-3 py-2"
             >
-              <Helper.Plus className="w-4 h-4" /> Create
+              <Plus className="w-4 h-4" /> Create
             </button>
           </div>
 
@@ -163,7 +163,7 @@ export default function Groups({ groups, setGroups, joinedIds, setJoinedIds }) {
               <Helper.Card key={g.id}>
                 <div className="flex items-center gap-3">
                   <div className="rounded-full bg-white/10 p-3">
-                    <Helper.Users className="w-5 h-5" />
+                    <Users className="w-5 h-5" />
                   </div>
                   <div className="flex-1">
                     <p className="text-lg font-semibold">{g.name}</p>

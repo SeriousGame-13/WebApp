@@ -6,8 +6,7 @@ import IconElements from '../components/ui/IconElements';
 
 import '../sphere-styles.css';
 
-function Page({ usrData }) {
-  const userData = usrData;
+function Page({ userData }) {
   const [tab, setTab] = useState("points");
   const [rankings, setRankings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);

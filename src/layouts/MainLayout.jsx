@@ -58,14 +58,14 @@ function HomePage() {
                 console.log('Rendering GroupPage with data:', userData);
                 return (
                 <div className='app-container'>
-                    <HomePageElements.Page data={userData} />
+                    <HomePageElements.Page userData={userData} />
                     <div className='border-t border-white/10' />
                     <MainFooter.newFooter tab={currentPage} setTab={setCurrentPage} />
                 </div>)
             case 'rankings':
                 return (
                 <div className='app-container'>
-                    <RankingPage.Page usrData={userData} />
+                    <RankingPage.Page userData={userData} />
                     <div className='border-t border-white/10' />
                     <MainFooter.newFooter tab={currentPage} setTab={setCurrentPage} />
                 </div>)

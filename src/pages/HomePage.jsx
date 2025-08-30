@@ -6,9 +6,85 @@ import GroupManagement from '../services/firebase/GroupManagementSystem';
 import RankingSystem from '../services/firebase/RankingSystem';
 import WorkoutManager from '../services/firebase/WorkoutManagement';
 
-import '../components/styles/HomePage.css';
-import '../components/styles/LayoutElements.css'
+import '../sphere-styles.css';
 
+function newHome({ onStartWorkout }) {
+  const { lastWorkout, name, level, xp, nextLevelXp } = DUMMY_USER;
+  const progress = Math.min(100, Math.round(((xp || 0) / (nextLevelXp || 1)) * 100));
+  const [stationOpen, setStationOpen] = useState(null);
+  const currentStation = stationOpen ? STATIONS.find(s => s.id === stationOpen) : null;
+
+  const header = (
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        <Avatar name={name} size={48} />
+        <div>
+          <h1 className="screen-title">{name}</h1>
+          <p className="screen-subtitle">Level {level}</p>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <Screen titleNode={header}>
+      <Card>
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-slate-400 text-sm">Level Progress</span>
+          <span className="text-slate-300 text-sm">{xp}/{nextLevelXp} XP</span>
+        </div>
+        <div className="progress-bar">
+          <div className="progress-fill" style={{ width: `${progress}%` }} />
+        </div>
+      </Card>
+
+      <div className="grid-2 mt-4">
+        <Card><Stat label="TIME" value={secondsToClock(lastWorkout.time)} /></Card>
+        <Card><Stat label="HEART RATE" value={<>{lastWorkout.heartRate} bpm</>} /></Card>
+        <Card><Stat label="POINTS" value={lastWorkout.points} /></Card>
+        <Card><Stat label="CALORIES" value={<>{lastWorkout.calories} kcal</>} /></Card>
+      </div>
+
+      <div className="mt-6">
+        <button onClick={onStartWorkout} className="btn-primary w-full py-3">
+          Start Workout
+        </button>
+      </div>
+
+      <div className="mt-8">
+        <h3 className="text-lg font-semibold text-gradient mb-3">Stations</h3>
+        <div className="grid-2 gap-3">
+          {STATIONS.map(s => (
+            <Card key={s.id} onClick={() => setStationOpen(s.id)}>
+              <div className="flex items-center gap-3">
+                <div className="rounded-xl bg-white/10 p-3">{s.icon}</div>
+                <div className="flex-1">
+                  <p className="font-semibold">{s.name}</p>
+                  <p className="text-slate-400 text-sm">Letzte Aktivität: {s.last.date}</p>
+                </div>
+                <Info className="w-4 h-4 text-slate-400" />
+              </div>
+            </Card>
+          ))}
+        </div>
+      </div>
+
+      <Modal open={!!currentStation} onClose={() => setStationOpen(null)} title={currentStation?.name} size="sm">
+        {currentStation && (
+          <div className="space-y-3">
+            <div className="grid-2 gap-3">
+              <Card><Stat label="TIME" value={secondsToClock(currentStation.last.time)} /></Card>
+              <Card><Stat label="HR" value={`${currentStation.last.heartRate} bpm`} /></Card>
+              <Card><Stat label="POINTS" value={currentStation.last.points} /></Card>
+              <Card><Stat label="CAL" value={`${currentStation.last.calories} kcal`} /></Card>
+            </div>
+            <p className="text-slate-400 text-sm">Zuletzt am {currentStation.last.date}</p>
+          </div>
+        )}
+      </Modal>
+    </Screen>
+  );
+}
 
 function Page({ data }) {
     const userData = data;
@@ -276,85 +352,103 @@ function Page({ data }) {
     };
 
     return (
-        <div className="AppContents" ref={containerRef}>
-            <div className={`MainContentWrapper ${isLandscape ? 'landscape' : 'portrait'}`}>
-                <div className="TopGridSection">
-                    {/* User Name Display */}
-                    <div className="user-name-display">
-                        {userData?.displayName || 'User'}
-                    </div>
-                    
-                    <ExpElements.NewCircleExpContainer level={userData.level} expnow={userData.points} expmax={userData.currentMaxPoints()} />
-                    <div className='HelloText'>
+        <div className="app-container">
+            <div className="screen">
+                <div className="background">
+                    <div className="bg-gradient-1"></div>
+                    <div className="bg-gradient-2"></div>
+                    <div className="bg-overlay"></div>
+                </div>
+                <header className="screen-header">
+                    <h1 className="screen-title">{userData?.displayName || 'User'}</h1>
+                    <p className="screen-subtitle">Level {userData.level}</p>
+                </header>
+                
+                <main className="screen-main">
+                    <div className="card mb-4">
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="text-slate-400 text-sm">Level Progress</span>
+                            <span className="text-slate-300 text-sm">{userData.points}/{userData.currentMaxPoints()} XP</span>
+                        </div>
+                        <div className="progress-bar">
+                            <div className="progress-fill" style={{ width: `${(userData.points / userData.currentMaxPoints()) * 100}%` }} />
+                        </div>
                     </div>
 
-                </div>
-                <div className="BottomGridSection">
- 
+                    <h2 className="text-lg font-semibold text-gradient mb-3">Last Workout</h2>
+                    <p className="text-sm text-slate-400 mb-3">Date: {getWorkoutDate(lastWorkout)}</p>
                     
-                                {/* Last Workout Section */}
-                    <div className='last-workout-title'>
-                        Last Workout
-                    </div>
-                    <div className='GuideText' style={{ marginBottom: '15px' }}>
-                        Date: {getWorkoutDate(lastWorkout)}
-                    </div>
-                    <div className='last-workout-container'>
+                    <div className="card">
                         {isLoadingLastWorkout ? (
-                            <div className="last-workout-loading">
+                            <div className="text-center text-slate-400 py-3">
                                 Loading last workout...
                             </div>
                         ) : !lastWorkout ? (
-                            <div className="last-workout-empty">
+                            <div className="text-center text-slate-400 py-3">
                                 No previous workouts found
                             </div>
                         ) : (
-                            <div className="last-workout-content">
+                            <div className="grid-2 gap-3">
+                                <div className="card">
+                                    <div className="text-slate-400 text-sm">Time</div>
+                                    <div className="text-lg font-semibold">
+                                        {getWorkoutDuration(lastWorkout)}
+                                    </div>
+                                </div>
                                 
-                                <div className="last-workout-grid">
-                                    <div className="last-workout-item">
-                                        
-                                        <div className="last-workout-label">Time</div>
-                                        <div className="last-workout-value">
-                                            {getWorkoutDuration(lastWorkout)}
-                                        </div>
+                                <div className="card">
+                                    <div className="text-slate-400 text-sm">Heart Rate</div>
+                                    <div className="text-lg font-semibold">
+                                        {lastWorkout.heartRate || '--'}
                                     </div>
-                                    
-                                    <div className="last-workout-item">
-                                        
-                                        <div className="last-workout-label">Heart Rate</div>
-                                        <div className="last-workout-value">
-                                            {lastWorkout.heartRate || '--'}
-                                        </div>
+                                </div>
+                                
+                                <div className="card">
+                                    <div className="text-slate-400 text-sm">Calories</div>
+                                    <div className="text-lg font-semibold">
+                                        {getTotalCalories(lastWorkout)}
                                     </div>
-                                    
-                                    <div className="last-workout-item">
-                                        
-                                        <div className="last-workout-label">Calories</div>
-                                        <div className="last-workout-value">
-                                            {getTotalCalories(lastWorkout)}
-                                        </div>
-                                    </div>
-                                    
-                                    <div className="last-workout-item">
-                                        
-                                        <div className="last-workout-label">Points</div>
-                                        <div className="last-workout-value">
-                                            {getTotalPoints(lastWorkout)}
-                                        </div>
+                                </div>
+                                
+                                <div className="card">
+                                    <div className="text-slate-400 text-sm">Points</div>
+                                    <div className="text-lg font-semibold">
+                                        {getTotalPoints(lastWorkout)}
                                     </div>
                                 </div>
                             </div>
                         )}
                     </div>
-                </div>
+                    
+                    {activeChallenges.length > 0 && (
+                        <div className="mt-6">
+                            <h2 className="text-lg font-semibold text-gradient mb-3">Active Challenges</h2>
+                            <div className="space-y-3">
+                                {activeChallenges.map((challenge) => (
+                                    <div key={challenge.uid} className="card">
+                                        <div className="font-medium mb-1">{challenge.name}</div>
+                                        <div className="text-sm text-slate-400 mb-2">
+                                            Group: {groupNames[challenge.groupId] || 'Unknown'}
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs" style={{ color: getStatusColor(challenge) }}>
+                                                {getStatusText(challenge)}
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </main>
             </div>
         </div>
-    )
+    );
 }
 
 const HomePageElements = {
-    Page
+    Page,
+    newHome
 };
 
 export default HomePageElements;

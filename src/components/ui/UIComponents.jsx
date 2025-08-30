@@ -1,6 +1,31 @@
 import React, { useState, useEffect } from "react";
 import { Trophy, Users, Home as HomeIcon, User, CalendarDays, Flame, Star, Moon, Settings, Search, Plus, Check, X, Dumbbell, Bike, HeartPulse, Activity, Info, Medal } from "lucide-react";
 
+const GRADIENTS = [
+  "avatar-gradient-0",
+  "avatar-gradient-1", 
+  "avatar-gradient-2",
+  "avatar-gradient-3",
+  "avatar-gradient-4",
+  "avatar-gradient-5",
+];
+
+function initials(name = "?") {
+  const parts = name.split(new RegExp("\\s+")).filter(Boolean);
+  const letters = parts.slice(0, 2).map(p => p[0]?.toUpperCase() || "?");
+  return letters.join("");
+}
+
+export function Avatar({ name, size = 48, seed }) {
+  const idx = Math.abs((seed ?? name ?? "0").split("").reduce((a, c) => a + c.charCodeAt(0), 0)) % GRADIENTS.length;
+  const style = { width: size, height: size };
+  return (
+    <div className={`avatar ${GRADIENTS[idx]}`} style={style}>
+      <span className="avatar-text">{initials(name)}</span>
+    </div>
+  );
+}
+
 export function Modal({ open, onClose, children, title, size = "md" }) {
   if (!open) return null;
   const maxW = size === "sm" ? "max-w-sm" : size === "lg" ? "max-w-xl" : "max-w-lg";

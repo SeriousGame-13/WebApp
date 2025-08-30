@@ -71,7 +71,7 @@ body, html {
   display: flex;
   flex-direction: column;
   position: relative;
-  overflow: hidden;
+  height: 100%;
 }
 
 .screen-header {
@@ -96,10 +96,12 @@ body, html {
 }
 
 .screen-main {
-  flex: 1;
+  flex: 1 1 auto;
   padding: 0 1.25rem 8rem;
   position: relative;
   z-index: 10;
+  overflow-y: auto;
+  height: 0;
 }
 
 /* Cards */
@@ -273,6 +275,7 @@ body, html {
 .mb-4 { margin-bottom: 1rem; }
 .mb-5 { margin-bottom: 1.25rem; }
 
+.p-0 { padding: 0; }
 .p-2 { padding: 0.5rem; }
 .p-3 { padding: 0.75rem; }
 .p-5 { padding: 1.25rem; }

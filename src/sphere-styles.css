@@ -106,14 +106,16 @@ body, html {
 }
 
 .Badge-title {
+  text-align: left;
   letter-spacing: -0.025em;
   margin: 0%;
 }
 
 .Badge-subtitle {
   text-align: left;
-  margin-top: -0.5rem;
+  margin: 0rem;
 }
+
 
 /* Cards */
 .card {

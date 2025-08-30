@@ -380,7 +380,7 @@ function BadgeDetailModal({ badgeId, open, onClose, allBadges, userBadgesMap }) 
           <div className="space-y-4">
             {/* Badge Header */}
             <div className="flex items-center gap-4">
-              <div className={`p-4 rounded-xl ${getRarityClass(badge.rarity)}`}>
+              <div className={`p-3 rounded-xl ${getRarityClass(badge.rarity)}`}>
                 {badgeImage ? (
                   <img 
                     src={badgeImage} 
@@ -394,8 +394,8 @@ function BadgeDetailModal({ badgeId, open, onClose, allBadges, userBadgesMap }) 
                 )}
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-white Badge-title">{badge.name}</h3>
-                <p className="text-sm text-slate-400 Badge-subtitle">
+                <h3 className="text-lg Badge-title font-semibold text-white">{badge.name}</h3>
+                <p className="text-sm Badge-subtitle text-slate-400">
                   {unlocked ? "Freigeschaltet" : "Gesperrt"}
                 </p>
               </div>
@@ -403,7 +403,7 @@ function BadgeDetailModal({ badgeId, open, onClose, allBadges, userBadgesMap }) 
 
             {/* Badge Description */}
             {badge.description && (
-              <p className="text-sm text-slate-300 Badge-subtitle">{badge.description}</p>
+              <p className="text-sm Badge-subtitle text-slate-300">{badge.description}</p>
             )}
 
             {/* Badge Info */}
@@ -565,32 +565,49 @@ function Page({ data, onOpenBadge, onOpenSettings, onUserUpdated }) {
   const [selectedBadgeId, setSelectedBadgeId] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
 
-  // Use real user data if available, fallback to dummy data
-  const userData = data || {
+  console.log('UserPage executing with data:', data);
+
+    // Use real user data if available, fallback to dummy data  
+    const userData = data || {
     id: "me",
     name: "Max Mustermann",
     displayName: "Max Mustermann",
-    level: 5,
-    badges: [
-      { id: "sleep", level: 2 },
-      { id: "stars", level: 3 },
-      { id: "calories", level: 1 },
-      { id: "steps", level: 2 },
-    ],
-  };
+    level: 5
+    };
 
-  // Create a map of user's badges for quick lookup
-  const userBadgesMap = new Map();
-  if (userData.badges && Array.isArray(userData.badges)) {
-    userData.badges.forEach(badge => {
-      const badgeId = badge.id || badge.badgeId;
-      if (badgeId) {
-        userBadgesMap.set(badgeId, badge.level || 1);
-      }
-    });
-  }
+    console.log('Final userData:', userData);
 
-  const ownedCount = userBadgesMap.size;
+    // Load user badges from Firebase
+    const [userBadgesMap, setUserBadgesMap] = useState(new Map());
+    const [ownedCount, setOwnedCount] = useState(0);
+
+    useEffect(() => {
+    const loadUserBadges = async () => {
+        if (!userData.uid) return;
+        
+        try {
+        console.log('Loading badges for:', userData.uid);
+        const snapshot = await FirebaseManager.getAllDocuments(`${USERS_COLLECTION}/${userData.uid}/ubadges`);
+        const badgesMap = new Map();
+        
+        snapshot.forEach(doc => {
+            const badgeData = doc.data();
+            console.log('Badge data:', badgeData);
+            if (badgeData.badgeId) {
+            badgesMap.set(badgeData.badgeId, badgeData.level || 1);
+            }
+        });
+        
+        console.log('Final badges map:', badgesMap);
+        setUserBadgesMap(badgesMap);
+        setOwnedCount(badgesMap.size);
+        } catch (error) {
+        console.error('Failed to load user badges:', error);
+        }
+    };
+    
+    loadUserBadges();
+    }, [userData.uid]);
 
   // Load all badges from Firebase
   useEffect(() => {

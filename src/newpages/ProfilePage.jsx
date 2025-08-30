@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { Trophy, Users, Home as HomeIcon, User, CalendarDays, Flame, Star, Moon, Settings, Search, Plus, Check, X, Dumbbell, Bike, HeartPulse, Activity, Info, Medal } from "lucide-react";
-import './sphere-styles.css';
+import '../sphere-styles.css';
 import Helper from "./Helper.jsx"
 
 
@@ -20,6 +20,33 @@ const DUMMY_USER = {
     { id: "steps", name: "Step Up", level: 2 },
   ],
 };
+
+const ALL_BADGES = [
+  { id: "sleep", name: "Sleep Master", icon: <Moon className="w-5 h-5" /> },
+  { id: "stars", name: "Star Collector", icon: <Star className="w-5 h-5" /> },
+  { id: "calories", name: "Calorie Burner", icon: <Flame className="w-5 h-5" /> },
+  { id: "steps", name: "Step Up", icon: <Activity className="w-5 h-5" /> },
+  { id: "focus", name: "Focus Wizard", icon: <Star className="w-5 h-5" /> },
+  { id: "zone", name: "Zone Keeper", icon: <Helper.HeartIcon /> },
+  { id: "streak", name: "Streak Hero", icon: <Star className="w-5 h-5" /> },
+  { id: "hiit", name: "HIIT Hustler", icon: <Activity className="w-5 h-5" /> },
+  { id: "cardio", name: "Cardio Champ", icon: <HeartPulse className="w-5 h-5" /> },
+  { id: "biker", name: "Bike Boss", icon: <Bike className="w-5 h-5" /> },
+  { id: "iron", name: "Iron Lifter", icon: <Dumbbell className="w-5 h-5" /> },
+  { id: "stamina", name: "Stamina Star", icon: <Trophy className="w-5 h-5" /> },
+  { id: "planner", name: "Plan Keeper", icon: <CalendarDays className="w-5 h-5" /> },
+  { id: "medal1", name: "Bronze Path", icon: <Medal className="w-5 h-5" /> },
+  { id: "medal2", name: "Silver Path", icon: <Medal className="w-5 h-5" /> },
+  { id: "medal3", name: "Golden Path", icon: <Medal className="w-5 h-5" /> },
+  { id: "combo", name: "Combo Crafter", icon: <Activity className="w-5 h-5" /> },
+  { id: "zen", name: "Zen Flow", icon: <Star className="w-5 h-5" /> },
+  { id: "hydr", name: "Hydration Hero", icon: <HeartPulse className="w-5 h-5" /> },
+  { id: "warm", name: "Warmup Wizard", icon: <Flame className="w-5 h-5" /> },
+  { id: "cool", name: "Cooldown Pro", icon: <Moon className="w-5 h-5" /> },
+  { id: "route", name: "Route Runner", icon: <Activity className="w-5 h-5" /> },
+  { id: "coach", name: "Coach's Pick", icon: <Trophy className="w-5 h-5" /> },
+  { id: "club", name: "Club Member", icon: <Users className="w-5 h-5" /> },
+];
 
 const BASE_USERS = [
   { id: "u1", name: "Puttich", level: 7, weeklyPoints: 240, badges: ["stars", "steps"] },
@@ -81,7 +108,7 @@ const EXTRA_NAMES = [
 
 
 
-export default function Profile({ onOpenBadge, onOpenSettings }) {
+function Page ({ onOpenBadge, onOpenSettings }) {
   const u = DUMMY_USER;
   const owned = new Map(u.badges.map(b => [b.id, b.level]));
   const ownedCount = owned.size;
@@ -90,7 +117,7 @@ export default function Profile({ onOpenBadge, onOpenSettings }) {
   const header = (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-3">
-        <Avatar name={u.name} size={48} seed={u.id} />
+        <Helper.Avatar name={u.name} size={48} seed={u.id} />
         <div>
           <h1 className="screen-title">{u.name}</h1>
           <p className="screen-subtitle">Level {u.level}</p>
@@ -106,16 +133,16 @@ export default function Profile({ onOpenBadge, onOpenSettings }) {
   );
 
   return (
-    <Screen titleNode={header}>
-      <Card>
+    <Helper.Screen titleNode={header}>
+      <Helper.Card>
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             <p className="text-slate-300 text-sm">Badges gesammelt</p>
             <p className="text-xl font-semibold">{ownedCount} / {total}</p>
           </div>
-          <Legend />
+          <Helper.Legend />
         </div>
-      </Card>
+      </Helper.Card>
 
       <div className="mt-4 mb-2 text-slate-400 text-xs">Badges</div>
 
@@ -124,9 +151,9 @@ export default function Profile({ onOpenBadge, onOpenSettings }) {
           const lvl = owned.get(b.id);
           const unlocked = !!lvl;
           return (
-            <Card key={b.id} onClick={() => onOpenBadge(b.id)}>
+            <Helper.Card key={b.id} onClick={() => onOpenBadge(b.id)}>
               <div className="flex flex-col items-center gap-2">
-                <div className={`p-3 rounded-xl ${unlocked ? badgeLevelColor(lvl) : "badge-locked"}`}>
+                <div className={`p-3 rounded-xl ${unlocked ? Helper.badgeLevelColor(lvl) : "badge-locked"}`}>
                   {b.icon}
                 </div>
                 <div className="text-center">
@@ -138,11 +165,17 @@ export default function Profile({ onOpenBadge, onOpenSettings }) {
                   </p>
                 </div>
               </div>
-            </Card>
+            </Helper.Card>
           );
         })}
       </div>
       <p className="text-slate-400 text-xs mt-3">Tippe auf ein Badge für Details.</p>
-    </Screen>
+    </Helper.Screen>
   );
 }
+
+const UserPageElements = {
+    Page
+};
+
+export default UserPageElements;

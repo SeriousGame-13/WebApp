@@ -7,7 +7,7 @@ import DatamanagerElements from '../utils/dataManager';
 import ChallengePageElements from '../pages/ChallengePage';
 import GroupPageElements from '../pages/GroupPage';
 import HomePageElements from '../pages/HomePage';
-import RankingPageElements from '../pages/RankingPage';
+import RankingPage from '../pages/RankingPage';
 import UserPageElements from '../pages/UserPage';
 import '../components/styles/LayoutElements.css'
 import MainFooter from './MainFooter';
@@ -65,7 +65,7 @@ function HomePage() {
             case 'rankings':
                 return (
                 <div className='app-container'>
-                    <RankingPageElements.Page data={userData} />
+                    <RankingPage.Page usrData={userData} />
                     <div className='border-t border-white/10' />
                     <MainFooter.newFooter tab={currentPage} setTab={setCurrentPage} />
                 </div>)

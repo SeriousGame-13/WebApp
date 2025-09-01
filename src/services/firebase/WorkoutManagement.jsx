@@ -86,9 +86,12 @@ function calculateWorkoutTimes(exercises) {
         }
     }
 
+    const lastEndTime = sortedExercises.length > 0 ? sortedExercises[sortedExercises.length - 1].endTime : null;
+
     return {
         activeTime: Math.round(activeTime / 1000),
-        idleTime: Math.round(idleTime / 1000)
+        idleTime: Math.round(idleTime / 1000),
+        endTime: lastEndTime
     };
 }
 
@@ -104,16 +107,30 @@ const calculateAndSaveWorkoutTimes = async (userId, workoutId) => {
         const exerSnap = await FirestoreManager.getAllDocuments(exercisePath);
         const exercises = exerSnap.docs.map(doc => doc.data());
 
-        const { activeTime, idleTime } = calculateWorkoutTimes(exercises);
+    const { activeTime, idleTime, endTime } = calculateWorkoutTimes(exercises);
 
         const workoutPath = createPath(userId);
-        await FirestoreManager.updateDocument(workoutPath, workoutId, { activeTime, idleTime });
+    await FirestoreManager.updateDocument(workoutPath, workoutId, { activeTime, idleTime, endTime });
 
     } catch (error) {
         console.error(`Failed to calculate and save times for workout ${workoutId}:`, error);
         // Do not re-throw, as this is a background task and shouldn't fail the main operation.
     }
 }
+
+// Post-exercise processing: update related systems after a new/updated exercise
+const handlePostExercise = async (userId, exercise) => {
+    try {
+        // Re-evaluate all user challenges that might depend on exercise/workout progress
+        const challenges = await ChallengeManagement.getUserChallenges(userId);
+        const evalPromises = challenges
+            .filter(ch => ch?.targetField && ch?.targetValue && (ch.isActive?.() || ch.hasStarted?.()))
+            .map(ch => ChallengeManagement.evaluateChallengeForUser(ch.challengeId, userId));
+        await Promise.allSettled(evalPromises);
+    } catch (e) {
+        console.warn('Post-exercise challenge evaluation failed:', e?.message || e);
+    }
+};
 
 const saveWorkout = async (workout) => {
     if (!(workout instanceof Workout)) {
@@ -231,8 +248,14 @@ const addExercise = async (userId, workoutId, exerData) => {
         if (exercise.stationId) {
             await HighscoreManager.create(exercise);
         }
+        // Add earned points immediately to the user
+        if (typeof exercise.points === 'number' && exercise.points > 0) {
+            UserManagement.addPoints(userId, exercise.points);
+        }
         // Recalculate and save times after adding the exercise
         await calculateAndSaveWorkoutTimes(userId, workoutId);
+        // Run post-exercise updates (e.g., challenge evaluation)
+        await handlePostExercise(userId, exercise);
     } catch (error) {
         console.error('Error adding exercise:', error);
         throw error;

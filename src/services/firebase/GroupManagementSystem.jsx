@@ -17,7 +17,7 @@ import FirebaseManager from './FirestoreManager.jsx';
 import FireAuthManager from './FirebaseAuthenticationManager.jsx';
 import { Group, GroupMember } from '../interfaces/group.jsx';
 import { GROUP_ROLE } from '../interfaces/constants.jsx';
-import {GROUPS_COLLECTION, GROUP_MEMBERS_COLLECTION, USERS_COLLECTION } from './collections.jsx'
+import { GROUPS_COLLECTION, GROUP_MEMBERS_COLLECTION, USERS_COLLECTION } from './collections.jsx'
 import { serverTimestamp } from 'firebase/firestore';
 
 const GROUP_IMAGES_COLLECTION = 'groupimages';
@@ -33,11 +33,11 @@ const generateUniqueGroupId = async () => {
     let groupId;
     let isUnique = false;
     let counter = 1;
-    
+
     while (!isUnique) {
         const paddedNumber = counter.toString().padStart(6, '0');
         groupId = `OG${paddedNumber}`;
-        
+
         const existingGroup = await FirebaseManager.readDocument(GROUPS_COLLECTION, groupId);
         if (!existingGroup) {
             isUnique = true;
@@ -45,7 +45,7 @@ const generateUniqueGroupId = async () => {
             counter++;
         }
     }
-    
+
     return groupId;
 };
 
@@ -78,12 +78,12 @@ const createGroup = async (userId, name, description, maxMembers = 50, isPrivate
             isPrivate,
             members: []
         });
-        
+
         const { members, ...groupDataForFirebase } = group;
         await FirebaseManager.createDocument(GROUPS_COLLECTION, groupDataForFirebase, groupId, true);
-        
+
         await addGroupMember(groupId, userId, GROUP_ROLE.ADMIN);
-        
+
         return getGroupWithMembers(groupId);
     } catch (error) {
         console.error('Failed to create group:', error);
@@ -100,7 +100,7 @@ const createGroup = async (userId, name, description, maxMembers = 50, isPrivate
 const getGroupData = async (groupId) => {
     try {
         const data = await FirebaseManager.readDocument(GROUPS_COLLECTION, groupId);
-        if (!data) { 
+        if (!data) {
             return null;
         } else {
             return Group.fromJSON(data);
@@ -123,10 +123,10 @@ const getGroupWithMembers = async (groupId) => {
         if (!group) {
             return null;
         }
-        
+
         const members = await getGroupMembers(groupId);
         group.members = members;
-        
+
         return group;
     } catch (error) {
         console.error('Failed to get group with members:', error);
@@ -176,9 +176,9 @@ const saveGroupImage = async (base64Data, groupId) => {
             imageData: base64Data,
             updatedAt: serverTimestamp()
         };
-        
+
         await FirebaseManager.createDocument(GROUP_IMAGES_COLLECTION, imageData, groupId, true);
-        
+
         return {
             success: true,
             groupId,
@@ -223,7 +223,7 @@ const updateGroup = async (groupId, requesterId, groupData, skipPermissionCheck 
     try {
         if (!skipPermissionCheck) {
             const group = await getGroup(groupId);
-            
+
             if (group.createdBy !== requesterId) {
                 const member = group.members.find(m => m.userId === requesterId && m.leftAt === null);
                 if (!member || member.role !== 'admin') {
@@ -231,7 +231,7 @@ const updateGroup = async (groupId, requesterId, groupData, skipPermissionCheck 
                 }
             }
         }
-        
+
         await FirebaseManager.updateDocument(GROUPS_COLLECTION, groupId, groupData, true);
         return true;
     } catch (error) {
@@ -255,16 +255,16 @@ const deleteGroup = async (groupId, userId) => {
         if (group.createdBy !== userId) {
             throw new Error('Permission denied: Only the group creator can delete the group');
         }
-        
+
         const memberships = await getGroupMembers(groupId);
-        
+
         for (const member of memberships) {
             await FirebaseManager.deleteDocument(GROUP_MEMBERS_COLLECTION, member.membershipId);
         }
-        
+
         // 그룹과 함께 이미지도 삭제
         await FirebaseManager.deleteDocument(GROUP_IMAGES_COLLECTION, groupId);
-        
+
         await FirebaseManager.deleteDocument(GROUPS_COLLECTION, groupId);
     } catch (error) {
         console.error('Failed to delete group:', error);
@@ -281,28 +281,28 @@ const deleteGroup = async (groupId, userId) => {
 const getAllGroups = async (limit = 50) => {
     try {
         const snapshot = await FirebaseManager.getAllDocuments(GROUPS_COLLECTION);
-        
+
         const groups = [];
         const promises = [];
         let count = 0;
-        
+
         snapshot.forEach(doc => {
             if (count < limit) {
                 const groupData = doc.data();
                 const group = Group.fromJSON(groupData);
-                
+
                 const promise = getGroupMembers(group.groupId).then(members => {
                     group.members = members;
                     groups.push(group);
                 });
-                
+
                 promises.push(promise);
                 count++;
             }
         });
-        
+
         await Promise.all(promises);
-        
+
         return groups;
     } catch (error) {
         console.error('Failed to get all groups:', error);
@@ -319,17 +319,17 @@ const getAllGroups = async (limit = 50) => {
 const getUserGroups = async (userId) => {
     try {
         const snapshot = await FirebaseManager.queryDocumentsByFieldValue(
-            GROUP_MEMBERS_COLLECTION, 
-            'userId', 
+            GROUP_MEMBERS_COLLECTION,
+            'userId',
             userId
         );
-        
+
         const groups = [];
         const promises = [];
-        
+
         snapshot.forEach(doc => {
             const membership = GroupMember.fromJSON(doc.data());
-            
+
             if (membership.isActive()) {
                 const promise = getGroupWithMembers(membership.groupId).then(group => {
                     if (group) {
@@ -339,7 +339,7 @@ const getUserGroups = async (userId) => {
                 promises.push(promise);
             }
         });
-        
+
         await Promise.all(promises);
         return groups;
     } catch (error) {
@@ -359,25 +359,25 @@ const getUserGroups = async (userId) => {
  */
 const addGroupMember = async (groupId, userId, role = GROUP_ROLE.MEMBER) => {
     try {
-        const group = await getGroup(groupId); 
-        
+        const group = await getGroup(groupId);
+
         if (group.hasMember(userId)) {
             throw new Error('User is already a member of this group');
         }
-        
+
         if (group.isFull()) {
             throw new Error('Group has reached maximum capacity');
         }
-        
+
         const membershipId = `${groupId}_${userId}`;
-        
+
         const membership = new GroupMember({
             membershipId,
             groupId,
             userId,
             role,
             joinedAt: serverTimestamp()
-        });        
+        });
 
         await FirebaseManager.createDocument(GROUP_MEMBERS_COLLECTION, membership, membershipId, true);
 
@@ -401,24 +401,24 @@ const addGroupMember = async (groupId, userId, role = GROUP_ROLE.MEMBER) => {
 const updateMemberRole = async (groupId, adminId, targetUserId, newRole) => {
     try {
         const group = await getGroup(groupId);
-        
+
         validateUserPermission(groupId, adminId);
-        
+
         const targetMember = getTargetMember(group, targetUserId);
-        
+
         if (group.createdBy === targetUserId && newRole !== GROUP_ROLE.ADMIN) {
             throw new Error('Cannot change group creator\'s role from ADMIN');
         }
-        
+
         targetMember.role = newRole;
-        
+
         await FirebaseManager.updateDocument(
-            GROUP_MEMBERS_COLLECTION, 
-            targetMember.membershipId, 
-            { role: newRole }, 
+            GROUP_MEMBERS_COLLECTION,
+            targetMember.membershipId,
+            { role: newRole },
             true
         );
-        
+
         return targetMember;
     } catch (error) {
         console.error('Failed to update member role:', error);
@@ -454,53 +454,53 @@ function getTargetMember(group, targetUserId) {
 const removeGroupMember = async (groupId, userId, targetUserId) => {
     try {
         const group = await getGroup(groupId);
-        
+
         const targetMember = getTargetMember(group, targetUserId);
-        
+
         const isSelf = userId === targetUserId;
         const isAdmin = group.isUserAdmin(userId);
-        
+
         if (!isAdmin && !isSelf) {
             throw new Error('Permission denied: Only admins can remove other members');
         }
-        
+
         if (group.createdBy === targetUserId && !isSelf) {
             throw new Error('Cannot remove the group creator');
         }
-        
+
         if (isSelf) {
             targetMember.leave();
             await FirebaseManager.updateDocument(
-                GROUP_MEMBERS_COLLECTION, 
-                targetMember.membershipId, 
-                { leftAt: serverTimestamp() }, 
+                GROUP_MEMBERS_COLLECTION,
+                targetMember.membershipId,
+                { leftAt: serverTimestamp() },
                 true
             );
-            
+
             if (group.createdBy === userId) {
-                const remainingMembers = group.members.filter(member => 
+                const remainingMembers = group.members.filter(member =>
                     member.userId !== userId && member.isActive()
                 );
-                
+
                 if (remainingMembers.length > 0) {
-                    const oldestMember = remainingMembers.reduce((oldest, current) => 
+                    const oldestMember = remainingMembers.reduce((oldest, current) =>
                         current.joinedAt < oldest.joinedAt ? current : oldest
                     );
-                    
+
                     await FirebaseManager.updateDocument(
-                        GROUP_MEMBERS_COLLECTION, 
-                        oldestMember.membershipId, 
-                        { role: GROUP_ROLE.ADMIN }, 
+                        GROUP_MEMBERS_COLLECTION,
+                        oldestMember.membershipId,
+                        { role: GROUP_ROLE.ADMIN },
                         true
                     );
-                    
+
                     await FirebaseManager.updateDocument(
-                        GROUPS_COLLECTION, 
-                        groupId, 
-                        { createdBy: oldestMember.userId }, 
+                        GROUPS_COLLECTION,
+                        groupId,
+                        { createdBy: oldestMember.userId },
                         true
                     );
-                    
+
                     console.log(`Group ownership transferred to ${oldestMember.userId}`);
                 } else {
                     await deleteGroup(groupId, userId);
@@ -510,9 +510,9 @@ const removeGroupMember = async (groupId, userId, targetUserId) => {
         } else {
             targetMember.leave();
             await FirebaseManager.updateDocument(
-                GROUP_MEMBERS_COLLECTION, 
-                targetMember.membershipId, 
-                { leftAt: serverTimestamp() }, 
+                GROUP_MEMBERS_COLLECTION,
+                targetMember.membershipId,
+                { leftAt: serverTimestamp() },
                 true
             );
         }
@@ -531,18 +531,18 @@ const removeGroupMember = async (groupId, userId, targetUserId) => {
 const getGroupMembers = async (groupId) => {
     try {
         const snapshot = await FirebaseManager.queryDocumentsByFieldValue(
-            GROUP_MEMBERS_COLLECTION, 
-            'groupId', 
+            GROUP_MEMBERS_COLLECTION,
+            'groupId',
             groupId
         );
-        
+
         const members = [];
         const userPromises = [];
-        
+
         snapshot.forEach(doc => {
             const memberData = doc.data();
             const member = GroupMember.fromJSON(memberData);
-            
+
             // Get user data for each member
             const userPromise = FirebaseManager.readDocument(USERS_COLLECTION, member.userId)
                 .then(userData => {
@@ -551,10 +551,10 @@ const getGroupMembers = async (groupId) => {
                     }
                     members.push(member);
                 });
-            
+
             userPromises.push(userPromise);
         });
-        
+
         await Promise.all(userPromises);
         return members;
     } catch (error) {
@@ -578,15 +578,15 @@ const canUserJoinGroup = async (groupId, userId) => {
         if (!group) {
             return { canJoin: false, reason: 'Group not found' };
         }
-        
+
         if (group.hasMember(userId)) {
             return { canJoin: false, reason: 'Already a member' };
         }
-        
+
         if (group.isFull()) {
             return { canJoin: false, reason: 'Group is full' };
         }
-        
+
         return { canJoin: true, reason: null };
     } catch (error) {
         console.error('Failed to check if user can join group:', error);
@@ -605,7 +605,7 @@ const getMembershipData = async (groupId, userId) => {
     try {
         const membershipId = `${groupId}_${userId}`;
         const data = await FirebaseManager.readDocument(GROUP_MEMBERS_COLLECTION, membershipId);
-        
+
         if (!data) {
             return null;
         } else {
@@ -628,36 +628,36 @@ const getMembershipData = async (groupId, userId) => {
 const rejoinGroup = async (groupId, userId) => {
     try {
         const group = await getGroup(groupId);
-        
+
         if (group.isFull()) {
             throw new Error('Group has reached maximum capacity');
         }
-        
+
         const membershipId = `${groupId}_${userId}`;
         const membershipData = await FirebaseManager.readDocument(GROUP_MEMBERS_COLLECTION, membershipId);
-        
+
         if (!membershipData) {
             throw new Error('No previous membership found');
         }
-        
+
         const membership = GroupMember.fromJSON(membershipData);
-        
+
         if (membership.isActive()) {
             throw new Error('Already an active member');
         }
-        
+
         membership.rejoin();
-        
+
         await FirebaseManager.updateDocument(
-            GROUP_MEMBERS_COLLECTION, 
-            membershipId, 
-            { 
-                leftAt: null, 
+            GROUP_MEMBERS_COLLECTION,
+            membershipId,
+            {
+                leftAt: null,
                 joinedAt: serverTimestamp()
-            }, 
+            },
             true
         );
-        
+
         return membership;
     } catch (error) {
         console.error('Failed to rejoin group:', error);
@@ -678,47 +678,69 @@ const rejoinGroup = async (groupId, userId) => {
 const changeGroupAdmin = async (groupId, currentAdminId, newAdminId) => {
     try {
         const group = await getGroup(groupId);
-        
+
         if (group.createdBy !== currentAdminId) {
             throw new Error('Permission denied: Only current admin can change admin');
         }
-        
+
         if (currentAdminId === newAdminId) {
             throw new Error('Selected user is already the admin');
         }
-        
+
         const currentAdminMember = group.members.find(m => m.userId === currentAdminId && m.leftAt === null);
         if (!currentAdminMember || currentAdminMember.role !== 'admin') {
             throw new Error('Permission denied: Only admins can change admin');
         }
-        
+
         const newAdminMembershipId = `${groupId}_${newAdminId}`;
         await FirebaseManager.updateDocument(
-            GROUP_MEMBERS_COLLECTION, 
-            newAdminMembershipId, 
-            { role: GROUP_ROLE.ADMIN }, 
+            GROUP_MEMBERS_COLLECTION,
+            newAdminMembershipId,
+            { role: GROUP_ROLE.ADMIN },
             true
         );
-        
+
         const currentAdminMembershipId = `${groupId}_${currentAdminId}`;
         await FirebaseManager.updateDocument(
-            GROUP_MEMBERS_COLLECTION, 
-            currentAdminMembershipId, 
-            { role: GROUP_ROLE.MEMBER }, 
+            GROUP_MEMBERS_COLLECTION,
+            currentAdminMembershipId,
+            { role: GROUP_ROLE.MEMBER },
             true
         );
-        
+
         await FirebaseManager.updateDocument(
-            GROUPS_COLLECTION, 
-            groupId, 
-            { createdBy: newAdminId }, 
+            GROUPS_COLLECTION,
+            groupId,
+            { createdBy: newAdminId },
             true
         );
-        
+
         return true;
     } catch (error) {
         console.error('Failed to change group admin:', error);
         throw error;
+    }
+};
+
+const getPublicGroups = async () => {
+    try {
+        const snapshot = await FirebaseManager.queryDocumentsByFieldValue(
+            GROUPS_COLLECTION,
+            'isPrivate',
+            false
+        );
+
+        const groups = [];
+        for (const doc of snapshot.docs) {
+            const groupData = doc.data();
+            const group = Group.fromJSON({ ...groupData, groupId: doc.id });
+            // We'll fetch members and image in the component to keep this generic
+            groups.push(group);
+        }
+        return groups;
+    } catch (error) {
+        console.error('Failed to get public groups:', error);
+        return [];
     }
 };
 
@@ -748,7 +770,7 @@ const GroupManagementSystem = {
     getAllGroups,
     getUserGroups,
     getGroup,
-    
+
     addGroupMember,
     updateMemberRole,
     removeGroupMember,
@@ -756,6 +778,7 @@ const GroupManagementSystem = {
     getMembershipData,
     canUserJoinGroup,
     rejoinGroup,
+    getPublicGroups,
 
     // Image operations
     saveGroupImage,

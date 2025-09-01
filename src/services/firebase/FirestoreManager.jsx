@@ -1,14 +1,15 @@
-import { 
-    doc, 
-    setDoc, 
+import {
+    doc,
+    setDoc,
     getDoc,
     deleteDoc,
     query,
     where,
     collection,
+    collectionGroup,
     getDocs,
     serverTimestamp,
-    getFirestore, 
+    getFirestore,
     addDoc,
     limit,
 } from 'firebase/firestore';
@@ -46,13 +47,15 @@ const readDocument = async (collectionName, docId) => {
  * @param {boolean} [addTimestamp=true] - Whether to add creation and update timestamps
  * @returns {Promise<DocumentReference|null>} Document reference or null on error
  */
-const createDocument = async (collectionName, data, docId=null, addTimestamp = true) => {
+const createDocument = async (collectionName, data, docId = null, addTimestamp = true) => {
     try {
         const documentReference = getDocumentReference(collectionName, docId);
-        const documentData = addTimestamp 
-            ? { ...data, 
-                createdAt: serverTimestamp(), 
-                updatedAt: serverTimestamp() } 
+        const documentData = addTimestamp
+            ? {
+                ...data,
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp()
+            }
             : data;
 
         if (docId) {
@@ -60,7 +63,7 @@ const createDocument = async (collectionName, data, docId=null, addTimestamp = t
         } else {
             return await createDocumentWithAutoId(collectionName, documentData);
         }
-    } 
+    }
     catch (error) {
         console.error(`Error creating document in ${collectionName}:`, error);
         return null;
@@ -99,11 +102,13 @@ const updateDocument = async (collectionName, docId, data, addTimestamp = true) 
         const docRef = getDocumentReference(collectionName, docId);
         delete data.createdAt;
         // Add timestamp if requested
-        const documentData = addTimestamp 
-            ? { ...data, 
-                updatedAt: serverTimestamp() } 
+        const documentData = addTimestamp
+            ? {
+                ...data,
+                updatedAt: serverTimestamp()
+            }
             : data;
-            
+
         return await setDocument(docRef, documentData);
     } catch (error) {
         console.error(`Error updating document in ${collectionName}:`, error);
@@ -158,6 +163,32 @@ const getAllDocuments = async (collectionName) => {
         // Dunno if this is correct! #TODO revisit
     } catch (error) {
         console.error(`Error getting all documents from ${collectionName}:`, error);
+        return [];
+    }
+}
+
+/**
+ * Queries a collection group with a set of where conditions.
+ * Each condition should be an object: { field: string, operator: FirestoreWhereOp, value: any }
+ * Example: [{ field: 'userId', operator: '==', value: 'uid123' }]
+ * @param {string} groupId - The collection group id (e.g., 'exercises').
+ * @param {Array<{field:string, operator:import('firebase/firestore').WhereFilterOp, value:any}>} conditions
+ * @returns {Promise<import('firebase/firestore').QuerySnapshot|Array>} QuerySnapshot or empty array on error
+ */
+const queryCollectionGroup = async (groupId, conditions = []) => {
+    try {
+        let q = query(collectionGroup(db, groupId));
+        if (Array.isArray(conditions) && conditions.length > 0) {
+            const filters = conditions
+                .filter(c => c && c.field && c.operator !== undefined)
+                .map(c => where(c.field, c.operator, c.value));
+            if (filters.length > 0) {
+                q = query(collectionGroup(db, groupId), ...filters);
+            }
+        }
+        return await getDocs(q);
+    } catch (error) {
+        console.error(`Error querying collection group ${groupId}:`, error);
         return [];
     }
 }
@@ -223,11 +254,11 @@ const findDocumentByField = async (collectionName, field, value) => {
     try {
         const q = query(collection(db, collectionName), where(field, '==', value), limit(1));
         const snapshot = await getDocs(q);
-        
+
         if (snapshot.empty) {
             return null;
         }
-        
+
         const doc = snapshot.docs[0];
         return {
             id: doc.id,
@@ -249,6 +280,7 @@ const FirestoreManager = {
     getAllDocuments,
     getServerTimestamp,
     findDocumentByField,
+    queryCollectionGroup,
 };
 
 export default FirestoreManager;

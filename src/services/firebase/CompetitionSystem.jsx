@@ -3,6 +3,7 @@ import FirebaseManager from './FirestoreManager';
 import UserManagement from './UserManagementSystem';
 import GroupManagementSystem from './GroupManagementSystem';
 import RewardSystem from './RewardSystem';
+import { serverTimestamp } from 'firebase/firestore';
 import { Challenge, ChallengeParticipant } from '../interfaces/challenge';
 import { CHALLENGE_STYLE, CHALLENGE_STATUS, CHALLENGE_PARTICIPATION_STATUS } from '../interfaces/constants';
 import { CHALLENGES_COLLECTION, CHALLENGE_PARTICIPANTS_SUBCOLLECTION } from './collections.jsx'
@@ -38,7 +39,7 @@ const createChallenge = async (creatorId, challengeData) => {
 
         await FirebaseManager.createDocument(CHALLENGES_COLLECTION, challenge.toJSON(), true);
         joinChallenge(challengeId, creatorId);
-        
+
         return await getChallenge(challengeId);
     } catch (error) {
         console.error('Failed to create challenge:', error);
@@ -55,7 +56,7 @@ const getChallenge = async (challengeId) => {
     try {
         const data = await FirebaseManager.readDocument(CHALLENGES_COLLECTION, challengeId);
         if (!data) return null;
-        
+
         return Challenge.fromJSON(data);
     } catch (error) {
         console.error('Failed to get challenge:', error);
@@ -95,18 +96,18 @@ const updateChallenge = async (challengeId, userId, challenge) => {
         const challenge = await getValidChallenge(challengeId, userId);
 
         // Don't allow certain updates after challenge has started
-        if (challenge.status === CHALLENGE_STATUS.RUNNING || 
+        if (challenge.status === CHALLENGE_STATUS.RUNNING ||
             challenge.status === CHALLENGE_STATUS.FINISHED) {
             const restrictedFields = ['startDate', 'endDate', 'targetValue', 'challengeType'];
             const hasRestrictedUpdate = Object.keys(challenge).some(key => restrictedFields.includes(key));
-            
+
             if (hasRestrictedUpdate) {
                 throw new Error('Cannot update core challenge details after it has started');
             }
         }
 
         await FirebaseManager.updateDocument(CHALLENGES_COLLECTION, challengeId, challenge, true);
-        
+
         return await getChallenge(challengeId);
     } catch (error) {
         console.error('Failed to update challenge:', error);
@@ -216,8 +217,8 @@ const joinChallenge = async (challengeId, userId) => {
         await FirebaseManager.createDocument(CHALLENGE_PARTICIPANTS_SUBCOLLECTION, participant.toJSON(), true);
 
         challenge.addParticipant(participant);
-        await FirebaseManager.updateDocument(CHALLENGES_COLLECTION, challengeId, { 
-                participants: challenge.participants.map(p => p.toJSON ? p.toJSON() : p)
+        await FirebaseManager.updateDocument(CHALLENGES_COLLECTION, challengeId, {
+            participants: challenge.participants.map(p => p.toJSON ? p.toJSON() : p)
         }, true);
 
         return participant;
@@ -249,7 +250,7 @@ const joinChallengeAsGroup = async (challengeId, groupId, userId) => {
 
         const activeMembers = group.getActiveMembers();
         const participants = [];
-        
+
         for (const member of activeMembers) {
             try {
                 const participant = await joinChallenge(challengeId, member.userId);
@@ -294,7 +295,7 @@ const withdrawFromChallenge = async (challengeId, userId) => {
         const challenge = await getChallenge(challengeId);
         if (challenge) {
             challenge.removeParticipant(participant.participantId);
-            await FirebaseManager.updateDocument(CHALLENGES_COLLECTION, challengeId, { 
+            await FirebaseManager.updateDocument(CHALLENGES_COLLECTION, challengeId, {
                 participants: challenge.participants.map(p => p.toJSON ? p.toJSON() : p)
             }, true);
         }
@@ -337,7 +338,7 @@ const updateChallengeProgress = async (challengeId, userId, progress) => {
             progress,
             ...(isCompleted && {
                 completed: true,
-                completedAt: Date.now(),
+                completedAt: serverTimestamp(),
                 status: CHALLENGE_PARTICIPATION_STATUS.COMPLETED
             })
         };
@@ -350,11 +351,11 @@ const updateChallengeProgress = async (challengeId, userId, progress) => {
         );
 
         if (isCompleted && !participant.completed) {
-            participant.complete();            
+            participant.complete();
             const challengeParticipant = challenge.getParticipant(userId);
             if (challengeParticipant) {
                 challengeParticipant.complete();
-                await FirebaseManager.updateDocument(CHALLENGES_COLLECTION, challengeId, { 
+                await FirebaseManager.updateDocument(CHALLENGES_COLLECTION, challengeId, {
                     participants: challenge.participants.map(p => p.toJSON ? p.toJSON() : p)
                 }, true);
             }
@@ -378,7 +379,7 @@ const getChallengeParticipant = async (challengeId, userId) => {
         const participantId = `${challengeId}_${userId}`;
         const data = await FirebaseManager.readDocument(CHALLENGE_PARTICIPANTS_SUBCOLLECTION, participantId);
         if (!data) return null;
-        
+
         return ChallengeParticipant.fromJSON(data);
     } catch (error) {
         console.error('Failed to get challenge participant:', error);
@@ -405,7 +406,7 @@ const getChallengeParticipants = async (challengeId) => {
         snapshot.forEach(doc => {
             const participantData = doc.data();
             const participant = ChallengeParticipant.fromJSON(participantData);
-            
+
             const userPromise = UserManagement.getUserData(participant.userId)
                 .then(userData => {
                     participants.push({
@@ -417,7 +418,7 @@ const getChallengeParticipants = async (challengeId) => {
                         } : null
                     });
                 });
-            
+
             userPromises.push(userPromise);
         });
 
@@ -438,7 +439,7 @@ const getChallengeResults = async (challengeId) => {
     try {
         const challenge = await getChallenge(challengeId);
         const participants = await getChallengeParticipants(challengeId);
-        
+
         let sortedParticipants;
         if (challenge.challengeType === CHALLENGE_STYLE.TOURNAMENT) {
             sortedParticipants = participants.sort((a, b) => {
@@ -479,7 +480,7 @@ const getChallengeResults = async (challengeId) => {
 const getChallenges = async (filters = {}, limit = 50) => {
     try {
         let challenges = [];
-        
+
         if (filters.status) {
             const snapshot = await FirebaseManager.queryDocumentsByFieldValue(
                 CHALLENGES_COLLECTION,
@@ -547,7 +548,7 @@ const getUserChallengeHistory = async (userId) => {
         snapshot.forEach(doc => {
             const participationData = doc.data();
             const participation = ChallengeParticipant.fromJSON(participationData);
-            
+
             const challengePromise = getChallenge(participation.challengeId)
                 .then(challenge => {
                     participations.push({
@@ -555,7 +556,7 @@ const getUserChallengeHistory = async (userId) => {
                         challenge
                     });
                 });
-            
+
             challengePromises.push(challengePromise);
         });
 
@@ -581,7 +582,7 @@ const createTournament = async (creatorId, tournamentData) => {
         challengeType: CHALLENGE_STYLE.TOURNAMENT,
         rewardPoints: tournamentData.rewardPoints || 100
     };
-    
+
     return await createChallenge(creatorId, challengeData);
 };
 
@@ -609,7 +610,7 @@ const openTournamentRegistration = async (tournamentId, userId) => {
     if (!tournament) {
         throw new Error('Tournament not found');
     }
-    
+
     return await updateChallenge(tournamentId, userId, {
         status: CHALLENGE_STATUS.OPEN
     });
@@ -626,7 +627,7 @@ const startTournament = async (tournamentId, userId) => {
     if (!tournament) {
         throw new Error('Tournament not found');
     }
-    
+
     return await startChallenge(tournamentId, userId);
 };
 
@@ -641,7 +642,7 @@ const finishTournament = async (tournamentId, userId) => {
     if (!tournament) {
         throw new Error('Tournament not found');
     }
-    
+
     return await finishChallenge(tournamentId, userId);
 };
 
@@ -676,7 +677,7 @@ const getTournaments = async (filters = {}, limit = 50) => {
     }, limit);
 };
 
-const CompetitionSystem = {    
+const CompetitionSystem = {
     // Challenge functions
     createChallenge,
     getChallenge,
@@ -693,7 +694,7 @@ const CompetitionSystem = {
     getChallenges,
     getAvailableChallenges,
     getUserChallengeHistory,
-    
+
     // Tournament functions. TODO:? Maybe move to another class? for more SOLID
     createTournament,
     getTournament,

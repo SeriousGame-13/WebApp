@@ -2,16 +2,17 @@ import { useState, useEffect } from 'react';
 import '../components/styles/LayoutElements.css';
 import GoalSystem from '../services/firebase/GoalSystem';
 import StationManager from '../services/firebase/StationManagement';
-import {localDateTimeStringToTimestamp, localTime} from '../utils/DateUtils';
+import { localDateTimeStringToTimestamp, localTime } from '../utils/DateUtils';
+import BaseModel from '../services/interfaces/base.jsx';
 
 
-function FormBase({ 
-    title, 
-    inputFields, 
-    initialData, 
-    onSubmit, 
-    onCancel, 
-    isProcessing, 
+function FormBase({
+    title,
+    inputFields,
+    initialData,
+    onSubmit,
+    onCancel,
+    isProcessing,
     submitText,
     goalTypes = null,
     stations = null
@@ -51,7 +52,7 @@ function FormBase({
                 }
                 return acc;
             }, {});
-            
+
             if (initialData?.uid) {
                 submitData.uid = initialData.uid;
             }
@@ -219,7 +220,7 @@ function GoalDetailPopup({ goal, onClose, onGoalUpdated, user, stations }) {
             }
         }
     };
-    
+
     const handleUpdateGoal = async (updates) => {
         setIsUpdating(true);
         try {
@@ -255,14 +256,12 @@ function GoalDetailPopup({ goal, onClose, onGoalUpdated, user, stations }) {
 
     // Calculate progress percentage
     const progressPercentage = Math.min(Math.round((goal.currentValue / goal.targetValue) * 100), 100);
-    
+
     // Format the deadline date if available
-    const formattedDeadline = goal.deadline?.toDate ? 
-        goal.deadline.toDate().toLocaleDateString() + ' ' + goal.deadline.toDate().toLocaleTimeString() : 
-        'No deadline set';
+    const formattedDeadline = goal.deadline ? (() => { const bm = new BaseModel({ createdAt: goal.deadline }); return bm.getCreateAt(); })() : 'No deadline set';
 
     // Determine if the goal is overdue
-    const isOverdue = goal.deadline?.toDate && !goal.isCompleted && 
+    const isOverdue = goal.deadline?.toDate && !goal.isCompleted &&
         new Date() > goal.deadline.toDate();
 
     // Find station name if available
@@ -278,12 +277,12 @@ function GoalDetailPopup({ goal, onClose, onGoalUpdated, user, stations }) {
                         <div className='BadgeInfoContainer'>
                             <div className='BadgeDetailTitle' style={{ color: 'var(--main-color)' }}>
                                 {goal.name}
-                                {goal.isCompleted && 
+                                {goal.isCompleted &&
                                     <span style={{ color: 'var(--success-color)', fontSize: '16px', marginLeft: '10px' }}>
                                         (Completed)
                                     </span>
                                 }
-                                {isOverdue && 
+                                {isOverdue &&
                                     <span style={{ color: 'var(--error-color)', fontSize: '16px', marginLeft: '10px' }}>
                                         (Overdue)
                                     </span>
@@ -305,9 +304,9 @@ function GoalDetailPopup({ goal, onClose, onGoalUpdated, user, stations }) {
                     <div style={{ marginTop: '20px' }}>
                         <h3 style={{ color: 'var(--main-color)', marginBottom: '10px' }}>Progress</h3>
                         <div className="ProgressBar">
-                            <div 
-                                className="ProgressBarFill" 
-                                style={{ 
+                            <div
+                                className="ProgressBarFill"
+                                style={{
                                     width: `${progressPercentage}%`,
                                     backgroundColor: goal.isCompleted ? 'var(--success-color)' : isOverdue ? 'var(--error-color)' : 'var(--main-color)'
                                 }}
@@ -440,9 +439,9 @@ function GoalManagerPage({ user }) {
         return goals.map(goal => {
             // Calculate progress percentage
             const progressPercentage = Math.min(Math.round((goal.currentValue / goal.targetValue) * 100), 100);
-            
+
             // Determine if the goal is overdue
-            const isOverdue = goal.deadline?.toDate && !goal.isCompleted && 
+            const isOverdue = goal.deadline?.toDate && !goal.isCompleted &&
                 new Date() > goal.deadline.toDate();
 
             // Find station name if available
@@ -456,12 +455,12 @@ function GoalManagerPage({ user }) {
                 >
                     <div className="CardHeader" style={{ color: 'var(--main-color)' }}>
                         {goal.name}
-                        {goal.isCompleted && 
+                        {goal.isCompleted &&
                             <span style={{ color: 'var(--success-color)', fontSize: '14px', marginLeft: '10px' }}>
                                 (Completed)
                             </span>
                         }
-                        {isOverdue && 
+                        {isOverdue &&
                             <span style={{ color: 'var(--error-color)', fontSize: '14px', marginLeft: '10px' }}>
                                 (Overdue)
                             </span>
@@ -479,17 +478,17 @@ function GoalManagerPage({ user }) {
                         Progress: {goal.currentValue}/{goal.targetValue} ({progressPercentage}%)
                     </div>
                     <div className="ProgressBarSmall">
-                        <div 
-                            className="ProgressBarFillSmall" 
-                            style={{ 
+                        <div
+                            className="ProgressBarFillSmall"
+                            style={{
                                 width: `${progressPercentage}%`,
                                 backgroundColor: goal.isCompleted ? 'var(--success-color)' : isOverdue ? 'var(--error-color)' : 'var(--main-color)'
                             }}
                         ></div>
                     </div>
-                    {goal.deadline?.toDate && (
+                    {goal.deadline && (
                         <div className="CardContents" style={{ fontSize: '12px', marginTop: '5px' }}>
-                            Deadline: {goal.deadline.toDate().toLocaleDateString()}
+                            {(() => { const bm = new BaseModel({ createdAt: goal.deadline }); return `Deadline: ${bm.getCreateAt()}`; })()}
                         </div>
                     )}
                 </div>

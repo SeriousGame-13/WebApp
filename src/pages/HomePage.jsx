@@ -3,514 +3,56 @@ import { Card, Screen, Stat, Avatar, Modal } from '../components/ui/UIComponents
 import RankingSystem from '../services/firebase/RankingSystem';
 import WorkoutManager from '../services/firebase/WorkoutManagement';
 import StationManagement from '../services/firebase/StationManagement';
+import { Timestamp } from 'firebase/firestore';
+import BaseModel from '../services/interfaces/base.jsx';
 
 import '../sphere-styles.css';
 
-// Header component with user info and level
-function UserHeader({ userData }) {
-  return (
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-3">
-        <Avatar name={userData.displayName} photoURL={userData.photoURL} size={48} />
-        <div>
-          <h1 className="screen-title">{userData.displayName?.split(' ')[0] || 'User'}</h1>
-        </div>
-      </div>
-      <div className="flex items-center gap-3">
-        <div className="user-stats text-right">
-          <div className="user-stats text-right">
-            <div>
-              <div className="stat-label">Level</div>
-                <div className="stat-value">{userData.level}</div>
-            </div>
-        </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Progress bar for level progress
-function LevelProgressBar({ userData }) {
-  const progress = Math.min(100, Math.round(((userData.points || 0) / (userData.currentMaxPoints() || 1)) * 100));
-  
-  return (
-    <Card>
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-slate-400 text-sm">Level Progress</span>
-        <span className="text-slate-300 text-sm">{userData.points}/{userData.currentMaxPoints()} Points</span>
-      </div>
-      <div className="progress-bar">
-        <div className="progress-fill" style={{ width: `${progress}%` }} />
-      </div>
-    </Card>
-  );
-}
-
-// Stats display for the workout
-function WorkoutStats({ lastWorkout, helpers }) {
-  if (!lastWorkout) return null;
-  
-  const { getWorkoutDuration, getTotalPoints, getTotalCalories } = helpers;
-  
-  return (
-    <div className="grid-2 mt-4">
-      <Card><Stat label="TIME" value={getWorkoutDuration(lastWorkout)} /></Card>
-      <Card><Stat label="HEART RATE" value={<>{lastWorkout.heartRateAvg || '--'} bpm</>} /></Card>
-      <Card><Stat label="POINTS" value={getTotalPoints(lastWorkout)} /></Card>
-      <Card><Stat label="CALORIES" value={<>{getTotalCalories(lastWorkout)} kcal</>} /></Card>
-    </div>
-  );
-}
-
-// Component for displaying exercise cards
-function ExerciseList({ exercises, helpers, onExerciseClick }) {
-  const { getStationNameById, getDateFromTimestamp } = helpers;
-  
-  return (
-    <div className="grid-2 gap-3">
-      {exercises.map((exercise, index) => (
-        <Card 
-          key={exercise.uid || index} 
-          className="exercise-card" 
-          onClick={() => onExerciseClick(exercise)}
-        >
-          <div className="font-medium mb-1 mt-4">
-            {exercise.name || getStationNameById(exercise.stationId)}
-          </div>
-          <div className="text-xs text-slate-400 mb-1">
-            {getStationNameById(exercise.stationId)}
-          </div>
-          {exercise.startTime && exercise.endTime && (
-            <div className="text-xs text-slate-500 mb-2">
-              {(() => {
-                const startTime = getDateFromTimestamp(exercise.startTime);
-                const endTime = getDateFromTimestamp(exercise.endTime);
-                const durationMs = endTime - startTime;
-                const durationSeconds = Math.floor(durationMs / 1000);
-                const minutes = Math.floor(durationSeconds / 60);
-                const seconds = durationSeconds % 60;
-                return `${minutes}m ${seconds}s`;
-              })()}
-            </div>
-          )}
-          <div className="flex justify-between items-center">
-            <div className="text-sm text-slate-400">
-              {exercise.points} points
-            </div>
-            <div className="text-xs text-slate-500">
-              {exercise.calories} kcal
-            </div>
-          </div>
-        </Card>
-      ))}
-    </div>
-  );
-}
-
-// Modal for creating or editing a workout
-function AddEditWorkoutModal({ open, onClose, formData, onChange, onSave, isEditing }) {
-  const { workoutName, workoutDescription, workoutStartTime, workoutEndTime } = formData;
-  
-  const handleChange = (field, value) => {
-    onChange({ ...formData, [field]: value });
-  };
-  
-  return (
-    <Modal open={open} onClose={onClose} title={isEditing ? "Edit Workout" : "Create Workout"} size="md">
-      <div className="space-y-4">
-        <div>
-          <div className="text-sm text-slate-300 mb-1">Workout Name</div>
-          <input 
-            value={workoutName} 
-            onChange={e => handleChange('workoutName', e.target.value)} 
-            className="form-input w-full" 
-            placeholder="My Workout"
-          />
-        </div>
-        <div>
-          <div className="text-sm text-slate-300 mb-1">Description</div>
-          <textarea 
-            value={workoutDescription} 
-            onChange={e => handleChange('workoutDescription', e.target.value)} 
-            className="form-input w-full" 
-            rows="3"
-            placeholder="Describe your workout"
-          />
-        </div>
-        <div className="grid-2 gap-4">
-          <div>
-            <div className="text-sm text-slate-300 mb-1">Start Time</div>
-            <input 
-              type="datetime-local" 
-              value={workoutStartTime.toISOString().slice(0, 16)} 
-              onChange={e => handleChange('workoutStartTime', new Date(e.target.value))} 
-              className="form-input w-full" 
-            />
-          </div>
-          <div>
-            <div className="text-sm text-slate-300 mb-1">End Time</div>
-            <input 
-              type="datetime-local" 
-              value={workoutEndTime.toISOString().slice(0, 16)} 
-              onChange={e => handleChange('workoutEndTime', new Date(e.target.value))} 
-              className="form-input w-full" 
-            />
-          </div>
-        </div>
-        <div className="flex justify-end gap-2 pt-2">
-          <button onClick={onClose} className="btn-secondary">Cancel</button>
-          <button onClick={onSave} className="btn-primary">{isEditing ? "Update" : "Save"}</button>
-        </div>
-      </div>
-    </Modal>
-  );
-}
-
-// Modal for adding/editing an exercise
-function AddEditExerciseModal({ open, onClose, formData, onChange, stations, isEditing, onSave, onDelete}) {
-  const handleChange = (field, value) => {
-    onChange({ ...formData, [field]: value });
-  };
-  
-return (
-    <Modal open={open} onClose={onClose} title={isEditing ? "Edit Exercise" : "Add Exercise"} size="md">
-        <div className="space-y-4">
-            <div className="grid-2 gap-4">
-                <div>
-                    <div className="text-sm text-slate-300 mb-1">Exercise Name</div>
-                    <input 
-                        value={formData.exerciseName} 
-                        onChange={e => handleChange('exerciseName', e.target.value)} 
-                        className="form-input w-full" 
-                    />
-                </div>
-                <div>
-                    <div className="text-sm text-slate-300 mb-1">Station</div>
-                    <select 
-                        value={formData.selectedStation} 
-                        onChange={e => handleChange('selectedStation', e.target.value)} 
-                        className="form-input w-full"
-                    >
-                        <option value="">Select a station</option>
-                        {stations.map(station => (
-                            <option key={station.uid} value={station.uid}>
-                                {station.name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-            </div>
-            
-            <div className="grid-2 gap-4">
-                <div>
-                    <div className="text-sm text-slate-300 mb-1">Start Time</div>
-                    <input 
-                        type="datetime-local" 
-                        value={formData.exerciseStartTime.toISOString().slice(0, 16)} 
-                        onChange={e => handleChange('exerciseStartTime', new Date(e.target.value))} 
-                        className="form-input w-full" 
-                    />
-                </div>
-                <div>
-                    <div className="text-sm text-slate-300 mb-1">End Time</div>
-                    <input 
-                        type="datetime-local" 
-                        value={formData.exerciseEndTime.toISOString().slice(0, 16)} 
-                        onChange={e => handleChange('exerciseEndTime', new Date(e.target.value))} 
-                        className="form-input w-full" 
-                    />
-                </div>
-            </div>
-            
-            <div className="grid-2 gap-4">
-                <div>
-                    <div className="text-sm text-slate-300 mb-1">Points</div>
-                    <input 
-                        type="number" 
-                        value={formData.exercisePoints} 
-                        onChange={e => handleChange('exercisePoints', e.target.value)} 
-                        className="form-input w-full" 
-                    />
-                </div>
-                <div>
-                    <div className="text-sm text-slate-300 mb-1">Calories</div>
-                    <input 
-                        type="number" 
-                        value={formData.exerciseCals} 
-                        onChange={e => handleChange('exerciseCals', e.target.value)} 
-                        className="form-input w-full" 
-                    />
-                </div>
-            </div>
-            
-            <div>
-                <div className="text-sm text-slate-300 mb-1">Heart Rate (bpm)</div>
-                <div className="grid-3 gap-4">
-                    <div>
-                        <div className="text-xs text-slate-400 mb-1">Average</div>
-                        <input 
-                            type="number" 
-                            value={formData.exerciseHR} 
-                            onChange={e => handleChange('exerciseHR', e.target.value)} 
-                            className="form-input w-full" 
-                        />
-                    </div>
-                    <div>
-                        <div className="text-xs text-slate-400 mb-1">Maximum</div>
-                        <input 
-                            type="number" 
-                            value={formData.exerciseMaxHR} 
-                            onChange={e => handleChange('exerciseMaxHR', e.target.value)} 
-                            className="form-input w-full" 
-                        />
-                    </div>
-                    <div>
-                        <div className="text-xs text-slate-400 mb-1">Minimum</div>
-                        <input 
-                            type="number" 
-                            value={formData.exerciseMinHR} 
-                            onChange={e => handleChange('exerciseMinHR', e.target.value)} 
-                            className="form-input w-full" 
-                        />
-                    </div>
-                </div>
-            </div>
-            
-            <div className="flex justify-end gap-2 pt-2">
-                <button onClick={onClose} className="btn-secondary">Cancel</button>
-                <button onClick={() => onDelete(exercise)} className="btn-danger">Delete</button>
-                <button onClick={onSave} className="btn-primary">{isEditing ? "Update" : "Save"}</button>
-            </div>
-        </div>
-    </Modal>
-);
-}
-
-// Modal for displaying exercise details
-function ViewExerciseModal({ 
-  open, 
-  onClose, 
-  exercise, 
-  helpers, 
-  onEdit, 
-}) {
-  if (!exercise) return null;
-  
-  const { getStationNameById, getDateFromTimestamp } = helpers;
-
-  return (
-    <Modal 
-      open={open} 
-      onClose={onClose} 
-      title="Exercise Details"
-      size="md"
-    >
-      <div className="space-y-4">
-        <div className="grid-2 gap-4">
-          <div>
-            <div className="text-sm text-slate-300 mb-1">Exercise Name</div>
-            <div className="form-input w-full bg-slate-700 text-slate-200">
-              {exercise.name || getStationNameById(exercise?.stationId || '')}
-            </div>
-          </div>
-          <div>
-            <div className="text-sm text-slate-300 mb-1">Station</div>
-            <div className="form-input w-full bg-slate-700 text-slate-200">
-              {getStationNameById(exercise.stationId)}
-            </div>
-          </div>
-        </div>
-
-        <div className="grid-2 gap-4">
-          <div>
-            <div className="text-sm text-slate-300 mb-1">Start Time</div>
-            <div className="form-input w-full bg-slate-700 text-slate-200">
-              {exercise.startTime ? new Date(getDateFromTimestamp(exercise.startTime)).toLocaleString() : '--'}
-            </div>
-          </div>
-          <div>
-            <div className="text-sm text-slate-300 mb-1">End Time</div>
-            <div className="form-input w-full bg-slate-700 text-slate-200">
-              {exercise.endTime ? new Date(getDateFromTimestamp(exercise.endTime)).toLocaleString() : '--'}
-            </div>
-          </div>
-        </div>
-
-        <div className="grid-2 gap-4">
-          <div>
-            <div className="text-sm text-slate-300 mb-1">Points</div>
-            <div className="form-input w-full bg-slate-700 text-slate-200">
-              {exercise.points}
-            </div>
-          </div>
-          <div>
-            <div className="text-sm text-slate-300 mb-1">Calories</div>
-            <div className="form-input w-full bg-slate-700 text-slate-200">
-              {exercise.calories} kcal
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <div className="text-sm text-slate-300 mb-1">Heart Rate (bpm)</div>
-          <div className="grid-3 gap-4">
-            <div>
-              <div className="text-xs text-slate-400 mb-1">Average</div>
-              <div className="form-input w-full bg-slate-700 text-slate-200">
-                {exercise.heartRateAvg || '0'}
-              </div>
-            </div>
-            <div>
-              <div className="text-xs text-slate-400 mb-1">Maximum</div>
-              <div className="form-input w-full bg-slate-700 text-slate-200">
-                {exercise.heartRateMax || '0'}
-              </div>
-            </div>
-            <div>
-              <div className="text-xs text-slate-400 mb-1">Minimum</div>
-              <div className="form-input w-full bg-slate-700 text-slate-200">
-                {exercise.heartRateMin || '0'}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex justify-end gap-2 pt-2">
-          <div className="flex gap-2">
-            <button onClick={onClose} className="btn-secondary">Cancel</button>
-            <button 
-              onClick={() => {
-                onClose();
-                onEdit(exercise);
-              }} 
-              className="btn-primary"
-            >
-              Edit
-            </button>
-          </div>
-        </div>
-      </div>
-    </Modal>
-  );
-}
-
-// Main Page component
 function Page({ userData }) {
-  // UI visibility state
-  const [modalState, setModalState] = useState({
-    workoutOpen: false,
-    addExerciseOpen: false,
-    showExerciseModal: false,
-    isEditing: false,
-    editingWorkout: false
-  });
-  
-  // Data loading state
-  const [loadingState, setLoadingState] = useState({
-    isLoadingLastWorkout: true,
-    isLoadingStations: true
-  });
-  
-  // Core data state
-  const [dataState, setDataState] = useState({
-    rank: '--',
-    lastWorkout: null,
-    stations: [],
-    selectedExercise: null
-  });
-  
-  // Form state for workout
-  const [workoutForm, setWorkoutForm] = useState({
-    workoutName: '',
-    workoutDescription: '',
-    workoutStartTime: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago default
-    workoutEndTime: new Date() // Current time default
-  });
-  
-  // Form state for exercise
-  const [exerciseForm, setExerciseForm] = useState({
-    selectedStation: '',
-    exerciseName: '',
-    exerciseStartTime: new Date(),
-    exerciseEndTime: new Date(),
-    exerciseHR: '',
-    exerciseMaxHR: '',
-    exerciseMinHR: '',
-    exercisePoints: '',
-    exerciseCals: ''
-  });
+  const [stationOpen, setStationOpen] = useState(null);
+  const [rank, setRank] = useState('--');
+  const [lastWorkout, setLastWorkout] = useState(null);
+  const [isLoadingLastWorkout, setIsLoadingLastWorkout] = useState(true);
+  const [stations, setStations] = useState([]);
+  const [isLoadingStations, setIsLoadingStations] = useState(true);
+  const [selectedExercise, setSelectedExercise] = useState(null);
+  const [showExerciseModal, setShowExerciseModal] = useState(false);
+  const [workoutOpen, setWorkoutOpen] = useState(false);
+  const [wTime, setWTime] = useState('');
+  const [wHR, setWHR] = useState('');
+  const [wPoints, setWPoints] = useState('');
+  const [wCals, setWCals] = useState('');
+  const [addExerciseOpen, setAddExerciseOpen] = useState(false);
+  const [eTime, setETime] = useState('');
+  const [eHR, setEHR] = useState('');
+  const [ePoints, setEPoints] = useState('');
+  const [eCals, setECals] = useState('');
+  const [eStationId, setEStationId] = useState('');
+  const [isAddingExercise, setIsAddingExercise] = useState(false);
+  const [eTimeError, setETimeError] = useState('');
+  const [wTimeError, setWTimeError] = useState('');
 
-  // Helper functions
-  const helpers = {
-    // Format timestamp to Date object
-    getDateFromTimestamp: (timestamp) => {
-      if (timestamp?.toDate) {
-        return timestamp.toDate();
-      } else if (timestamp?.seconds) {
-        return new Date(timestamp.seconds * 1000);
-      } else if (timestamp) {
-        return new Date(timestamp);
-      } else {
-        return new Date(0);
-      }
-    },
-    
-    // Format duration in seconds to readable string
-    formatDuration: (durationSeconds) => {
-      if (userData.formatDuration) {
-        return userData.formatDuration(durationSeconds);
-      } else {
-        const minutes = Math.floor(durationSeconds / 60);
-        const seconds = durationSeconds % 60;
-        return `${minutes}m ${seconds}s`;
-      }
-    },
-    
-    // Get workout duration
-    getWorkoutDuration: (workout) => {
-      if (!workout || !workout.startTime || !workout.endTime) return '--';
-      
-      let startTime = helpers.getDateFromTimestamp(workout.startTime);
-      let endTime = helpers.getDateFromTimestamp(workout.endTime);
-      
-      const durationMs = endTime - startTime;
-      const durationSeconds = Math.floor(durationMs / 1000);
-      
-      return helpers.formatDuration(durationSeconds);
-    },
-    
-    // Get total calories from a workout
-    getTotalCalories: (workout) => {
-      if (!workout || !workout.exercises || workout.exercises.length === 0) return 0;
-      return workout.exercises.reduce((total, exercise) => total + (exercise.calories || 0), 0);
-    },
-    
-    // Get total points from a workout
-    getTotalPoints: (workout) => {
-      if (!workout || !workout.exercises || workout.exercises.length === 0) return 0;
-      return workout.exercises.reduce((total, exercise) => total + (exercise.points || 0), 0);
-    },
-    
-    // Get workout date in dd.mm.yyyy format
-    getWorkoutDate: (workout) => {
-      if (!workout || !workout.createdAt) return '--';
-      
-      let createdTime = helpers.getDateFromTimestamp(workout.createdAt);
-      
-      const day = String(createdTime.getDate()).padStart(2, '0');
-      const month = String(createdTime.getMonth() + 1).padStart(2, '0');
-      const year = createdTime.getFullYear();
-      
-      return `${day}.${month}.${year}`;
-    },
-    
-    // Get station name from ID
-    getStationNameById: (stationId) => {
-      const station = dataState.stations.find(s => s.uid === stationId);
-      return station ? station.name : 'Unknown Station';
+  // Parse duration helper: accepts "mm:ss" or seconds (number)
+  const parseDurationInput = (value) => {
+    if (!value || value.trim() === '') return { seconds: 0, error: '' };
+    const v = value.trim();
+    // allow seconds as integer
+    if (/^\d+$/.test(v)) {
+      return { seconds: parseInt(v, 10), error: '' };
     }
+    // allow mm:ss
+    const mmssMatch = v.match(/^(\d{1,2}):(\d{2})$/);
+    if (mmssMatch) {
+      const m = parseInt(mmssMatch[1], 10);
+      const s = parseInt(mmssMatch[2], 10);
+      if (s >= 60) return { seconds: 0, error: 'Seconds must be 00-59' };
+      return { seconds: m * 60 + s, error: '' };
+    }
+    return { seconds: 0, error: 'Use mm:ss (e.g., 05:30) or seconds (e.g., 330)' };
   };
+
+  // Calculate level progress
+  const progress = Math.min(100, Math.round(((userData.points || 0) / (userData.currentMaxPoints() || 1)) * 100));
 
   // Fetch user rank
   useEffect(() => {
@@ -522,7 +64,7 @@ function Page({ userData }) {
         console.error('Failed to fetch user rank:', error);
       }
     };
-    
+
     fetchUserRank();
   }, [userData.uid]);
 
@@ -550,33 +92,35 @@ function Page({ userData }) {
 
   const loadLastWorkout = async () => {
     try {
-      setLoadingState(prev => ({ ...prev, isLoadingLastWorkout: true }));
-      
+      setIsLoadingLastWorkout(true);
+
       // Check if workouts are already in userData
       if (userData.workouts && userData.workouts.length > 0) {
         const workouts = userData.workouts;
-        
+
         // Sort by start time to get the most recent workout
         const sortedWorkouts = workouts.sort((a, b) => {
-          let dateA = helpers.getDateFromTimestamp(a.startTime);
-          let dateB = helpers.getDateFromTimestamp(b.startTime);
-          return dateB - dateA;
+          const aTime = a?.startTime?.toDate ? a.startTime.toDate().getTime() : 0;
+          const bTime = b?.startTime?.toDate ? b.startTime.toDate().getTime() : 0;
+          return bTime - aTime;
         });
-        
-        setDataState(prev => ({ ...prev, lastWorkout: sortedWorkouts[0] }));
+
+        setLastWorkout(sortedWorkouts[0]);
       } else {
         // Fallback to WorkoutManager if no workouts in userData
         const workouts = await WorkoutManager.loadWorkouts(userData.uid);
-        
+
         if (workouts && workouts.length > 0) {
           // Sort by start time to get the most recent workout
           const sortedWorkouts = workouts.sort((a, b) => {
-            let dateA = helpers.getDateFromTimestamp(a.startTime);
-            let dateB = helpers.getDateFromTimestamp(b.startTime);
-            return dateB - dateA;
+            const aTime = a?.startTime?.toDate ? a.startTime.toDate().getTime() : 0;
+            const bTime = b?.startTime?.toDate ? b.startTime.toDate().getTime() : 0;
+            return bTime - aTime;
           });
-          
-          setDataState(prev => ({ ...prev, lastWorkout: sortedWorkouts[0] }));
+
+          setLastWorkout(sortedWorkouts[0]);
+        } else {
+          setLastWorkout(null);
         }
       }
     } catch (error) {
@@ -586,114 +130,37 @@ function Page({ userData }) {
     }
   };
 
-  const handleExerciseClick = (exercise) => {
-    setDataState(prev => ({ ...prev, selectedExercise: exercise }));
-    setModalState(prev => ({ ...prev, showExerciseModal: true }));
-  };
-  
-  const handleDeleteExercise = async (exercise) => {
-    if (!window.confirm("Are you sure you want to delete this exercise?")) {
-      return;
-    }
-    
-    try {
-      const { lastWorkout } = dataState;
-      if (lastWorkout && exercise) {
-        const updatedWorkout = {
-          ...lastWorkout,
-          exercises: lastWorkout.exercises.filter(ex => 
-            ex.uid !== exercise.uid || 
-            (ex.uid === undefined && 
-             (ex.stationId !== exercise.stationId || 
-              ex.startTime !== exercise.startTime))
-          )
-        };
-        
-        await WorkoutManager.updateWorkout(updatedWorkout);
-        setModalState(prev => ({ ...prev, showExerciseModal: false }));
-        loadLastWorkout();
-        alert("Exercise deleted successfully");
-      }
-    } catch (error) {
-      console.error("Error deleting exercise:", error);
-      alert("Failed to delete exercise");
-    }
-  };
-  
-  const handleEditExercise = (exercise) => {
-    setModalState(prev => ({ 
-      ...prev, 
-      isEditing: true,
-      showExerciseModal: false,
-      addExerciseOpen: true
-    }));
-    
-    setDataState(prev => ({ ...prev, selectedExercise: exercise }));
-    
-    // Populate form fields with exercise data
-    setExerciseForm({
-      exerciseName: exercise.name || '',
-      selectedStation: exercise.stationId || '',
-      exerciseStartTime: exercise.startTime ? new Date(helpers.getDateFromTimestamp(exercise.startTime)) : new Date(),
-      exerciseEndTime: exercise.endTime ? new Date(helpers.getDateFromTimestamp(exercise.endTime)) : new Date(),
-      exercisePoints: exercise.points?.toString() || '',
-      exerciseCals: exercise.calories?.toString() || '',
-      exerciseHR: exercise.heartRateAvg?.toString() || '',
-      exerciseMaxHR: exercise.heartRateMax?.toString() || '',
-      exerciseMinHR: exercise.heartRateMin?.toString() || ''
-    });
+  const getWorkoutDuration = (workout) => {
+    if (!workout || !workout.startTime || !workout.endTime) return '--';
+    const bm = new BaseModel();
+    const minutes = bm.getDurationMinutes(workout.startTime, workout.endTime);
+    return bm.formatDurationMinutes(minutes);
   };
 
-  const handleEditWorkout = () => {
-    const { lastWorkout } = dataState;
-    
-    if (!lastWorkout) return;
-    
-    // Set modal state for editing
-    setModalState(prev => ({
-      ...prev,
-      workoutOpen: true,
-      editingWorkout: true
-    }));
-    
-    // Populate form with workout data
-    setWorkoutForm({
-      workoutName: lastWorkout.name || '',
-      workoutDescription: lastWorkout.description || '',
-      workoutStartTime: lastWorkout.startTime ? 
-        new Date(helpers.getDateFromTimestamp(lastWorkout.startTime)) : 
-        new Date(Date.now() - 30 * 60 * 1000),
-      workoutEndTime: lastWorkout.endTime ? 
-        new Date(helpers.getDateFromTimestamp(lastWorkout.endTime)) : 
-        new Date()
-    });
+  const getTotalCalories = (workout) => {
+    if (!workout || !workout.exercises || workout.exercises.length === 0) return 0;
+    return workout.exercises.reduce((total, exercise) => total + (exercise.calories || 0), 0);
+  };
+
+  const getTotalPoints = (workout) => {
+    if (!workout || !workout.exercises || workout.exercises.length === 0) return 0;
+    return workout.exercises.reduce((total, exercise) => total + (exercise.points || 0), 0);
+  };
+
+  const getWorkoutDate = (workout) => {
+    if (!workout || !workout.createdAt) return '--';
+    const bm = new BaseModel({ createdAt: workout.createdAt });
+    return bm.getCreateAt();
+  };
+
+  const handleExerciseClick = (exercise) => {
+    setSelectedExercise(exercise);
+    setShowExerciseModal(true);
   };
 
   const handleAddExercise = () => {
-    // Reset form fields for a new exercise
-    setModalState(prev => ({ 
-      ...prev, 
-      isEditing: false,
-      addExerciseOpen: true 
-    }));
-    
-    setDataState(prev => ({ ...prev, selectedExercise: null }));
-    
-    // Set default times (current time for end, 30 minutes earlier for start)
-    const now = new Date();
-    const thirtyMinutesAgo = new Date(now.getTime() - (30 * 60 * 1000));
-    
-    setExerciseForm({
-      exerciseName: '',
-      selectedStation: dataState.stations.length > 0 ? dataState.stations[0].uid : '',
-      exerciseStartTime: thirtyMinutesAgo,
-      exerciseEndTime: now,
-      exerciseHR: '',
-      exerciseMaxHR: '',
-      exerciseMinHR: '',
-      exercisePoints: '',
-      exerciseCals: ''
-    });
+    // Open modal to add an exercise to the latest workout
+    setAddExerciseOpen(true);
   };
 
   const saveExercise = async () => {
@@ -780,71 +247,35 @@ function Page({ userData }) {
 
   const saveWorkout = async () => {
     try {
-      if (!workoutForm.workoutName.trim()) {
-        alert('Please enter a workout name');
+      // Parse time input (mm:ss or seconds)
+      const { seconds: totalSeconds, error } = parseDurationInput(wTime);
+      if (error) {
+        setWTimeError(error);
         return;
       }
-      
-      if (workoutForm.workoutEndTime < workoutForm.workoutStartTime) {
-        alert('End time must be after start time');
-        return;
-      }
-      
-      // Calculate points and calories based on duration
-      const durationMs = workoutForm.workoutEndTime - workoutForm.workoutStartTime;
-      const points = Math.floor(durationMs / 60000); // 1 point per minute
-      const calories = Math.floor(durationMs / 30000); // 2 calories per minute
-      
-      const { editingWorkout } = modalState;
-      const { lastWorkout } = dataState;
-      
-      if (editingWorkout && lastWorkout) {
-        // If editing, update the existing workout
-        const updatedWorkout = {
-          ...lastWorkout,
-          name: workoutForm.workoutName.trim(),
-          description: workoutForm.workoutDescription.trim(),
-          startTime: workoutForm.workoutStartTime,
-          endTime: workoutForm.workoutEndTime,
-          points: points,
-          calories: calories
-        };
-        
-        // Update workout in database
-        await WorkoutManager.updateWorkout(updatedWorkout);
-        
-        // Update local state
-        setDataState(prev => ({ ...prev, lastWorkout: updatedWorkout }));
-        
-        alert("Workout updated successfully");
-      } else {
-        // Create new workout object
-        const workoutData = {
-          userId: userData.uid,
-          name: workoutForm.workoutName.trim(),
-          description: workoutForm.workoutDescription.trim(),
-          startTime: workoutForm.workoutStartTime,
-          endTime: workoutForm.workoutEndTime,
-          points: points,
-          calories: calories,
-          exercises: []
-        };
-        
-        // Save new workout
-        await WorkoutManager.saveWorkout(workoutData);
-        alert("Workout created successfully");
-      }
-      
+
+      // Create workout object
+      const workoutData = {
+        userId: userData.uid,
+        startTime: Timestamp.fromDate(new Date(Date.now() - totalSeconds * 1000)), // Firebase Timestamp
+        endTime: Timestamp.fromDate(new Date()),
+        heartRateAvg: parseInt(wHR) || 0,
+        points: parseInt(wPoints) || 0,
+        calories: parseInt(wCals) || 0,
+        exercises: []
+      };
+
+      // Save workout
+      await WorkoutManager.saveWorkout(workoutData);
+
       // Reset form and close modal
-      setWorkoutForm({
-        workoutName: '',
-        workoutDescription: '',
-        workoutStartTime: new Date(Date.now() - 30 * 60 * 1000),
-        workoutEndTime: new Date()
-      });
-      
-      setModalState(prev => ({ ...prev, workoutOpen: false }));
-      
+      setWTime('');
+      setWTimeError('');
+      setWHR('');
+      setWPoints('');
+      setWCals('');
+      setWorkoutOpen(false);
+
       // Reload last workout to show the new one
       loadLastWorkout();
     } catch (error) {
@@ -912,47 +343,227 @@ function Page({ userData }) {
         )}
       </div>
 
-      {/* Exercise List Section */}
-      {!isLoadingLastWorkout && lastWorkout && lastWorkout.exercises && lastWorkout.exercises.length > 0 && (
+      {/* Station Section */}
+      {!isLoadingLastWorkout && lastWorkout && (
         <div className="mt-8">
-          <ExerciseSectionHeader />
-          <ExerciseList 
-            exercises={lastWorkout.exercises}
-            helpers={helpers}
-            onExerciseClick={handleExerciseClick}
-          />
+          <div className="flex justify-between items-center mb-3">
+            <h3 className="text-lg font-semibold text-gradient">Latest Exercises</h3>
+            <button
+              onClick={handleAddExercise}
+              className="btn-secondary text-sm px-3 py-1 rounded-full"
+            >
+              Add Exercise
+            </button>
+          </div>
+          <div className="grid-2 gap-3">
+            {lastWorkout.exercises.length > 0 && lastWorkout.exercises.map((exercise, index) => (
+              <Card key={exercise.uid || index} onClick={() => handleExerciseClick(exercise)}>
+                <div className="font-medium mb-1">{getStationNameById(exercise.stationId)}</div>
+                <div className="flex justify-between items-center">
+                  <div className="text-sm text-slate-400">
+                    {exercise.points} points
+                  </div>
+                  <div className="text-xs text-slate-500">
+                    {exercise.calories} kcal
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
         </div>
       )}
 
-      {/* Modals */}
-      <AddEditWorkoutModal 
-        open={workoutOpen}
-        onClose={() => setModalState(prev => ({ ...prev, workoutOpen: false, editingWorkout: false }))}
-        formData={workoutForm}
-        onChange={setWorkoutForm}
-        onSave={saveWorkout}
-        isEditing={modalState.editingWorkout}
-      />
+      {/* Workout Modal */}
+      <Modal open={workoutOpen} onClose={() => setWorkoutOpen(false)} title="Create Workout" size="md">
+        <div className="space-y-3">
+          <div className="grid-2 gap-3">
+            <label className="form-label">Time (mm:ss)
+              <input
+                value={wTime}
+                onChange={e => {
+                  const val = e.target.value;
+                  setWTime(val);
+                  const { error } = parseDurationInput(val);
+                  setWTimeError(error);
+                }}
+                placeholder="05:30 or 330"
+                pattern="^\\d+$|^\\d{1,2}:\\d{2}$"
+                className="form-input mt-1"
+              />
+              {wTimeError && <div className="text-red-500 text-xs mt-1">{wTimeError}</div>}
+            </label>
+            <label className="form-label">Heart Rate (bpm)
+              <input type="number" value={wHR} onChange={e => setWHR(e.target.value)} className="form-input mt-1" />
+            </label>
+            <label className="form-label">Points
+              <input type="number" value={wPoints} onChange={e => setWPoints(e.target.value)} className="form-input mt-1" />
+            </label>
+            <label className="form-label">Calories
+              <input type="number" value={wCals} onChange={e => setWCals(e.target.value)} className="form-input mt-1" />
+            </label>
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <button onClick={() => setWorkoutOpen(false)} className="btn-secondary">Cancel</button>
+            <button onClick={saveWorkout} className="btn-primary" disabled={!!wTimeError}>Save</button>
+          </div>
+        </div>
+      </Modal>
 
-      <AddEditExerciseModal
-        open={addExerciseOpen}
-        onClose={() => setModalState(prev => ({ ...prev, addExerciseOpen: false }))}
-        isEditing={isEditing}
-        stations={stations}
-        formData={exerciseForm}
-        onChange={setExerciseForm}
-        onSave={saveExercise}
-        onDelete={handleDeleteExercise}
-      />
+      {/* Add Exercise Modal */}
+      <Modal open={addExerciseOpen} onClose={() => setAddExerciseOpen(false)} title="Add Exercise" size="md">
+        <div className="space-y-3">
+          <div className="grid-2 gap-3">
+            <label className="form-label">Station
+              <select
+                className="form-input mt-1"
+                value={eStationId}
+                onChange={e => setEStationId(e.target.value)}
+                disabled={isLoadingStations}
+              >
+                <option value="">Select station</option>
+                {stations.map(st => (
+                  <option key={st.uid} value={st.uid}>{st.name}</option>
+                ))}
+              </select>
+            </label>
+            <label className="form-label">Time (mm:ss)
+              <input
+                value={eTime}
+                onChange={e => {
+                  const val = e.target.value;
+                  setETime(val);
+                  const { error } = parseDurationInput(val);
+                  setETimeError(error);
+                }}
+                placeholder="05:30 or 330"
+                pattern="^\\d+$|^\\d{1,2}:\\d{2}$"
+                className="form-input mt-1"
+              />
+              {eTimeError && <div className="text-red-500 text-xs mt-1">{eTimeError}</div>}
+            </label>
+            <label className="form-label">Heart Rate (bpm)
+              <input type="number" value={eHR} onChange={e => setEHR(e.target.value)} className="form-input mt-1" />
+            </label>
+            <label className="form-label">Points
+              <input type="number" value={ePoints} onChange={e => setEPoints(e.target.value)} className="form-input mt-1" />
+            </label>
+            <label className="form-label">Calories
+              <input type="number" value={eCals} onChange={e => setECals(e.target.value)} className="form-input mt-1" />
+            </label>
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <button onClick={() => setAddExerciseOpen(false)} className="btn-secondary">Cancel</button>
+            <button
+              onClick={async () => {
+                if (!lastWorkout || !lastWorkout.uid) {
+                  alert('No workout available. Please create a workout first.');
+                  return;
+                }
+                if (!eStationId) {
+                  alert('Please select a station.');
+                  return;
+                }
+                if (eTimeError) {
+                  return;
+                }
+                setIsAddingExercise(true);
+                try {
+                  // Parse time input (mm:ss or seconds)
+                  const { seconds: totalSeconds, error } = parseDurationInput(eTime);
+                  if (error) {
+                    setETimeError(error);
+                    return;
+                  }
 
-      <ViewExerciseModal
-        open={showExerciseModal}
-        onClose={() => setModalState(prev => ({ ...prev, showExerciseModal: false }))}
-        exercise={selectedExercise}
-        helpers={helpers}
-        userData={userData}
-        onEdit={handleEditExercise}
-      />
+                  const exerciseData = {
+                    stationId: eStationId,
+                    points: parseInt(ePoints) || 0,
+                    calories: parseInt(eCals) || 0,
+                    heartRateAvg: parseInt(eHR) || 0,
+                    startTime: Timestamp.fromDate(new Date(Date.now() - totalSeconds * 1000)),
+                    endTime: Timestamp.fromDate(new Date()),
+                  };
+
+                  await WorkoutManager.addExercise(userData.uid, lastWorkout.uid, exerciseData);
+
+                  // Optional reset
+                  setETime('');
+                  setETimeError('');
+                  setEHR('');
+                  setEPoints('');
+                  setECals('');
+                  setEStationId('');
+                  setAddExerciseOpen(false);
+
+                  // Reload just the updated workout to reflect the new exercise
+                  try {
+                    const updated = await WorkoutManager.loadWorkoutById(userData.uid, lastWorkout.uid);
+                    if (updated) {
+                      setLastWorkout(updated);
+                    } else {
+                      // Fallback: reload via aggregate fetch
+                      await loadLastWorkout();
+                    }
+                  } catch (e) {
+                    await loadLastWorkout();
+                  }
+                } catch (error) {
+                  console.error('Failed to add exercise:', error);
+                  alert('Failed to add exercise. Please try again.');
+                } finally {
+                  setIsAddingExercise(false);
+                }
+              }}
+              className="btn-primary"
+              disabled={isAddingExercise || !eStationId || !!eTimeError}
+            >
+              {isAddingExercise ? 'Adding...' : 'Add Exercise'}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Exercise Detail Modal */}
+      {showExerciseModal && selectedExercise && (
+        <Modal onClose={() => setShowExerciseModal(false)}>
+          <div className="p-4">
+            <h3 className="text-xl font-bold mb-4">{getStationNameById(selectedExercise.stationId)}</h3>
+
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div>
+                <div className="text-sm text-slate-400">Points</div>
+                <div className="font-medium">{selectedExercise.points}</div>
+              </div>
+              <div>
+                <div className="text-sm text-slate-400">Calories</div>
+                <div className="font-medium">{selectedExercise.calories} kcal</div>
+              </div>
+              <div>
+                <div className="text-sm text-slate-400">Heart Rate</div>
+                <div className="font-medium">{selectedExercise.heartRateAvg || '--'} bpm</div>
+              </div>
+              <div>
+                <div className="text-sm text-slate-400">Duration</div>
+                <div className="font-medium">
+                  {selectedExercise.startTime && selectedExercise.endTime ?
+                    (() => {
+                      const bm = new BaseModel();
+                      const minutes = bm.getDurationMinutes(selectedExercise.startTime, selectedExercise.endTime);
+                      return bm.formatDurationMinutes(minutes);
+                    })() : '--'}
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setShowExerciseModal(false)}
+              className="btn-primary w-full py-2"
+            >
+              Close
+            </button>
+          </div>
+        </Modal>
+      )}
     </Screen>
   );
 }

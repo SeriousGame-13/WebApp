@@ -37,33 +37,41 @@ export class Challenge extends BaseModel {
 
   isActive() {
     const now = Date.now();
-    return now >= this.startDate && now <= this.endDate;
+    const start = this.startDate?.toDate ? this.startDate.toDate().getTime() : new Date(this.startDate).getTime();
+    const end = this.endDate?.toDate ? this.endDate.toDate().getTime() : new Date(this.endDate).getTime();
+    return (!isNaN(start) ? now >= start : true) && (!isNaN(end) ? now <= end : true);
   }
 
   isExpired() {
-    return Date.now() > this.endDate;
+    const end = this.endDate?.toDate ? this.endDate.toDate().getTime() : new Date(this.endDate).getTime();
+    return !isNaN(end) && Date.now() > end;
   }
 
   hasStarted() {
-    return Date.now() >= this.startDate;
+    const start = this.startDate?.toDate ? this.startDate.toDate().getTime() : new Date(this.startDate).getTime();
+    return !isNaN(start) && Date.now() >= start;
   }
 
   hasNotStarted() {
-    return Date.now() < this.startDate;
+    const start = this.startDate?.toDate ? this.startDate.toDate().getTime() : new Date(this.startDate).getTime();
+    return !isNaN(start) && Date.now() < start;
   }
 
   getDaysRemaining() {
-    const diff = this.endDate - serverTimestamp();
+    const end = this.endDate?.toDate ? this.endDate.toDate().getTime() : new Date(this.endDate).getTime();
+    const diff = end - Date.now();
     return Math.ceil(diff / (1000 * 60 * 60 * 24));
   }
 
   getHoursRemaining() {
-    const diff = this.endDate - serverTimestamp();
+    const end = this.endDate?.toDate ? this.endDate.toDate().getTime() : new Date(this.endDate).getTime();
+    const diff = end - Date.now();
     return Math.ceil(diff / (1000 * 60 * 60));
   }
 
   getDaysUntilStart() {
-    const diff = this.startDate - serverTimestamp();
+    const start = this.startDate?.toDate ? this.startDate.toDate().getTime() : new Date(this.startDate).getTime();
+    const diff = start - Date.now();
     return Math.ceil(diff / (1000 * 60 * 60 * 24));
   }
 
@@ -109,7 +117,7 @@ export class ChallengeParticipant extends BaseModel {
       participantId: '',
       challengeId: '',
       userId: '',
-      joinedAt: Date.now(),
+      joinedAt: serverTimestamp(),
       completedAt: null,
       currentValue: 0,
       status: CHALLENGE_PARTICIPATION_STATUS.ACTIVE,
@@ -118,7 +126,7 @@ export class ChallengeParticipant extends BaseModel {
   }
 
   complete() {
-    this.completedAt = Date.now();
+    this.completedAt = serverTimestamp();
   }
 
   isCompleted() {
@@ -126,13 +134,16 @@ export class ChallengeParticipant extends BaseModel {
   }
 
   getDaysParticipating() {
-    const diff = serverTimestamp() - this.joinedAt;
+    const joined = this.joinedAt?.toDate ? this.joinedAt.toDate().getTime() : new Date(this.joinedAt).getTime();
+    const diff = Date.now() - joined;
     return Math.floor(diff / (1000 * 60 * 60 * 24));
   }
 
   getDaysToComplete() {
     if (!this.completedAt) return null;
-    const diff = this.completedAt - this.joinedAt;
+    const completed = this.completedAt?.toDate ? this.completedAt.toDate().getTime() : new Date(this.completedAt).getTime();
+    const joined = this.joinedAt?.toDate ? this.joinedAt.toDate().getTime() : new Date(this.joinedAt).getTime();
+    const diff = completed - joined;
     return Math.floor(diff / (1000 * 60 * 60 * 24));
   }
 

@@ -69,71 +69,141 @@ function safeTimestampToDate(timestamp) {
     return null;
 }
 
+
 /**
- * Calculates the total active and idle time for a workout based on its exercises.
+ * Calculates comprehensive workout data including times and heart rate statistics.
  * Active time is the sum of all exercise durations, idle time is gaps between exercises.
  * @param {Exercise[]} exercises - The list of exercises in the workout
- * @returns {{activeTime: number, idleTime: number}} Object containing times in seconds
+ * @returns {{activeTime: number, idleTime: number, startTime: Date, endTime: Date, avgBpm: number, minBpm: number, maxBpm: number}} Object containing workout statistics
  */
-function calculateWorkoutTimes(exercises) {
+function calculateWorkoutData(exercises) {
+    const newWorkoutData = {
+        activeTime: 0,
+        idleTime: 0,
+        startTime: null,
+        endTime: null,
+        heartRateAvg: null,
+        heartRateMin: null,
+        heartRateMax: null
+    };
+
     if (!exercises || exercises.length === 0) {
-        return { activeTime: 0, idleTime: 0 };
+        return newWorkoutData;
     }
 
-    const processedExercises = exercises.map(ex => ({
-        ...ex,
-        startTime: safeTimestampToDate(ex.startTime),
-        endTime: safeTimestampToDate(ex.endTime),
-    })).filter(ex => ex.startTime && ex.endTime); // Only keep exercises with valid timestamps
-
-    const activeTime = processedExercises.reduce((total, ex) => {
+    // Calculate active time
+    const activeTime = exercises.reduce((total, ex) => {
         if (ex.startTime && ex.endTime && ex.endTime > ex.startTime) {
-            return total + (ex.endTime.getTime() - ex.startTime.getTime());
+            return total + (ex.endTime - ex.startTime);
         }
         return total;
     }, 0);
 
-    const sortedExercises = processedExercises
+    // Sort exercises by start time
+    const sortedExercises = exercises
         .filter(ex => ex.startTime && ex.endTime)
-        .sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
+        .sort((a, b) => a.startTime - b.startTime);
 
     let idleTime = 0;
     for (let i = 0; i < sortedExercises.length - 1; i++) {
         const currentExercise = sortedExercises[i];
         const nextExercise = sortedExercises[i + 1];
         if (currentExercise.endTime && nextExercise.startTime && nextExercise.startTime > currentExercise.endTime) {
-            idleTime += (nextExercise.startTime.getTime() - currentExercise.endTime.getTime());
+            idleTime += (nextExercise.startTime - currentExercise.endTime);
         }
     }
 
-    return {
-        activeTime: Math.round(activeTime / 1000),
-        idleTime: Math.round(idleTime / 1000),
-        endTime: sortedExercises[sortedExercises.length - 1].endTime
+    // Calculate workout start and end times
+    const startTime = sortedExercises[0].startTime;
+    const endTime = sortedExercises[sortedExercises.length - 1].endTime;
+
+    // Calculate heart rate statistics
+    const exercisesWithHeartRate = exercises.filter(ex => 
+        ex.heartRateAvg && typeof ex.heartRateAvg === 'number' && ex.heartRateAvg > 0
+    );
+    let heartRateAvg = null;
+    let heartRateMin = null;
+    let heartRateMax = null;
+
+    if (exercisesWithHeartRate.length > 0) {
+        // Calculate average of all exercise averages
+        const avgValues = exercisesWithHeartRate.map(ex => ex.heartRateAvg);
+        heartRateAvg = Math.round(avgValues.reduce((sum, avg) => sum + avg, 0) / avgValues.length);
+        
+        // Find overall min and max from all exercises
+        const minValues = exercisesWithHeartRate
+            .filter(ex => ex.heartRateMin && typeof ex.heartRateMin === 'number')
+            .map(ex => ex.heartRateMin);
+        const maxValues = exercisesWithHeartRate
+            .filter(ex => ex.heartRateMax && typeof ex.heartRateMax === 'number')
+            .map(ex => ex.heartRateMax);
+        
+        if (minValues.length > 0) {
+            heartRateMin = Math.min(...minValues);
+        }
+        if (maxValues.length > 0) {
+            heartRateMax = Math.max(...maxValues);
+        }
+    }
+    newWorkoutData.activeTime = Math.round(activeTime / 1000);
+    newWorkoutData.idleTime = Math.round(idleTime / 1000);
+    newWorkoutData.startTime = startTime;
+    newWorkoutData.endTime = endTime;
+    newWorkoutData.heartRateAvg = heartRateAvg;
+    newWorkoutData.heartRateMin = heartRateMin;
+    newWorkoutData.heartRateMax = heartRateMax;
+    return newWorkoutData;
+}
+
+/**
+ * Fetches all exercises for a workout, calculates comprehensive workout data, and updates the workout document.
+ * Recalculates active/idle times, start/end times from exercises, and heart rate statistics.
+        endTime,
+        heartRateAvg,
+        heartRateMin,
+        heartRateMax
     };
 }
 
 /**
- * Fetches all exercises for a workout, calculates active/idle times, and updates the workout document.
+ * Fetches all exercises for a workout, calculates comprehensive workout data, and updates the workout document.
+ * Recalculates active/idle times, start/end times from exercises, and heart rate statistics.
  * Runs as a background task and does not throw errors to avoid disrupting main operations.
  * @param {string} userId - The ID of the user
  * @param {string} workoutId - The ID of the workout to update
  * @returns {Promise<void>}
  */
-const calculateAndSaveWorkoutTimes = async (userId, workoutId) => {
+const recalculateAndUpdateWorkoutData = async (userId, workoutId) => {
     try {
         const exercisePath = `${createPath(userId)}/${workoutId}/${EXERCISE_COLLECTION}`;
         const exerSnap = await FirestoreManager.getAllDocuments(exercisePath);
         const exercises = exerSnap.docs.map(doc => doc.data());
 
-        const { activeTime, idleTime, endTime } = calculateWorkoutTimes(exercises);
+        const { 
+            activeTime, 
+            idleTime, 
+            startTime, 
+            endTime, 
+            heartRateAvg, 
+            heartRateMin, 
+            heartRateMax 
+        } = calculateWorkoutData(exercises);
 
         const workoutPath = createPath(userId);
-        await FirestoreManager.updateDocument(workoutPath, workoutId, { activeTime, idleTime, endTime });
+        const updateData = {
+            activeTime,
+            idleTime,
+            startTime, 
+            endTime, 
+            heartRateAvg,
+            heartRateMin,
+            heartRateMax
+        };
 
+        await FirestoreManager.updateDocument(workoutPath, workoutId, updateData);
 
     } catch (error) {
-        console.error(`Failed to calculate and save times for workout ${workoutId}:`, error);
+        console.error(`Failed to calculate and save workout data for workout ${workoutId}:`, error);
         // Do not re-throw, as this is a background task and shouldn't fail the main operation
     }
 }
@@ -150,13 +220,15 @@ const saveWorkout = async (workout) => {
         workout = new Workout(workout);
     }
     try {
-        const { exercises = [], ...workoutData } = workout;
+        const exercises = workout.exercises || [];
+        // Firebase does not accept arrays directly. Delete before save
+        delete workout.exercises;
 
-        const workoutRef = await FirestoreManager.createDocument(`${createPath(workoutData.userId)}`, workoutData, workoutData.uid);
+        const workoutRef = await FirestoreManager.createDocument(`${createPath(workout.userId)}`, workout, workout.uid);
         if (!workoutRef) throw new Error('Could not save workout');
 
         const exerSaves = exercises.map(exercise =>
-            FirestoreManager.createDocument(`${createPath(workoutData.userId)}/${workoutRef.id}/${EXERCISE_COLLECTION}`, exercise, exercise.uid)
+            FirestoreManager.createDocument(`${createPath(workout.userId)}/${workoutRef.id}/${EXERCISE_COLLECTION}`, exercise, exercise.uid)
         );
 
         await Promise.all(exerSaves);
@@ -178,15 +250,16 @@ const saveWorkout = async (workout) => {
 const loadWorkouts = async (userId) => {
     try {
         const snapshot = await FirestoreManager.getAllDocuments(`${createPath(userId)}`);
-        const workouts = snapshot.docs.map(doc => ({ ...doc.data() }));
+        const workouts = snapshot.docs.map(doc => new Workout({ ...doc.data() }));
+        const workoutPromises = [];
 
         for (const workout of workouts) {
             const exerSnap = await FirestoreManager.getAllDocuments(`${createPath(userId)}/${workout.uid}/${EXERCISE_COLLECTION}`);
-            const exercises = exerSnap.docs.map(doc => Exercise.fromJSON(doc.data()));
-            workout.exercises = exercises;
+            exerSnap.docs.map(doc => workout.addExercise(Exercise.fromJSON(doc.data())));
+            workoutPromises.push(workout);
         }
 
-        return workouts;
+        return Promise.all(workoutPromises);
     } catch (error) {
         console.error('Error loading workouts:', error);
         throw error;
@@ -208,8 +281,7 @@ const loadWorkoutById = async (userId, idWorkout) => {
 
         const exerSnap = await FirestoreManager.getAllDocuments(`${createPath(userId)}/${idWorkout}/${EXERCISE_COLLECTION}`);
         const exercises = exerSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-        return { id: idWorkout, ...data, exercises };
+        return new Workout({ ...data, exercises });
     } catch (error) {
         console.error('Error loading workout:', error);
         throw error;
@@ -275,8 +347,9 @@ const addExercise = async (userId, workoutId, exerciseData) => {
 
         UserManagement.addPoints(userId, exercise.points);
         // Recalculate and save times after adding the exercise
-        await calculateAndSaveWorkoutTimes(userId, workoutId);
+        await recalculateAndUpdateWorkoutData(userId, workoutId);
         handlePostExercise(userId, exercise);
+        return exercise.uid;
     } catch (error) {
         console.error('Error adding exercise:', error);
         throw error;
@@ -308,7 +381,7 @@ const updateExercise = async (userId, workoutId, exerciseData) => {
             await UserManagement.addPoints(userId, dataToUpdate.points);
 
         // Recalculate and save times after updating the exercise
-        await calculateAndSaveWorkoutTimes(userId, workoutId);
+        await recalculateAndUpdateWorkoutData(userId, workoutId);
         handlePostExercise(userId, exerciseData);
     } catch (error) {
         console.error('Error updating exercise:', error);
@@ -334,7 +407,7 @@ const deleteExercise = async (userId, workoutId, exerciseId) => {
         await FirestoreManager.deleteDocument(exercisePath, exerciseId);
 
         // Recalculate and save times after deleting the exercise
-        await calculateAndSaveWorkoutTimes(userId, workoutId);
+        await recalculateAndUpdateWorkoutData(userId, workoutId);
     } catch (error) {
         console.error('Error deleting exercise:', error);
         throw error;

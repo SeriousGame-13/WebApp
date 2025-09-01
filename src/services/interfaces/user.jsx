@@ -81,7 +81,7 @@ export default class User extends BaseModel {
 
   getCalories() {
        return this.workouts.reduce((total, workout) => {
-      return total + (workout.getCalories());
+      return total + (workout.calories)
     }, 0);
   }
 }

@@ -8,7 +8,7 @@ import FireAuthManager from '../services/firebase/FirebaseAuthenticationManager'
 import { USERS_COLLECTION } from '../services/firebase/collections';
 import '../sphere-styles.css';
 
-// ---------- Helper Components ----------
+// ------------ Helper Components ----------
 const GRADIENTS = [
   "avatar-gradient-0",
   "avatar-gradient-1", 

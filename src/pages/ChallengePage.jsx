@@ -4,6 +4,8 @@ import IconElements from '../components/ui/IconElements';
 import ChallengeManagement from '../services/firebase/ChallengeManagement';
 import GroupManagement from '../services/firebase/GroupManagementSystem';
 import UserManagement from '../services/firebase/UserManagementSystem';
+import FirestoreManager from '../services/firebase/FirestoreManager';
+
 import { X, Calendar, Target, Users, Trophy, Info, Clock, CheckCircle } from 'lucide-react';
 import '../sphere-styles.css';
 
@@ -44,7 +46,22 @@ function ChallengeDetailModal({ challengeId, open, onClose, allChallenges, group
                 setChallenge(foundChallenge || null);
 
                 if (foundChallenge && userData?.uid) {
-                    setUserProgress(userProgress);
+                    try {
+                        const participantData = await FirestoreManager.findDocumentByField(
+                        `challenges/${challengeId}/participants`,
+                        'uid',
+                        userData.uid
+                        );
+                        
+                        if (participantData) {
+                        setUserProgress(participantData.currentValue || 0);
+                        } else {
+                        setUserProgress(0);
+                        }
+                    } catch (error) {
+                        console.error('Failed to load user progress:', error);
+                        setUserProgress(0);
+                    }
                 }
             } catch (error) {
                 console.error('Failed to load challenge details:', error);
@@ -230,7 +247,40 @@ function ChallengeDetailModal({ challengeId, open, onClose, allChallenges, group
 }
 
 // ========== Challege Card  ==========
-function ClickableChallengeCard({ challenge, groupNames, onClick }) {
+function ClickableChallengeCard({ challenge, groupNames, onClick, userData }) {
+    const [userProgress, setUserProgress] = useState(0);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const loadUserProgress = async () => {
+        if (!challenge.challengeId || !userData?.uid) {
+            setLoading(false);
+            return;
+        }
+
+        try {
+            const participantData = await FirestoreManager.findDocumentByField(
+            `challenges/${challenge.challengeId}/participants`,
+            'uid',
+            userData.uid
+            );
+            
+            if (participantData) {
+            setUserProgress(participantData.currentValue || 0);
+            } else {
+            setUserProgress(0);
+            }
+        } catch (error) {
+            console.error('Failed to load user progress:', error);
+            setUserProgress(0);
+        } finally {
+            setLoading(false);
+        }
+        };
+
+        loadUserProgress();
+    }, [challenge.challengeId, userData?.uid]);
+
     const getChallengeSourceText = (challenge) => {
         if (challenge.visibility === 'public') return 'Public';
         if (challenge.visibility === 'hidden') return 'Achievement';
@@ -239,7 +289,7 @@ function ClickableChallengeCard({ challenge, groupNames, onClick }) {
     };
 
     return (
-        <div 
+        <div
         className='card cursor-pointer hover:bg-slate-800/50 transition-colors'
         onClick={() => onClick(challenge.challengeId)}
         >
@@ -247,7 +297,7 @@ function ClickableChallengeCard({ challenge, groupNames, onClick }) {
             <span className='text-gradient font-semibold'>
             {challenge.name}
             </span>
-            <span className='text-slate-300 text-sm'> 
+            <span className='text-slate-300 text-sm'>
             - {getChallengeSourceText(challenge)}
             </span>
             <span className='text-green-400 text-xs'>
@@ -258,20 +308,20 @@ function ClickableChallengeCard({ challenge, groupNames, onClick }) {
             {challenge.description || 'No description available.'}
         </div>
         <div className='text-slate-400 text-sm'>
-            Type: {challenge.challengeType} | 
-            Target: {challenge.targetValue || 'N/A'} | 
-            Participants: {challenge.getParticipantCount ? challenge.getParticipantCount() : 0} | 
+            Type: {challenge.challengeType} |
+            Target: {challenge.targetValue || 'N/A'} |
+            Participants: {challenge.getParticipantCount ? challenge.getParticipantCount() : 0} |
             Reward: {challenge.rewardPoints} pts
         </div>
         <div className='mt-3'>
-            <ExpElements.NewLinearExpContainerSimple 
-            expnow={0} 
-            expmax={challenge.targetValue || 100} 
+            <ExpElements.NewLinearExpContainerSimple
+            expnow={userProgress}  // 0 대신 실제 사용자 진행도
+            expmax={challenge.targetValue || 100}
             />
         </div>
         </div>
     );
-    }
+}
 
 // ========== Main Page ==========
 function Page({ data }) {
@@ -367,6 +417,7 @@ function Page({ data }) {
                                         challenge={challenge}
                                         groupNames={groupNames}
                                         onClick={handleChallengeClick}
+                                        userData={userData}
                                     />
                                 ))}
                             </div>

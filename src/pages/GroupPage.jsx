@@ -278,121 +278,125 @@ function Page({ groups, setGroups, joinedIds, setJoinedIds }) {
                     </div>
 
                     <Modal open={createOpen} onClose={() => setCreateOpen(false)} title="Create Group" size="sm">
-                        <div className="space-y-3">
-                            {/* Image Upload */}
-                            <div className="form-group">
-                                <div className="text-center mb-4">
-                                    <div className="text-slate-300 mb-4">Group Image</div>
-                                    <div className="text-center">
-                                        {newGroupData.imageData ? (
-                                            <img
-                                                src={newGroupData.imageData}
-                                                alt="Group Preview"
-                                                style={{
+                        <div className="flex flex-col" style={{ maxHeight: '80vh' }}>
+                            {/* Scrollable form area */}
+                            <div className="space-y-3 overflow-y-auto" style={{ flex: '1 1 auto' }}>
+                                {/* Image Upload */}
+                                <div className="form-group">
+                                    <div className="text-center mb-4">
+                                        <div className="text-slate-300 mb-4">Group Image</div>
+                                        <div className="text-center">
+                                            {newGroupData.imageData ? (
+                                                <img
+                                                    src={newGroupData.imageData}
+                                                    alt="Group Preview"
+                                                    style={{
+                                                        width: '150px',
+                                                        height: '150px',
+                                                        objectFit: 'cover',
+                                                        borderRadius: '8px',
+                                                        border: '2px solid var(--main-color)'
+                                                    }}
+                                                />
+                                            ) : (
+                                                <div style={{
                                                     width: '150px',
                                                     height: '150px',
-                                                    objectFit: 'cover',
+                                                    border: '2px dashed #A0A0A0',
                                                     borderRadius: '8px',
-                                                    border: '2px solid var(--main-color)'
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    color: '#A0A0A0',
+                                                    margin: '0 auto'
+                                                }}>
+                                                    No Image
+                                                </div>
+                                            )}
+                                            <input
+                                                type="file"
+                                                id="group-image-upload"
+                                                accept="image/*"
+                                                style={{ display: 'none' }}
+                                                onChange={async (e) => {
+                                                    const file = e.target.files[0];
+                                                    if (!file) return;
+                                                    if (!file.type.startsWith('image/')) {
+                                                        alert('Please select an image file only.');
+                                                        return;
+                                                    }
+                                                    if (file.size > 10 * 1024 * 1024) {
+                                                        alert('File size must be less than 10MB.');
+                                                        return;
+                                                    }
+                                                    try {
+                                                        const resizedBase64 = await resizeImage(file, 150, 150, 0.8);
+                                                        handleInputChange('imageData', resizedBase64);
+                                                    } catch (error) {
+                                                        console.error('Image processing failed:', error);
+                                                        alert(`Image processing failed: ${error.message}`);
+                                                    }
                                                 }}
                                             />
+                                            <button
+                                                className='btn-secondary mt-2'
+                                                onClick={() => document.getElementById('group-image-upload').click()}
+                                            >
+                                                {newGroupData.imageData ? 'Change Image' : 'Upload Image'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                {/* Name & Description */}
+                                {[{ key: 'name', label: 'Name', type: 'text' },
+                                { key: 'description', label: 'Description', type: 'textarea', rows: 3 }].map(field => (
+                                    <label key={field.key} className="form-label">
+                                        {field.label}
+                                        {field.type === 'textarea' ? (
+                                            <textarea
+                                                value={newGroupData[field.key]}
+                                                onChange={e => handleInputChange(field.key, e.target.value)}
+                                                className="form-textarea mt-1"
+                                                rows={field.rows}
+                                            />
                                         ) : (
-                                            <div style={{
-                                                width: '150px',
-                                                height: '150px',
-                                                border: '2px dashed #A0A0A0',
-                                                borderRadius: '8px',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                color: '#A0A0A0',
-                                                margin: '0 auto'
-                                            }}>
-                                                No Image
-                                            </div>
+                                            <input
+                                                value={newGroupData[field.key]}
+                                                onChange={e => handleInputChange(field.key, e.target.value)}
+                                                className="form-input mt-1"
+                                            />
                                         )}
-                                        <input
-                                            type="file"
-                                            id="group-image-upload"
-                                            accept="image/*"
-                                            style={{ display: 'none' }}
-                                            onChange={async (e) => {
-                                                const file = e.target.files[0];
-                                                if (!file) return;
-                                                if (!file.type.startsWith('image/')) {
-                                                    alert('Please select an image file only.');
-                                                    return;
-                                                }
-                                                if (file.size > 10 * 1024 * 1024) {
-                                                    alert('File size must be less than 10MB.');
-                                                    return;
-                                                }
-                                                try {
-                                                    const resizedBase64 = await resizeImage(file, 150, 150, 0.8);
-                                                    handleInputChange('imageData', resizedBase64);
-                                                } catch (error) {
-                                                    console.error('Image processing failed:', error);
-                                                    alert(`Image processing failed: ${error.message}`);
-                                                }
-                                            }}
-                                        />
-                                        <button
-                                            className='btn-secondary mt-2'
-                                            onClick={() => document.getElementById('group-image-upload').click()}
-                                        >
-                                            {newGroupData.imageData ? 'Change Image' : 'Upload Image'}
-                                        </button>
+                                    </label>
+                                ))}
+                                {/* Privacy Setting */}
+                                <div className='form-group'>
+                                    <label className='form-label'>Privacy Setting</label>
+                                    <div className='flex space-x-4'>
+                                        <label className='flex items-center'>
+                                            <input
+                                                type="radio"
+                                                name="privacy"
+                                                checked={!newGroupData.isPrivate}
+                                                onChange={() => handleInputChange('isPrivate', false)}
+                                                className="mr-2"
+                                            />
+                                            <span className="text-slate-200">Public Group</span>
+                                        </label>
+                                        <label className='flex items-center'>
+                                            <input
+                                                type="radio"
+                                                name="privacy"
+                                                checked={!!newGroupData.isPrivate}
+                                                onChange={() => handleInputChange('isPrivate', true)}
+                                                className="mr-2"
+                                            />
+                                            <span className="text-slate-200">Private Group</span>
+                                        </label>
                                     </div>
                                 </div>
                             </div>
-                            {/* Name & Description */}
-                            {[{ key: 'name', label: 'Name', type: 'text' },
-                            { key: 'description', label: 'Description', type: 'textarea', rows: 3 }].map(field => (
-                                <label key={field.key} className="form-label">
-                                    {field.label}
-                                    {field.type === 'textarea' ? (
-                                        <textarea
-                                            value={newGroupData[field.key]}
-                                            onChange={e => handleInputChange(field.key, e.target.value)}
-                                            className="form-textarea mt-1"
-                                            rows={field.rows}
-                                        />
-                                    ) : (
-                                        <input
-                                            value={newGroupData[field.key]}
-                                            onChange={e => handleInputChange(field.key, e.target.value)}
-                                            className="form-input mt-1"
-                                        />
-                                    )}
-                                </label>
-                            ))}
-                            {/* Privacy Setting */}
-                            <div className='form-group'>
-                                <label className='form-label'>Privacy Setting</label>
-                                <div className='flex space-x-4'>
-                                    <label className='flex items-center'>
-                                        <input
-                                            type="radio"
-                                            name="privacy"
-                                            checked={!newGroupData.isPrivate}
-                                            onChange={() => handleInputChange('isPrivate', false)}
-                                            className="mr-2"
-                                        />
-                                        <span className="text-slate-200">Public Group</span>
-                                    </label>
-                                    <label className='flex items-center'>
-                                        <input
-                                            type="radio"
-                                            name="privacy"
-                                            checked={!!newGroupData.isPrivate}
-                                            onChange={() => handleInputChange('isPrivate', true)}
-                                            className="mr-2"
-                                        />
-                                        <span className="text-slate-200">Private Group</span>
-                                    </label>
-                                </div>
-                            </div>
-                            <div className="flex justify-end gap-2">
+                            {/* Sticky footer inside modal (non-scrolling) */}
+                            <div className="flex justify-end gap-2" style={{ flexShrink: 0, marginTop: '1rem' }}>
                                 <button
                                     onClick={() => {
                                         setCreateOpen(false);
@@ -572,8 +576,9 @@ function CreateGroupChallengePopup({ group, onClose, onCreate }) {
 
     return (
         <Modal open={true} onClose={onClose} title={`Create Challenge for ${group.name}`} size="md">
-            <div className="flex flex-col h-full">
-                <div className="space-y-4 overflow-y-auto flex-grow" style={{ maxHeight: 'calc(100vh - 250px)' }}>
+            <div className="flex flex-col" style={{ maxHeight: '80vh' }}>
+                {/* Scrollable form area */}
+                <div className="space-y-4 overflow-y-auto" style={{ flex: '1 1 auto' }}>
                     <label className="form-label">
                         Challenge Name
                         <input
@@ -651,7 +656,7 @@ function CreateGroupChallengePopup({ group, onClose, onCreate }) {
                                 value={challengeData.targetField}
                                 onChange={e => handleInputChange('targetField', e.target.value)}
                                 className="form-input mt-1"
-                                placeholder="e.g., steps"
+                                placeholder="e.g., points"
                             />
                         </label>
                     </div>
@@ -667,7 +672,8 @@ function CreateGroupChallengePopup({ group, onClose, onCreate }) {
                         />
                     </label>
                 </div>
-                <div className="flex justify-end gap-2 mt-6">
+                {/* Sticky footer inside modal (non-scrolling) */}
+                <div className="flex justify-end gap-2 mt-6" style={{ flexShrink: 0 }}>
                     <button onClick={onClose} className="btn-secondary">
                         Cancel
                     </button>

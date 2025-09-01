@@ -7,6 +7,8 @@ import UserManagement from '../services/firebase/UserManagementSystem';
 import FirestoreManager from '../services/firebase/FirestoreManager';
 
 import { X, Calendar, Target, Users, Trophy, Info, Clock, CheckCircle } from 'lucide-react';
+import { Timestamp } from 'firebase/firestore';
+import { CHALLENGE_TYPE, CHALLENGE_VISIBILITY } from '../services/interfaces/constants';
 import '../sphere-styles.css';
 
 function Modal({ open, onClose, children, title, size = "md" }) {
@@ -30,7 +32,7 @@ function Modal({ open, onClose, children, title, size = "md" }) {
   );
 }
 
-function ChallengeDetailModal({ challengeId, open, onClose, allChallenges, groupNames, userData }) {
+function ChallengeDetailModal({ challengeId, open, onClose, allChallenges, groupNames, userData, setEditingChallenge, setShowEditChallenge}) {
     const [challenge, setChallenge] = useState(null);
     const [loading, setLoading] = useState(true);
     const [userProgress, setUserProgress] = useState(0);
@@ -242,6 +244,21 @@ function ChallengeDetailModal({ challengeId, open, onClose, allChallenges, group
                 <div className="text-center text-slate-400 py-4">Challenge not found</div>
                 )}
             </div>
+            {userData?.uid === challenge?.creatorId && (
+                <div className="pt-4 border-t border-white/10">
+                    <button
+                        onClick={() => {
+                            setEditingChallenge(challenge);
+                            setShowEditChallenge(true);
+                            onClose();
+                        }}
+                        className="btn-primary flex centered gap-2"
+                        style={{marginBottom: '20px', marginTop: '20px' }}
+                    >
+                        Edit Challenge
+                    </button>
+                </div>
+            )}
         </Modal>
     );
 }
@@ -329,8 +346,9 @@ function Page({ data }) {
     const [activeChallenges, setActiveChallenges] = useState([]);
     const [groupNames, setGroupNames] = useState({});
     const [isLoadingChallenges, setIsLoadingChallenges] = useState(true);
-    
     const [selectedChallengeId, setSelectedChallengeId] = useState(null);
+    const [showEditChallenge, setShowEditChallenge] = useState(false);
+    const [editingChallenge, setEditingChallenge] = useState(null);
 
     useEffect(() => {
         if (userData && userData.uid) {
@@ -437,7 +455,25 @@ function Page({ data }) {
                 allChallenges={activeChallenges}
                 groupNames={groupNames}
                 userData={userData}
+                setEditingChallenge={setEditingChallenge}
+                setShowEditChallenge={setShowEditChallenge}
             />
+
+            {showEditChallenge && editingChallenge && (
+                <EditChallengePopup
+                    challenge={editingChallenge}
+                    onClose={() => {
+                        setShowEditChallenge(false);
+                        setEditingChallenge(null);
+                    }}
+                    onUpdate={(updatedData) => {
+                        console.log("Updating challenge:", updatedData);
+                        setShowEditChallenge(false);
+                        setEditingChallenge(null);
+                        loadUserActiveChallenges(); // 챌린지 목록 새로고침
+                    }}
+                />
+            )}
         </>
     );
 }
@@ -481,6 +517,183 @@ function newChallenges() {
       </button>
     </Screen>
   );
+}
+
+function EditChallengePopup({ challenge, onClose, onUpdate }) {
+    const [challengeData, setChallengeData] = useState({
+        name: '',
+        description: '',
+        challengeType: CHALLENGE_TYPE.TARGET,
+        startDate: '',
+        endDate: '',
+        rewardPoints: 100,
+        targetValue: 10,
+        conditions: '',
+        targetField: '',
+    });
+    const [isCreating, setIsCreating] = useState(false);
+
+    const handleInputChange = (field, value) => {
+        setChallengeData(prev => ({ ...prev, [field]: value }));
+    };
+
+    const handleConfirm = async () => {
+        if (!challengeData.name.trim() || !challengeData.startDate || !challengeData.endDate) {
+            alert("Please fill in all required fields: Name, Start Date, and End Date.");
+            return;
+        }
+        setIsCreating(true);
+        try {
+            const currentUser = await UserManagement.getCurrentUser();
+            const updateData = {
+                ...challengeData,
+                rewardPoints: Number(challengeData.rewardPoints) || 0,
+                targetValue: Number(challengeData.targetValue) || 0,
+                startDate: Timestamp.fromDate(new Date(challengeData.startDate)),
+                endDate: Timestamp.fromDate(new Date(challengeData.endDate)),
+                conditions: challengeData.conditions,
+                targetField: challengeData.targetField,
+            };
+            await ChallengeManagement.updateChallenge(challenge.challengeId, updateData);
+            onUpdate(updateData);
+        } catch (error) {
+            console.error("Failed to create challenge:", error);
+            alert(`Error: ${error.message}`);
+        } finally {
+            setIsCreating(false);
+        }
+    };
+
+    useEffect(() => {
+        if (challenge) {
+            setChallengeData({
+                name: challenge.name || '',
+                description: challenge.description || '',
+                challengeType: challenge.challengeType || CHALLENGE_TYPE.TARGET,
+                startDate: challenge.startDate ? new Date(challenge.startDate.toDate()).toISOString().split('T')[0] : '',
+                endDate: challenge.endDate ? new Date(challenge.endDate.toDate()).toISOString().split('T')[0] : '',
+                rewardPoints: challenge.rewardPoints || 100,
+                targetValue: challenge.targetValue || 10,
+                conditions: challenge.conditions || '',
+                targetField: challenge.targetField || '',
+            });
+        }
+    }, [challenge]);
+
+    return (
+        <Modal open={true} onClose={onClose} title={`Edit Challenge`} size="md">
+            <div className="flex flex-col" style={{ maxHeight: '80vh' }}>
+                {/* Scrollable form area */}
+                <div className="space-y-4 overflow-y-auto" style={{ flex: '1 1 auto' }}>
+                    <label className="form-label">
+                        Challenge Name
+                        <input
+                            value={challengeData.name}
+                            onChange={e => handleInputChange('name', e.target.value)}
+                            className="form-input mt-1"
+                            placeholder="e.g., Weekly Step Goal"
+                        />
+                    </label>
+                    <label className="form-label">
+                        Description
+                        <textarea
+                            value={challengeData.description}
+                            onChange={e => handleInputChange('description', e.target.value)}
+                            className="form-textarea mt-1"
+                            rows={3}
+                            placeholder="Describe the challenge for your group"
+                        />
+                    </label>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <label className="form-label">
+                            Challenge Type
+                            <select
+                                value={challengeData.challengeType}
+                                onChange={e => handleInputChange('challengeType', e.target.value)}
+                                className="form-input mt-1"
+                            >
+                                {Object.values(CHALLENGE_TYPE).map(type => (
+                                    <option key={type} value={type}>{type}</option>
+                                ))}
+                            </select>
+                        </label>
+                        <label className="form-label">
+                            Target Value
+                            <input
+                                type="number"
+                                value={challengeData.targetValue}
+                                onChange={e => handleInputChange('targetValue', e.target.value)}
+                                className="form-input mt-1"
+                                min="0"
+                            />
+                        </label>
+                        <label className="form-label">
+                            Start Date
+                            <input
+                                type="date"
+                                value={challengeData.startDate}
+                                onChange={e => handleInputChange('startDate', e.target.value)}
+                                className="form-input mt-1"
+                            />
+                        </label>
+                        <label className="form-label">
+                            End Date
+                            <input
+                                type="date"
+                                value={challengeData.endDate}
+                                onChange={e => handleInputChange('endDate', e.target.value)}
+                                className="form-input mt-1"
+                            />
+                        </label>
+                        <label className="form-label">
+                            Reward Points
+                            <input
+                                type="number"
+                                value={challengeData.rewardPoints}
+                                onChange={e => handleInputChange('rewardPoints', e.target.value)}
+                                className="form-input mt-1"
+                                min="0"
+                            />
+                        </label>
+                        <label className="form-label">
+                            Target Field
+                            <input
+                                value={challengeData.targetField}
+                                onChange={e => handleInputChange('targetField', e.target.value)}
+                                className="form-input mt-1"
+                                placeholder="e.g., points"
+                            />
+                        </label>
+                    </div>
+
+                    <label className="form-label">
+                        Conditions
+                        <textarea
+                            value={challengeData.conditions}
+                            onChange={e => handleInputChange('conditions', e.target.value)}
+                            className="form-textarea mt-1"
+                            rows={3}
+                            placeholder="Enter conditions, one per line"
+                        />
+                    </label>
+                </div>
+                {/* Sticky footer inside modal (non-scrolling) */}
+                <div className="flex justify-end gap-2 mt-6" style={{ flexShrink: 0 }}>
+                    <button onClick={onClose} className="btn-secondary">
+                        Cancel
+                    </button>
+                    <button
+                        onClick={handleConfirm}
+                        className="btn-primary"
+                        disabled={isCreating || !challengeData.name.trim() || !challengeData.startDate || !challengeData.endDate}
+                    >
+                        {isCreating ? 'Updating...' : 'Edit Challenge'}
+                    </button>
+                </div>
+            </div>
+        </Modal>
+    );
 }
 
 const ChallengePageElements = {

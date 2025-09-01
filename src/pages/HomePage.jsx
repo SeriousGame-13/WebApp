@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import ExpElements from '../components/ui/ExpBar';
+import IconElements from '../components/ui/IconElements';
 import { Card, Screen, Stat, Avatar, Modal } from '../components/ui/UIComponents';
 import RankingSystem from '../services/firebase/RankingSystem';
 import WorkoutManager from '../services/firebase/WorkoutManagement';
@@ -59,9 +61,10 @@ function Page({ userData }) {
     const fetchUserRank = async () => {
       try {
         const userRank = await RankingSystem.getUserPointsRank(userData.uid);
-        setDataState(prev => ({ ...prev, rank: userRank }));
+        setRank(userRank);
       } catch (error) {
         console.error('Failed to fetch user rank:', error);
+        setRank('--');
       }
     };
 
@@ -77,13 +80,14 @@ function Page({ userData }) {
   useEffect(() => {
     const loadStations = async () => {
       try {
-        setLoadingState(prev => ({ ...prev, isLoadingStations: true }));
+        setIsLoadingStations(true);
         const allStations = await StationManagement.loadAll();
-        setDataState(prev => ({ ...prev, stations: allStations }));
+        setStations(allStations);
       } catch (error) {
         console.error('Failed to load stations:', error);
+        setStations([]);
       } finally {
-        setLoadingState(prev => ({ ...prev, isLoadingStations: false }));
+        setIsLoadingStations(false);
       }
     };
 
@@ -125,8 +129,9 @@ function Page({ userData }) {
       }
     } catch (error) {
       console.error('Failed to load last workout:', error);
+      setLastWorkout(null);
     } finally {
-      setLoadingState(prev => ({ ...prev, isLoadingLastWorkout: false }));
+      setIsLoadingLastWorkout(false);
     }
   };
 
@@ -163,86 +168,9 @@ function Page({ userData }) {
     setAddExerciseOpen(true);
   };
 
-  const saveExercise = async () => {
-    try {
-      const { lastWorkout } = dataState;
-      const { isEditing } = modalState;
-      
-      if (!lastWorkout) {
-        alert('No active workout found. Please start a workout first.');
-        return;
-      }
-
-      if (!exerciseForm.selectedStation) {
-        alert('Please select a station');
-        return;
-      }
-
-      if (!exerciseForm.exerciseName.trim()) {
-        alert('Please enter an exercise name');
-        return;
-      }
-      
-      if (!exerciseForm.exerciseStartTime || !exerciseForm.exerciseEndTime) {
-        alert('Please set both start and end times');
-        return;
-      }
-      
-      if (exerciseForm.exerciseEndTime < exerciseForm.exerciseStartTime) {
-        alert('End time must be after start time');
-        return;
-      }
-      
-      // Prepare exercise object
-      let exerciseData = {
-        name: exerciseForm.exerciseName.trim(),
-        stationId: exerciseForm.selectedStation,
-        startTime: exerciseForm.exerciseStartTime,
-        endTime: exerciseForm.exerciseEndTime,
-        heartRateAvg: parseInt(exerciseForm.exerciseHR) || 0,
-        heartRateMax: parseInt(exerciseForm.exerciseMaxHR) || 0,
-        heartRateMin: parseInt(exerciseForm.exerciseMinHR) || 0,
-        points: parseInt(exerciseForm.exercisePoints) || 0,
-        calories: parseInt(exerciseForm.exerciseCals) || 0,
-        userId: userData.uid
-      };
-      
-      let updatedWorkout;
-      
-      if (isEditing && dataState.selectedExercise) {
-        // If editing, update the existing exercise
-        updatedWorkout = {
-          ...lastWorkout,
-          exercises: lastWorkout.exercises.map(ex => 
-            (ex.uid === dataState.selectedExercise.uid) ? { ...ex, ...exerciseData } : ex
-          )
-        };
-        alert("Exercise updated successfully");
-      } else {
-        // If adding new, create a new exercise with a UID
-        exerciseData.uid = `exercise_${Date.now()}`; // Generate a temporary ID
-        
-        // Add the exercise to the current workout
-        updatedWorkout = {
-          ...lastWorkout,
-          exercises: [...(lastWorkout.exercises || []), exerciseData]
-        };
-        alert("Exercise added successfully");
-      }
-
-      // Update the workout in the database
-      await WorkoutManager.updateWorkout(updatedWorkout);
-      
-      // Update local state
-      setDataState(prev => ({ ...prev, lastWorkout: updatedWorkout }));
-      
-      // Reset form and close modal
-      setModalState(prev => ({ ...prev, addExerciseOpen: false }));
-      
-    } catch (error) {
-      console.error('Failed to save exercise:', error);
-      alert('Failed to save exercise. Please try again.');
-    }
+  const getStationNameById = (stationId) => {
+    const station = stations.find(s => s.uid === stationId);
+    return station ? station.name : 'Unknown Station';
   };
 
   const saveWorkout = async () => {
@@ -284,63 +212,43 @@ function Page({ userData }) {
     }
   };
 
-  // Exercises section header component
-  const ExerciseSectionHeader = () => (
-    <div className="flex justify-between items-center mb-3">
-      <h3 className="text-lg font-semibold text-gradient">Latest Exercises</h3>
-      <button 
-        onClick={handleAddExercise}
-        className="btn-primary text-sm px-3 py-1 rounded-full"
-      >
-        Add Exercise
-      </button>
+  const header = (
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        <Avatar name={userData.displayName} photoURL={userData.photoURL} size={48} />
+        <div>
+          <h1 className="screen-title">{userData.displayName?.split(' ')[0] || 'User'}</h1>
+          <p className="screen-subtitle">Level {userData.level} • Rank #{rank}</p>
+        </div>
+      </div>
     </div>
   );
 
-  // Destructuring for cleaner code
-  const { rank, lastWorkout, stations, selectedExercise } = dataState;
-  const { isLoadingLastWorkout, isLoadingStations } = loadingState;
-  const { workoutOpen, addExerciseOpen, showExerciseModal, isEditing } = modalState;
-
   return (
-    <Screen titleNode={<UserHeader userData={userData} />}>
-      {/* Level Progress */}
-      <LevelProgressBar userData={userData} />
+    <Screen titleNode={header}>
+      <Card>
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-slate-400 text-sm">Level Progress</span>
+          <span className="text-slate-300 text-sm">{userData.points}/{userData.currentMaxPoints()} Points</span>
+        </div>
+        <div className="progress-bar">
+          <div className="progress-fill" style={{ width: `${progress}%` }} />
+        </div>
+      </Card>
 
-      {/* Workout Stats */}
       {!isLoadingLastWorkout && lastWorkout && (
-        <WorkoutStats 
-          lastWorkout={lastWorkout} 
-          helpers={helpers}
-        />
+        <div className="grid-2 mt-4">
+          <Card><Stat label="TIME" value={getWorkoutDuration(lastWorkout)} /></Card>
+          <Card><Stat label="HEART RATE" value={<>{lastWorkout.heartRateAvg || '--'} bpm</>} /></Card>
+          <Card><Stat label="POINTS" value={getTotalPoints(lastWorkout)} /></Card>
+          <Card><Stat label="CALORIES" value={<>{getTotalCalories(lastWorkout)} kcal</>} /></Card>
+        </div>
       )}
 
-      {/* Workout Buttons */}
-      <div className="mt-6 grid-2 gap-3">
-        <button 
-          onClick={() => {
-            setModalState(prev => ({ ...prev, workoutOpen: true, editingWorkout: false }));
-            // Reset form for new workout
-            setWorkoutForm({
-              workoutName: '',
-              workoutDescription: '',
-              workoutStartTime: new Date(Date.now() - 30 * 60 * 1000),
-              workoutEndTime: new Date()
-            });
-          }} 
-          className="btn-primary py-3"
-        >
+      <div className="mt-6">
+        <button onClick={() => setWorkoutOpen(true)} className="btn-primary w-full py-3">
           Start Workout
         </button>
-        
-        {!isLoadingLastWorkout && lastWorkout && (
-          <button 
-            onClick={handleEditWorkout}
-            className="btn-secondary py-3"
-          >
-            Edit Workout
-          </button>
-        )}
       </div>
 
       {/* Station Section */}

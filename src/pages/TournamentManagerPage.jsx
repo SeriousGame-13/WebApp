@@ -3,16 +3,17 @@ import '../components/styles/LayoutElements.css';
 import TournamentManagement from '../services/firebase/TournamentManagement';
 import UserManagement from '../services/firebase/UserManagementSystem';
 import { CHALLENGE_VISIBILITY } from '../services/interfaces/constants';
-import {localDateTimeStringToTimestamp, localTime} from '../utils/DateUtils';
+import BaseModel from '../services/interfaces/base.jsx';
+import { localDateTimeStringToTimestamp, localTime } from '../utils/DateUtils';
 
 
-function FormBase({ 
-    title, 
-    inputFields, 
-    initialData, 
-    onSubmit, 
-    onCancel, 
-    isProcessing, 
+function FormBase({
+    title,
+    inputFields,
+    initialData,
+    onSubmit,
+    onCancel,
+    isProcessing,
     submitText,
     groups = null,
     exercises = null
@@ -54,7 +55,7 @@ function FormBase({
                 }
                 return acc;
             }, {});
-            
+
             if (initialData?.uid) {
                 submitData.uid = initialData.uid;
             }
@@ -230,7 +231,7 @@ function TournamentDetailPopup({ tournament, onClose, onTournamentUpdated, user,
         try {
             const participantList = await TournamentManagement.getTournamentParticipants(tournament.uid);
             setParticipants(participantList);
-            
+
             // Load user details for each participant
             const details = {};
             for (const participant of participantList) {
@@ -264,7 +265,7 @@ function TournamentDetailPopup({ tournament, onClose, onTournamentUpdated, user,
             }
         }
     };
-    
+
     const handleUpdateTournament = async (updates) => {
         setIsUpdating(true);
         try {
@@ -302,14 +303,9 @@ function TournamentDetailPopup({ tournament, onClose, onTournamentUpdated, user,
     const exercise = exercises?.find(e => e.uid === tournament.targetExerciseId);
     const exerciseName = exercise ? exercise.name : 'No exercise selected';
 
-    // Format dates
-    const startDate = tournament.startDate?.toDate ? 
-        tournament.startDate.toDate().toLocaleDateString() + ' ' + tournament.startDate.toDate().toLocaleTimeString() : 
-        'No start date set';
-    
-    const endDate = tournament.endDate?.toDate ? 
-        tournament.endDate.toDate().toLocaleDateString() + ' ' + tournament.endDate.toDate().toLocaleTimeString() : 
-        'No end date set';
+    // Format dates with BaseModel
+    const startDate = tournament.startDate ? (() => { const bm = new BaseModel({ createdAt: tournament.startDate }); return bm.getCreateAt(); })() : 'No start date set';
+    const endDate = tournament.endDate ? (() => { const bm = new BaseModel({ createdAt: tournament.endDate }); return bm.getCreateAt(); })() : 'No end date set';
 
     // Get visibility text
     let visibilityText = 'Unknown';
@@ -346,7 +342,7 @@ function TournamentDetailPopup({ tournament, onClose, onTournamentUpdated, user,
 
                     <div style={{ marginTop: '20px' }}>
                         <h3 style={{ color: 'var(--main-color)', marginBottom: '10px' }}>Participants ({participants.length})</h3>
-                        
+
                         {isLoadingParticipants ? (
                             <div style={{ textAlign: 'center', padding: '20px' }}>Loading participants...</div>
                         ) : participants.length === 0 ? (
@@ -356,9 +352,9 @@ function TournamentDetailPopup({ tournament, onClose, onTournamentUpdated, user,
                                 {participants.map(participant => {
                                     const user = participantDetails[participant.userId] || {};
                                     return (
-                                        <div key={participant.userId} className="ParticipantItem" style={{ 
-                                            display: 'flex', 
-                                            justifyContent: 'space-between', 
+                                        <div key={participant.userId} className="ParticipantItem" style={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
                                             alignItems: 'center',
                                             padding: '10px',
                                             borderBottom: '1px solid #444'
@@ -513,10 +509,10 @@ function TournamentManagerPage({ user }) {
                 >
                     <div className="CardHeader" style={{ color: 'var(--main-color)' }}>
                         {tournament.name}
-                        <span style={{ 
-                            color: isActive ? 'var(--success-color)' : 'var(--error-color)', 
-                            fontSize: '14px', 
-                            marginLeft: '10px' 
+                        <span style={{
+                            color: isActive ? 'var(--success-color)' : 'var(--error-color)',
+                            fontSize: '14px',
+                            marginLeft: '10px'
                         }}>
                             ({isActive ? 'Active' : 'Inactive'})
                         </span>
@@ -529,12 +525,12 @@ function TournamentManagerPage({ user }) {
                     </div>
                     {startDate && (
                         <div className="CardContents" style={{ fontSize: '12px', marginTop: '5px' }}>
-                            Starts: {startDate.toLocaleDateString()}
+                            {(() => { const bm = new BaseModel({ createdAt: tournament.startDate }); return `Starts: ${bm.getCreateAt()}`; })()}
                         </div>
                     )}
                     {endDate && (
                         <div className="CardContents" style={{ fontSize: '12px', marginTop: '5px' }}>
-                            Ends: {endDate.toLocaleDateString()}
+                            {(() => { const bm = new BaseModel({ createdAt: tournament.endDate }); return `Ends: ${bm.getCreateAt()}`; })()}
                         </div>
                     )}
                 </div>

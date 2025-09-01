@@ -1,4 +1,5 @@
 import FirebaseManager from './FirestoreManager.jsx';
+import { serverTimestamp } from 'firebase/firestore';
 import { Challenge, ChallengeParticipant } from '../interfaces/challenge.jsx';
 import { CHALLENGE_VISIBILITY, CHALLENGE_PARTICIPATION_STATUS } from '../interfaces/constants.jsx';
 import UserManagement from './UserManagementSystem.jsx';
@@ -135,7 +136,7 @@ const evaluateChallengeForUser = async (challengeId, userId) => {
 
     const update = { currentValue: total };
     if (isCompleted && !participant.completedAt) {
-        update.completedAt = Date.now();
+        update.completedAt = serverTimestamp();
         update.status = CHALLENGE_PARTICIPATION_STATUS.COMPLETED;
     }
     await FirebaseManager.updateDocument(participantDocPath, userId, update, true);
@@ -305,7 +306,7 @@ const joinChallenge = async (challengeId, userId) => {
             participantId: userId,
             challengeId: challengeId,
             userId: userId,
-            joinedAt: Date.now(),
+            joinedAt: serverTimestamp(),
             completedAt: null,
             user: userData.displayName || 'Unknown User'
         });
@@ -428,7 +429,7 @@ const completeChallengeForUser = async (challengeId, userId) => {
         await FirebaseManager.updateDocument(
             `${CHALLENGES_COLLECTION}/${challengeId}/${CHALLENGE_PARTICIPANTS_SUBCOLLECTION}`,
             userId,
-            { completedAt: Date.now() },
+            { completedAt: serverTimestamp() },
             true
         );
 

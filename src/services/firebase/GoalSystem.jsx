@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import FirebaseManager from './FirestoreManager';
+import { serverTimestamp, Timestamp } from 'firebase/firestore';
 import UserManagement from './UserManagementSystem';
 import { UserGoal } from '../interfaces/goal';
 import { GOALS_COLLECTION } from './collections';
@@ -24,7 +25,8 @@ const createGoal = async (userId, goalData) => {
             currentValue: 0,
             unit: goalData.unit,
             exerciseDefId: goalData.exerciseDefId || null,
-            deadline: goalData.deadline,
+            // Normalize deadline to Firestore Timestamp if provided
+            deadline: goalData.deadline?.toDate ? goalData.deadline : (goalData.deadline ? Timestamp.fromDate(new Date(goalData.deadline)) : null),
             isCompleted: false,
             completedAt: null
         });
@@ -34,7 +36,7 @@ const createGoal = async (userId, goalData) => {
         }
 
         await FirebaseManager.createDocument(GOALS_COLLECTION, goalId, goal.toJSON(), true);
-        
+
         return await getGoal(goalId);
     } catch (error) {
         console.error('Failed to create goal:', error);
@@ -51,7 +53,7 @@ const getGoal = async (goalId) => {
     try {
         const data = await FirebaseManager.readDocument(GOALS_COLLECTION, goalId);
         if (!data) return null;
-        
+
         return UserGoal.fromJSON(data);
     } catch (error) {
         console.error('Failed to get goal:', error);
@@ -82,8 +84,13 @@ const updateGoal = async (goalId, userId, updates) => {
             throw new Error('Cannot modify target value of completed goal');
         }
 
-        await FirebaseManager.updateDocument(GOALS_COLLECTION, goalId, updates, true);
-        
+        // Normalize deadline if present in updates
+        const normalized = { ...updates };
+        if (normalized.deadline && !normalized.deadline?.toDate) {
+            normalized.deadline = Timestamp.fromDate(new Date(normalized.deadline));
+        }
+        await FirebaseManager.updateDocument(GOALS_COLLECTION, goalId, normalized, true);
+
         return await getGoal(goalId);
     } catch (error) {
         console.error('Failed to update goal:', error);
@@ -123,7 +130,7 @@ const updateGoalProgress = async (goalId, userId, progressValue) => {
             currentValue: progressValue,
             ...(isCompleted && {
                 isCompleted: true,
-                completedAt: Date.now()
+                completedAt: serverTimestamp()
             })
         };
 
@@ -151,9 +158,9 @@ const awardGoalCompletion = async (userId, goal) => {
         const basePoints = 100;
         const difficultyMultiplier = Math.max(1, goal.targetValue / 100);
         const timeBonus = goal.isExpired() ? 0 : 50;
-        
+
         const totalPoints = Math.floor(basePoints * difficultyMultiplier + timeBonus);
-        
+
         await UserManagement.addPoints(userId, totalPoints);
     } catch (error) {
         console.error('Failed to award goal completion points:', error);
@@ -217,7 +224,11 @@ const getUserGoals = async (userId, filters = {}) => {
             goals = goals.filter(g => !g.isCompleted && !g.isExpired());
         }
 
-        return goals.sort((a, b) => b.createdAt - a.createdAt);
+        return goals.sort((a, b) => {
+            const aMs = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt).getTime();
+            const bMs = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt).getTime();
+            return bMs - aMs;
+        });
     } catch (error) {
         console.error('Failed to get user goals:', error);
         return [];
@@ -265,7 +276,7 @@ const getExpiredGoals = async (userId) => {
 const getGoalStatistics = async (userId) => {
     try {
         const allGoals = await getUserGoals(userId);
-        
+
         const stats = {
             total: allGoals.length,
             completed: allGoals.filter(g => g.isCompleted).length,
@@ -282,7 +293,9 @@ const getGoalStatistics = async (userId) => {
         const completedGoals = allGoals.filter(g => g.isCompleted && g.completedAt);
         if (completedGoals.length > 0) {
             const totalTime = completedGoals.reduce((sum, goal) => {
-                return sum + (goal.completedAt - goal.createdAt);
+                const completedAtMs = goal.completedAt?.toDate ? goal.completedAt.toDate().getTime() : new Date(goal.completedAt).getTime();
+                const createdAtMs = goal.createdAt?.toDate ? goal.createdAt.toDate().getTime() : new Date(goal.createdAt).getTime();
+                return sum + (completedAtMs - createdAtMs);
             }, 0);
             stats.averageCompletionTime = totalTime / completedGoals.length;
         }
@@ -313,7 +326,10 @@ const getGoalStatistics = async (userId) => {
 const createGoalFromWorkout = async (userId, exerciseDefId, currentBest, improvementPercentage = 10, daysToComplete = 30) => {
     try {
         const targetValue = Math.ceil(currentBest * (1 + improvementPercentage / 100));
-        const deadline = Date.now() + (daysToComplete * 24 * 60 * 60 * 1000);
+        // Default recommendation: 30 days from now unless overridden by daysToComplete
+        const now = new Date();
+        const deadlineDate = new Date(now.getTime() + daysToComplete * 24 * 60 * 60 * 1000);
+        const deadline = Timestamp.fromDate(deadlineDate);
 
         const goalData = {
             title: `Improve Personal Best by ${improvementPercentage}%`,
@@ -341,7 +357,7 @@ const createGoalFromWorkout = async (userId, exerciseDefId, currentBest, improve
 const updateGoalsFromWorkout = async (userId, exerciseDefId, performanceValue) => {
     try {
         const activeGoals = await getActiveGoals(userId);
-        const relevantGoals = activeGoals.filter(goal => 
+        const relevantGoals = activeGoals.filter(goal =>
             goal.exerciseDefId === exerciseDefId && performanceValue > goal.currentValue
         );
 
@@ -397,7 +413,7 @@ const getGoalRecommendations = async (userId) => {
             if (stats.count >= 3) {
                 const activeGoals = await getActiveGoals(userId);
                 const hasActiveGoal = activeGoals.some(goal => goal.exerciseDefId === exerciseDefId);
-                
+
                 if (!hasActiveGoal) {
                     recommendations.push({
                         exerciseDefId,

@@ -8,6 +8,7 @@ import ChallengeManagement from '../services/firebase/ChallengeManagement';
 import { Search, Users, Plus, Trophy } from 'lucide-react';
 import { Card, Modal, Pill, Screen, Avatar } from '../components/ui/UIComponents';
 import { CHALLENGE_TYPE, CHALLENGE_VISIBILITY } from '../services/interfaces/constants';
+import { Timestamp } from 'firebase/firestore';
 
 import '../components/styles/LayoutElements.css'
 import '../components/styles/GroupPage.css'
@@ -559,8 +560,8 @@ function CreateGroupChallengePopup({ group, onClose, onCreate }) {
                 groupId: group.id,
                 rewardPoints: Number(challengeData.rewardPoints) || 0,
                 targetValue: Number(challengeData.targetValue) || 0,
-                startDate: new Date(challengeData.startDate).getTime(),
-                endDate: new Date(challengeData.endDate).getTime(),
+                startDate: Timestamp.fromDate(new Date(challengeData.startDate)),
+                endDate: Timestamp.fromDate(new Date(challengeData.endDate)),
                 conditions: challengeData.conditions,
                 targetField: challengeData.targetField,
             };

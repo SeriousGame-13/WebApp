@@ -14,7 +14,7 @@ function localDateTimeStringToTimestamp(value) {
 }
 
 const localISODateTime = (date) => {
-    date = date.toDate();
+    date = date?.toDate ? date.toDate() : (date instanceof Date ? date : new Date());
     const pad = (n) => n.toString().padStart(2, '0');
     const y = date.getFullYear();
     const m = pad(date.getMonth() + 1);
@@ -42,6 +42,8 @@ function EditWorkoutForm({ workout = null, onSubmit, onCancel, isProcessing, sub
             const sourceValue = workout?.[field.key];
             if (field.type === 'datetime-local' && sourceValue?.toDate) {
                 acc[field.key] = localISODateTime(sourceValue);
+            } else if (field.type === 'datetime-local' && !sourceValue) {
+                acc[field.key] = localISODateTime(new Date());
             } else {
                 acc[field.key] = sourceValue ?? (field.type === 'number' ? 0 : '');
             }
@@ -185,6 +187,8 @@ function ExerciseForm({
             const sourceValue = exerciseToEdit?.[field.key];
             if (field.type === 'datetime-local' && sourceValue?.toDate) {
                 acc[field.key] = localISODateTime(sourceValue);
+            } else if (field.type === 'datetime-local' && !sourceValue) {
+                acc[field.key] = localISODateTime(new Date());
             } else {
                 acc[field.key] = sourceValue ?? (field.type === 'number' ? 0 : '');
             }
@@ -215,7 +219,7 @@ function ExerciseForm({
                 }
                 return acc;
             }, {});
-            
+
             if (exerciseToEdit) {
                 submitData.uid = exerciseToEdit.uid;
             }
@@ -251,7 +255,7 @@ function ExerciseForm({
             </div>
         );
     }
-    
+
     return (
         <div className='PopupBackground'>
             <div className='LargePopupContainer'>
@@ -325,7 +329,7 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations
     const [isProcessing, setIsProcessing] = useState(false);
     const [showEditPopup, setShowEditPopup] = useState(false);
     const [showAddExercisePopup, setShowAddExercisePopup] = useState(false);
-    const [editingExercise, setEditingExercise] = useState(null); 
+    const [editingExercise, setEditingExercise] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     workout = Workout.fromJSON(workout);
@@ -359,7 +363,7 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations
             }
         }
     };
-    
+
     const handleUpdateWorkout = async (updates) => {
         setIsSubmitting(true);
         try {
@@ -378,13 +382,13 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations
         }
     };
 
-    
+
     const handleExerciseSubmit = async (exerciseData) => {
         setIsSubmitting(true);
         try {
-            if (editingExercise) { 
+            if (editingExercise) {
                 await WorkoutManager.updateExercise(user.uid, workout.uid, exerciseData);
-            } else { 
+            } else {
                 await WorkoutManager.addExercise(user.uid, workout.uid, exerciseData);
             }
             setEditingExercise(null);
@@ -397,8 +401,8 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations
             setIsSubmitting(false);
         }
     };
-    
-    
+
+
     const handleDeleteExercise = async (exerciseId) => {
         if (confirm('Are you sure you want to delete this exercise?')) {
             setIsProcessing(true);
@@ -431,7 +435,7 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations
                     </div>
                     <div className='GroupDetailInfo' style={{ textAlign: 'left' }}>
                         <div>Workout ID: {workout.uid}</div>
-                        {workout.startTime && <div>Created: {workout.startTime.toDate().toLocaleString()}</div>}
+                        {workout.startTime && (() => { const bm = new BaseModel({ createdAt: workout.startTime }); return <div>Created: {bm.getCreateAt()}</div>; })()}
                         <div>Active Time: {workout.formatDuration(workout.activeTime * 1000) || 0}</div>
                         <div>Idle Time: {workout.formatDuration(workout.idleTime * 1000) || 0}</div>
                     </div>
@@ -443,7 +447,7 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations
                                 [...workout.exercises]
                                     .sort((a, b) => (b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0) - (a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0))
                                     .map(exercise => {
-                                        
+
                                         const station = stations.find(s => s.uid === exercise.stationId);
                                         return (
                                             <div key={exercise.uid} className="StationItem" style={{ border: '1px solid #444', borderRadius: '8px', padding: '10px', marginBottom: '10px', background: '#2C2C2C' }}>
@@ -451,8 +455,8 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations
                                                     <strong style={{ color: '#E5E5E5' }}>{exercise.name}</strong>
                                                     {/* Edit and Delete buttons for each exercise */}
                                                     <div className='ActionButtons'>
-                                                         <button onClick={() => setEditingExercise(exercise)} style={{marginRight: '10px'}}>Edit</button>
-                                                         <button onClick={() => handleDeleteExercise(exercise.uid)}>Delete</button>
+                                                        <button onClick={() => setEditingExercise(exercise)} style={{ marginRight: '10px' }}>Edit</button>
+                                                        <button onClick={() => handleDeleteExercise(exercise.uid)}>Delete</button>
                                                     </div>
                                                 </div>
                                                 <p style={{ margin: '5px 0', color: '#A0A0A0' }}>{exercise.description || 'No description.'}</p>

@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { Timestamp } from 'firebase/firestore';
+import BaseModel from '../services/interfaces/base.jsx';
 import ChallengeManagement from '../services/firebase/ChallengeManagement';
 import GroupManagement from '../services/firebase/GroupManagementSystem';
 import { CHALLENGE_TYPE, CHALLENGE_VISIBILITY } from '../services/interfaces/constants';
@@ -14,7 +16,7 @@ function CreateChallengePopup({ onCreateChallenge, onCancel, isCreating }) {
     const [rewardPoints, setRewardPoints] = useState(0);
     const [targetValue, setTargetValue] = useState('');
     const [selectedGroupId, setSelectedGroupId] = useState('');
-    
+
     const [allGroups, setAllGroups] = useState([]);
     const [isLoadingGroups, setIsLoadingGroups] = useState(false);
 
@@ -58,16 +60,16 @@ function CreateChallengePopup({ onCreateChallenge, onCancel, isCreating }) {
             description: challengeDescription.trim(),
             challengeType: challengeType,
             visibility: visibility,
-            startDate: new Date(startDate).getTime(),
-            endDate: new Date(endDate).getTime(),
+            startDate: Timestamp.fromDate(new Date(startDate)),
+            endDate: Timestamp.fromDate(new Date(endDate)),
             rewardPoints: parseInt(rewardPoints) || 0,
             targetValue: targetValue ? parseFloat(targetValue) : null,
             groupId: visibility === CHALLENGE_VISIBILITY.GROUP ? selectedGroupId : null,
-            creatorId: visibility === CHALLENGE_VISIBILITY.GROUP ? 
-                allGroups.find(g => g.groupId === selectedGroupId)?.createdBy : 
+            creatorId: visibility === CHALLENGE_VISIBILITY.GROUP ?
+                allGroups.find(g => g.groupId === selectedGroupId)?.createdBy :
                 'admin' // Admin이 생성하는 경우
         };
-        
+
         onCreateChallenge(challengeData);
     };
 
@@ -85,12 +87,12 @@ function CreateChallengePopup({ onCreateChallenge, onCancel, isCreating }) {
         <div className='PopupBackground'>
             <div className='LargePopupContainer'>
                 <h2 style={{ margin: '20px 0', textAlign: 'center' }}>Create New Challenge</h2>
-                
+
                 <div className='BadgeCreateContent'>
                     <div className='BadgeInputSection'>
                         <div className='BadgeInputGroup'>
                             <label className='BadgeInputLabel'>Challenge Name</label>
-                            <input 
+                            <input
                                 className='Input'
                                 type="text"
                                 value={challengeName}
@@ -102,7 +104,7 @@ function CreateChallengePopup({ onCreateChallenge, onCancel, isCreating }) {
 
                         <div className='BadgeInputGroup'>
                             <label className='BadgeInputLabel'>Description</label>
-                            <input 
+                            <input
                                 className='Input'
                                 type="text"
                                 value={challengeDescription}
@@ -114,7 +116,7 @@ function CreateChallengePopup({ onCreateChallenge, onCancel, isCreating }) {
 
                         <div className='BadgeInputGroup'>
                             <label className='BadgeInputLabel'>Challenge Type</label>
-                            <select 
+                            <select
                                 className='Input'
                                 value={challengeType}
                                 onChange={(e) => setChallengeType(e.target.value)}
@@ -128,7 +130,7 @@ function CreateChallengePopup({ onCreateChallenge, onCancel, isCreating }) {
 
                         <div className='BadgeInputGroup'>
                             <label className='BadgeInputLabel'>Visibility</label>
-                            <select 
+                            <select
                                 className='Input'
                                 value={visibility}
                                 onChange={(e) => setVisibility(e.target.value)}
@@ -145,7 +147,7 @@ function CreateChallengePopup({ onCreateChallenge, onCancel, isCreating }) {
                                 {isLoadingGroups ? (
                                     <div style={{ color: '#A0A0A0', padding: '10px' }}>Loading groups...</div>
                                 ) : (
-                                    <select 
+                                    <select
                                         className='Input'
                                         value={selectedGroupId}
                                         onChange={(e) => setSelectedGroupId(e.target.value)}
@@ -165,7 +167,7 @@ function CreateChallengePopup({ onCreateChallenge, onCancel, isCreating }) {
                     <div className='BadgeInputSection'>
                         <div className='BadgeInputGroup'>
                             <label className='BadgeInputLabel'>Start Date</label>
-                            <input 
+                            <input
                                 className='Input'
                                 type="date"
                                 value={startDate}
@@ -175,7 +177,7 @@ function CreateChallengePopup({ onCreateChallenge, onCancel, isCreating }) {
 
                         <div className='BadgeInputGroup'>
                             <label className='BadgeInputLabel'>End Date</label>
-                            <input 
+                            <input
                                 className='Input'
                                 type="date"
                                 value={endDate}
@@ -185,7 +187,7 @@ function CreateChallengePopup({ onCreateChallenge, onCancel, isCreating }) {
 
                         <div className='BadgeInputGroup'>
                             <label className='BadgeInputLabel'>Reward Points</label>
-                            <input 
+                            <input
                                 className='Input'
                                 type="number"
                                 value={rewardPoints}
@@ -197,7 +199,7 @@ function CreateChallengePopup({ onCreateChallenge, onCancel, isCreating }) {
 
                         <div className='BadgeInputGroup'>
                             <label className='BadgeInputLabel'>Target Value</label>
-                            <input 
+                            <input
                                 className='Input'
                                 type="number"
                                 value={targetValue}
@@ -215,8 +217,8 @@ function CreateChallengePopup({ onCreateChallenge, onCancel, isCreating }) {
                         <button className='CancelButton' onClick={onCancel}>
                             Cancel
                         </button>
-                        <button 
-                            className='ConfirmButton' 
+                        <button
+                            className='ConfirmButton'
                             onClick={handleConfirm}
                             disabled={!challengeName.trim() || !startDate || !endDate}
                         >
@@ -249,15 +251,10 @@ function AdminChallengeDetailPopup({ challenge, onClose, onChallengeUpdated }) {
         }
     };
 
-    const formatDate = (timestamp) => {
-        const date = new Date(timestamp);
-        return date.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
+    const formatDate = (ts) => {
+        if (!ts) return '';
+        const bm = new BaseModel({ createdAt: ts });
+        return bm.getCreateAt();
     };
 
     const getStatusText = () => {
@@ -278,7 +275,7 @@ function AdminChallengeDetailPopup({ challenge, onClose, onChallengeUpdated }) {
         <div className='PopupBackground'>
             <div className='LargePopupContainer'>
                 <h2 style={{ textAlign: 'center' }}>Challenge Management</h2>
-                
+
                 <div className='GroupDetailContainer'>
                     <div className='GroupDetailHeader' style={{ textAlign: 'left' }}>
                         <span style={{ color: 'var(--main-color)' }}>{challenge.name}</span>
@@ -286,11 +283,11 @@ function AdminChallengeDetailPopup({ challenge, onClose, onChallengeUpdated }) {
                             ({getStatusText()})
                         </span>
                     </div>
-                    
+
                     <div className='GroupDetailDescription' style={{ textAlign: 'left' }}>
                         {challenge.description || 'No description available.'}
                     </div>
-                    
+
                     <div className='GroupDetailInfo' style={{ textAlign: 'left' }}>
                         <div>Challenge ID: {challenge.challengeId}</div>
                         <div>Type: {challenge.challengeType}</div>
@@ -310,16 +307,16 @@ function AdminChallengeDetailPopup({ challenge, onClose, onChallengeUpdated }) {
                             <div className="GuideText" style={{ textAlign: 'center' }}>Participants</div>
                             {challenge.participants.slice(0, 10).map(participant => (
                                 <div key={participant.participantId} className="GroupJoinItem">
-                                    <div style={{ 
-                                        color: 'var(--main-color)', 
+                                    <div style={{
+                                        color: 'var(--main-color)',
                                         margin: '16px 0px 12px 16px',
                                         fontSize: '15px'
                                     }}>
                                         User ID: {participant.userId}
                                         {participant.isCompleted() && <span style={{ fontSize: '12px', color: '#00FF94' }}> (Completed)</span>}
                                     </div>
-                                    <div style={{ 
-                                        color: 'var(--light-color)', 
+                                    <div style={{
+                                        color: 'var(--light-color)',
                                         margin: '0 16px 16px 16px',
                                         fontSize: '13px'
                                     }}>
@@ -337,7 +334,7 @@ function AdminChallengeDetailPopup({ challenge, onClose, onChallengeUpdated }) {
                     )}
 
                     <div className="GroupActionButtons" style={{ marginTop: '40px' }}>
-                        <button 
+                        <button
                             className='GroupActionButton'
                             onClick={handleDeleteChallenge}
                             disabled={isProcessing}
@@ -346,7 +343,7 @@ function AdminChallengeDetailPopup({ challenge, onClose, onChallengeUpdated }) {
                         </button>
                     </div>
                 </div>
-                
+
                 <div className='Line'></div>
                 <div className='Buttonfield'>
                     <button className='CancelButton' onClick={onClose}>
@@ -411,7 +408,7 @@ function ChallengeManagerPage() {
 
             <div className="AdminGroupContainer">
                 <div className="GuideText">All Challenges</div>
-                
+
                 {isLoadingChallenges ? (
                     <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>
                         Loading...
@@ -422,7 +419,7 @@ function ChallengeManagerPage() {
                     </div>
                 ) : (
                     allChallenges.map(challenge => (
-                        <div 
+                        <div
                             key={challenge.challengeId}
                             className="CardContainer"
                             onClick={() => setSelectedChallenge(challenge)}
@@ -434,14 +431,14 @@ function ChallengeManagerPage() {
                                 {challenge.description || 'No description available.'}
                             </div>
                             <div className="CardContents">
-                                Type: {challenge.challengeType} | Participants: {challenge.getParticipantCount()} | 
+                                Type: {challenge.challengeType} | Participants: {challenge.getParticipantCount()} |
                                 Reward: {challenge.rewardPoints} pts | Status: {challenge.isActive() ? 'Active' : challenge.isExpired() ? 'Expired' : 'Not Started'}
                             </div>
                         </div>
                     ))
                 )}
 
-                <button 
+                <button
                     className="AdminActionButton"
                     onClick={() => setShowCreateChallengePopup(true)}
                 >

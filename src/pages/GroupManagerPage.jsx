@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import BaseModel from '../services/interfaces/base.jsx';
 import UserManagement from '../services/firebase/UserManagementSystem';
 import GroupManagement from '../services/firebase/GroupManagementSystem';
 import GroupPageElements from './GroupPage';
@@ -16,12 +17,9 @@ function AdminGroupDetailPopup({ group, onClose, onGroupUpdated }) {
     }, [group.createdBy]);
 
     const formatJoinDate = (timestamp) => {
-        const date = new Date(timestamp);
-        return date.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
+        // Use BaseModel's UI helper consistently for timestamp -> date formatting
+        const bm = new BaseModel({ createdAt: timestamp });
+        return bm.getCreateAt();
     };
 
     const loadCreatorName = async () => {
@@ -60,7 +58,7 @@ function AdminGroupDetailPopup({ group, onClose, onGroupUpdated }) {
                 description: groupData.description,
                 isPrivate: groupData.isPrivate
             }, true);
-            
+
             setShowEditPopup(false);
             onGroupUpdated();
         } catch (error) {
@@ -77,7 +75,7 @@ function AdminGroupDetailPopup({ group, onClose, onGroupUpdated }) {
         <div className='PopupBackground'>
             <div className='LargePopupContainer'>
                 <h2 style={{ textAlign: 'center' }}>Admin Group Management</h2>
-                
+
                 <div className='GroupDetailContainer'>
                     <div className='GroupDetailHeader' style={{ textAlign: 'left' }}>
                         {group.name} {group.isPrivate && <span style={{ fontSize: '16px', color: '#A0A0A0' }}>(Private)</span>}
@@ -91,31 +89,31 @@ function AdminGroupDetailPopup({ group, onClose, onGroupUpdated }) {
                         <div>Created by: {creatorName}</div>
                         <div>Type: {group.isPrivate ? 'Private' : 'Public'}</div>
                     </div>
-                    
+
                     <div style={{ marginTop: '20px' }}>
                         <div className="MemberListContainer">
                             <div className="GuideText" style={{ textAlign: 'center' }}>Members</div>
                             {activeMembers.map(member => (
                                 <div key={member.membershipId} className="GroupJoinItem">
-                                    <div style={{ 
-                                        color: 'var(--main-color)', 
+                                    <div style={{
+                                        color: 'var(--main-color)',
                                         margin: '16px 0px 12px 16px',
                                         lineHeight: '1.4',
                                         fontSize: '15px'
                                     }}>
-                                        {member.user?.displayName || 'Unknown User'} 
+                                        {member.user?.displayName || 'Unknown User'}
                                         {member.isAdmin() && <span style={{ fontSize: '12px', color: '#A0A0A0' }}> (Admin)</span>}
                                     </div>
-                                    <div style={{ 
-                                        color: 'var(--light-color)', 
+                                    <div style={{
+                                        color: 'var(--light-color)',
                                         margin: '0 16px 12px 16px',
                                         lineHeight: '1.4',
                                         fontSize: '13px'
                                     }}>
                                         Joined: {formatJoinDate(member.joinedAt)}
                                     </div>
-                                    <div style={{ 
-                                        color: 'var(--light-color)', 
+                                    <div style={{
+                                        color: 'var(--light-color)',
                                         margin: '0 16px 16px 16px',
                                         fontSize: '12px'
                                     }}>
@@ -123,20 +121,20 @@ function AdminGroupDetailPopup({ group, onClose, onGroupUpdated }) {
                                     </div>
                                 </div>
                             ))}
-                            
+
                             <div className="GroupActionButtons">
-                                <button 
+                                <button
                                     className='AdminActionButton'
                                     onClick={() => setShowEditPopup(true)}
                                     disabled={isProcessing}
                                 >
                                     Edit Group
                                 </button>
-                                <button 
+                                <button
                                     className='AdminActionButton'
                                     onClick={handleDeleteGroup}
                                     disabled={isProcessing}
-                                    style={{background: 'var(--background-red)', color: 'var(--light-color)'}}
+                                    style={{ background: 'var(--background-red)', color: 'var(--light-color)' }}
                                 >
                                     {isProcessing ? 'Deleting...' : 'Delete Group'}
                                 </button>
@@ -144,7 +142,7 @@ function AdminGroupDetailPopup({ group, onClose, onGroupUpdated }) {
                         </div>
                     </div>
                 </div>
-                
+
                 <div className='Line'></div>
                 <div className='Buttonfield'>
                     <button className='CancelButton' onClick={onClose}>
@@ -194,10 +192,10 @@ function AddMemberPopup({ group, onClose, onMemberAdded }) {
         try {
             setIsLoading(true);
             const users = await UserManagement.getAllActiveUsers();
-            
+
             const currentMemberIds = group.members.map(member => member.userId);
             const availableUsers = users.filter(user => !currentMemberIds.includes(user.uid));
-            
+
             setAllUsers(availableUsers);
             setFilteredUsers(availableUsers);
         } catch (error) {
@@ -242,9 +240,9 @@ function AddMemberPopup({ group, onClose, onMemberAdded }) {
         <div className='PopupBackground'>
             <div className='LargePopupContainer'>
                 <h2>Add Members</h2>
-                
+
                 <div style={{ padding: '20px', paddingBottom: '10px' }}>
-                    <input 
+                    <input
                         className='Input'
                         type="text"
                         value={searchTerm}
@@ -252,7 +250,7 @@ function AddMemberPopup({ group, onClose, onMemberAdded }) {
                         placeholder="Search users by name or email..."
                     />
                 </div>
-                
+
                 <div className='UserListContainer'>
                     {isLoading ? (
                         <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>
@@ -264,8 +262,8 @@ function AddMemberPopup({ group, onClose, onMemberAdded }) {
                         </div>
                     ) : (
                         filteredUsers.map(user => (
-                            <div 
-                                key={user.uid} 
+                            <div
+                                key={user.uid}
                                 className={`UserSelectItem ${selectedUsers.includes(user.uid) ? 'selected' : ''}`}
                                 onClick={() => handleUserSelect(user)}
                             >
@@ -282,8 +280,8 @@ function AddMemberPopup({ group, onClose, onMemberAdded }) {
                     <button className='CancelButton' onClick={onClose}>
                         Cancel
                     </button>
-                    <button 
-                        className='ConfirmButton' 
+                    <button
+                        className='ConfirmButton'
                         onClick={handleAddMembers}
                         disabled={selectedUsers.length === 0 || isAdding}
                     >
@@ -335,8 +333,8 @@ function RemoveMemberPopup({ group, onClose, onMemberRemoved }) {
                 <h2>Remove Members</h2>
                 <div className='UserListContainer'>
                     {activeMembers.map(member => (
-                        <div 
-                            key={member.userId} 
+                        <div
+                            key={member.userId}
                             className={`UserSelectItem ${selectedMembers.includes(member.userId) ? 'selected' : ''}`}
                             onClick={() => handleMemberSelect(member)}
                         >
@@ -355,8 +353,8 @@ function RemoveMemberPopup({ group, onClose, onMemberRemoved }) {
                     <button className='CancelButton' onClick={onClose}>
                         Cancel
                     </button>
-                    <button 
-                        className='GroupActionButton' 
+                    <button
+                        className='GroupActionButton'
                         onClick={handleRemoveMembers}
                         disabled={selectedMembers.length === 0 || isRemoving}
                     >
@@ -398,8 +396,8 @@ function ChangeAdminPopup({ group, onClose, onAdminChanged }) {
                 <h2>Change Admin</h2>
                 <div className='UserListContainer'>
                     {activeMembers.map(member => (
-                        <div 
-                            key={member.userId} 
+                        <div
+                            key={member.userId}
                             className={`UserSelectItem ${selectedAdmin === member.userId ? 'selected' : ''}`}
                             onClick={() => setSelectedAdmin(member.userId)}
                         >
@@ -418,8 +416,8 @@ function ChangeAdminPopup({ group, onClose, onAdminChanged }) {
                     <button className='CancelButton' onClick={onClose}>
                         Cancel
                     </button>
-                    <button 
-                        className='ConfirmButton' 
+                    <button
+                        className='ConfirmButton'
                         onClick={handleChangeAdmin}
                         disabled={isChanging}
                     >
@@ -464,7 +462,7 @@ function EditGroupPopup({ group, onUpdateGroup, onCancel, isUpdating }) {
             <div className='PopupContainer'>
                 <h2>Edit Group</h2>
                 <div className='Inputfield'>
-                    <input 
+                    <input
                         className='Input'
                         type="text"
                         value={groupName}
@@ -472,7 +470,7 @@ function EditGroupPopup({ group, onUpdateGroup, onCancel, isUpdating }) {
                         placeholder="Group Name"
                         maxLength={50}
                     />
-                    <input 
+                    <input
                         className='Input'
                         type="text"
                         value={groupDescription}
@@ -500,21 +498,21 @@ function EditGroupPopup({ group, onUpdateGroup, onCancel, isUpdating }) {
                             <span>Private Group</span>
                         </label>
                     </div>
-                    
+
                     <div className='MemberManagementButtons'>
-                        <button 
+                        <button
                             className='MemberManagementButton'
                             onClick={() => setShowAddMemberPopup(true)}
                         >
                             Add Member
                         </button>
-                        <button 
+                        <button
                             className='MemberManagementButton'
                             onClick={() => setShowRemoveMemberPopup(true)}
                         >
                             Remove Member
                         </button>
-                        <button 
+                        <button
                             className='MemberManagementButton'
                             onClick={() => setShowChangeAdminPopup(true)}
                         >
@@ -527,8 +525,8 @@ function EditGroupPopup({ group, onUpdateGroup, onCancel, isUpdating }) {
                     <button className='CancelButton' onClick={onCancel}>
                         Cancel
                     </button>
-                    <button 
-                        className='ConfirmButton' 
+                    <button
+                        className='ConfirmButton'
                         onClick={handleConfirm}
                         disabled={!groupName.trim()}
                     >
@@ -587,7 +585,7 @@ function GroupManagerPage() {
             setIsLoadingGroups(true);
             const groups = await GroupManagement.getAllGroups();
             setAllGroups(groups);
-            
+
             const names = {};
             for (const group of groups) {
                 try {
@@ -610,7 +608,7 @@ function GroupManagerPage() {
         setIsCreatingGroup(true);
         try {
             const currentUser = await UserManagement.getCurrentUser();
-            
+
             await GroupManagement.createGroup(
                 currentUser.uid,
                 groupData.name,
@@ -618,7 +616,7 @@ function GroupManagerPage() {
                 50,
                 groupData.isPrivate
             );
-            
+
             setShowCreateGroupPopup(false);
             await loadAllGroups();
         } catch (error) {
@@ -632,10 +630,10 @@ function GroupManagerPage() {
     return (
         <div className="AppContents">
             <h2 style={{ color: '#E5E5E5', margin: '0 0 20px 0' }}>Group Manager</h2>
-            
+
             <div className="AdminGroupContainer">
                 <div className="GuideText">All Groups</div>
-                
+
                 {isLoadingGroups ? (
                     <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>
                         Loading...
@@ -646,8 +644,8 @@ function GroupManagerPage() {
                     </div>
                 ) : (
                     allGroups.map(group => (
-                        <div 
-                            key={group.groupId} 
+                        <div
+                            key={group.groupId}
                             className="CardContainer"
                             onClick={() => setSelectedGroup(group)}
                         >
@@ -663,8 +661,8 @@ function GroupManagerPage() {
                         </div>
                     ))
                 )}
-                    
-                <button 
+
+                <button
                     className="AdminActionButton"
                     onClick={() => setShowCreateGroupPopup(true)}
                 >

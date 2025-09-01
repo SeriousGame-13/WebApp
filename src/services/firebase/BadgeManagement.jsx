@@ -1,17 +1,18 @@
 import FirebaseManager from './FirestoreManager.jsx';
 import { Badge } from '../interfaces/badge.jsx';
 import { BADGE_RARITY } from '../interfaces/constants.jsx';
-import {BADGES_COLLECTION, BADGE_IMAGES_COLLECTION} from './collections.jsx'
+import { BADGES_COLLECTION, BADGE_IMAGES_COLLECTION } from './collections.jsx'
+import { serverTimestamp } from 'firebase/firestore';
 
 const generateUniqueBadgeId = async () => {
     let badgeId;
     let isUnique = false;
     let counter = 1;
-    
+
     while (!isUnique) {
         const paddedNumber = counter.toString().padStart(6, '0');
         badgeId = `BD${paddedNumber}`;
-        
+
         const existingBadge = await FirebaseManager.readDocument(BADGES_COLLECTION, badgeId);
         if (!existingBadge) {
             isUnique = true;
@@ -19,7 +20,7 @@ const generateUniqueBadgeId = async () => {
             counter++;
         }
     }
-    
+
     return badgeId;
 };
 
@@ -31,17 +32,17 @@ const createBadge = async (badgeData) => {
             rarity: badgeData.rarity,
             rewardPoints: badgeData.rewardPoints
         });
-        
+
         const { badgeId, ...badgeDataForFirebase } = badge;
-        
+
         const docRef = await FirebaseManager.createDocument(BADGES_COLLECTION, badgeDataForFirebase);
-        
+
         if (!docRef || !docRef.id) {
             throw new Error('Failed to create badge document');
         }
-        
+
         badge.badgeId = docRef.id;
-        
+
         return badge;
     } catch (error) {
         console.error('Failed to create badge:', error);
@@ -53,7 +54,7 @@ const getAllBadges = async () => {
     try {
         const snapshot = await FirebaseManager.getAllDocuments(BADGES_COLLECTION);
         const badges = [];
-        
+
         snapshot.forEach(doc => {
             const badgeData = doc.data();
             const badge = Badge.fromJSON({
@@ -62,7 +63,7 @@ const getAllBadges = async () => {
             });
             badges.push(badge);
         });
-        
+
         return badges;
     } catch (error) {
         console.error('Failed to get all badges:', error);
@@ -75,11 +76,11 @@ const saveBadgeImage = async (base64Data, badgeId) => {
         const imageData = {
             badgeId,
             imageData: base64Data,
-            updatedAt: Date.now()
+            updatedAt: serverTimestamp()
         };
-        
+
         await FirebaseManager.createDocument(BADGE_IMAGES_COLLECTION, imageData, badgeId, true);
-        
+
         return {
             success: true,
             badgeId,
@@ -104,9 +105,9 @@ const getBadgeImage = async (badgeId) => {
 const deleteBadge = async (badgeId) => {
     try {
         await FirebaseManager.deleteDocument(BADGES_COLLECTION, badgeId);
-        
+
         await FirebaseManager.deleteDocument(BADGE_IMAGES_COLLECTION, badgeId);
-        
+
         return true;
     } catch (error) {
         console.error('Failed to delete badge:', error);

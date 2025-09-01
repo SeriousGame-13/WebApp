@@ -96,24 +96,6 @@ export default class BaseModel {
     if (!calories || isNaN(calories)) return '0';
     return new Intl.NumberFormat('de-DE').format(calories);
   }
-  // Calculate duration between two dates in minutes
-  getDurationMinutes(startTime, endTime) {
-    try {
-      // Handle ISO strings like '2025-05-29T13:50:00.000Z'
-      const start = startTime.toDate();
-      const end = endTime.toDate();
-
-      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-        console.warn('Invalid date format:', { startTime, endTime });
-        return 0;
-      }
-
-      const durationMs = end.getTime() - start.getTime();
-      return Math.round(durationMs / (1000 * 60)); // Convert to minutes
-    } catch (error) {
-      console.error('Error calculating duration:', error, { startTime, endTime });
-      return 0;
-    }
-  }
+  // Calculate duration between two dates in minutes (kept above)
 
 }

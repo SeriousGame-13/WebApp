@@ -1,6 +1,6 @@
 import BaseModel from './base.jsx';
-import { 
-    serverTimestamp 
+import {
+  serverTimestamp
 } from 'firebase/firestore';
 
 export class Workout extends BaseModel {
@@ -17,10 +17,10 @@ export class Workout extends BaseModel {
   }
 
   getDuration() {
-    if (this.endTime > 0) {
-      return this.endTime - this.startTime;
-    }
-    return Date.now() - this.startTime;
+    const start = this.startTime?.toDate ? this.startTime.toDate().getTime() : new Date(this.startTime).getTime();
+    const end = this.endTime?.toDate ? this.endTime.toDate().getTime() : (this.endTime ? new Date(this.endTime).getTime() : Date.now());
+    if (isNaN(start)) return 0;
+    return Math.max(0, end - start);
   }
 
   getDurationInMinutes() {

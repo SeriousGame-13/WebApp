@@ -1,6 +1,7 @@
 import { serverTimestamp } from 'firebase/firestore';
 import BaseModel from './base.jsx';
 import { CHALLENGE_STYLE, CHALLENGE_TYPE, CHALLENGE_STATUS, CHALLENGE_PARTICIPATION_STATUS } from './constants.jsx';
+import { CHALLENGE_VISIBILITY } from './constants.jsx';
 
 export class Challenge extends BaseModel {
   constructor(data = {}) {
@@ -37,41 +38,63 @@ export class Challenge extends BaseModel {
 
   isActive() {
     const now = Date.now();
-    const start = this.startDate?.toDate ? this.startDate.toDate().getTime() : new Date(this.startDate).getTime();
-    const end = this.endDate?.toDate ? this.endDate.toDate().getTime() : new Date(this.endDate).getTime();
-    return (!isNaN(start) ? now >= start : true) && (!isNaN(end) ? now <= end : true);
+    let start = null;
+    if (this.startDate?.toDate) {
+      start = this.startDate.seconds * 1000 //to millisecodns
+    } else {
+      start = this.startDate;
+    }
+    let end = null;
+    if (this.endDate?.toDate) {
+      end = this.endDate.seconds * 1000 //to millisecodns
+    } else {
+      end = this.endDate;
+    }
+    return now >= start && now <= end;
   }
 
   isExpired() {
-    const end = this.endDate?.toDate ? this.endDate.toDate().getTime() : new Date(this.endDate).getTime();
-    return !isNaN(end) && Date.now() > end;
+    let end = null;
+    if (this.endDate?.toDate) {
+      end = this.endDate.seconds * 1000 //to millisecodns
+    } else {
+      end = this.endDate;
+    }
+    return Date.now() > end;
   }
 
   hasStarted() {
-    const start = this.startDate?.toDate ? this.startDate.toDate().getTime() : new Date(this.startDate).getTime();
-    return !isNaN(start) && Date.now() >= start;
+    let start = null;
+    if (this.startDate?.toDate) {
+      start = this.startDate.seconds * 1000 //to millisecodns
+    } else {
+      start = this.startDate;
+    }
+    return Date.now() >= start;
   }
 
   hasNotStarted() {
-    const start = this.startDate?.toDate ? this.startDate.toDate().getTime() : new Date(this.startDate).getTime();
-    return !isNaN(start) && Date.now() < start;
+    let start = null;
+    if (this.startDate?.toDate) {
+      start = this.startDate.seconds * 1000 //to millisecodns
+    } else {
+      start = this.startDate;
+    }
+    return Date.now() < start;
   }
 
   getDaysRemaining() {
-    const end = this.endDate?.toDate ? this.endDate.toDate().getTime() : new Date(this.endDate).getTime();
-    const diff = end - Date.now();
+    const diff = this.endDate - serverTimestamp();
     return Math.ceil(diff / (1000 * 60 * 60 * 24));
   }
 
   getHoursRemaining() {
-    const end = this.endDate?.toDate ? this.endDate.toDate().getTime() : new Date(this.endDate).getTime();
-    const diff = end - Date.now();
+    const diff = this.endDate - serverTimestamp();
     return Math.ceil(diff / (1000 * 60 * 60));
   }
 
   getDaysUntilStart() {
-    const start = this.startDate?.toDate ? this.startDate.toDate().getTime() : new Date(this.startDate).getTime();
-    const diff = start - Date.now();
+    const diff = this.startDate - serverTimestamp();
     return Math.ceil(diff / (1000 * 60 * 60 * 24));
   }
 
@@ -114,7 +137,6 @@ export class Challenge extends BaseModel {
 export class ChallengeParticipant extends BaseModel {
   constructor(data = {}) {
     super({
-      participantId: '',
       challengeId: '',
       userId: '',
       joinedAt: serverTimestamp(),
@@ -134,16 +156,13 @@ export class ChallengeParticipant extends BaseModel {
   }
 
   getDaysParticipating() {
-    const joined = this.joinedAt?.toDate ? this.joinedAt.toDate().getTime() : new Date(this.joinedAt).getTime();
-    const diff = Date.now() - joined;
+    const diff = serverTimestamp() - this.joinedAt;
     return Math.floor(diff / (1000 * 60 * 60 * 24));
   }
 
   getDaysToComplete() {
     if (!this.completedAt) return null;
-    const completed = this.completedAt?.toDate ? this.completedAt.toDate().getTime() : new Date(this.completedAt).getTime();
-    const joined = this.joinedAt?.toDate ? this.joinedAt.toDate().getTime() : new Date(this.joinedAt).getTime();
-    const diff = completed - joined;
+    const diff = this.completedAt - this.joinedAt;
     return Math.floor(diff / (1000 * 60 * 60 * 24));
   }
 

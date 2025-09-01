@@ -17,10 +17,10 @@ export class Workout extends BaseModel {
   }
 
   getDuration() {
-    const start = this.startTime?.toDate ? this.startTime.toDate().getTime() : new Date(this.startTime).getTime();
-    const end = this.endTime?.toDate ? this.endTime.toDate().getTime() : (this.endTime ? new Date(this.endTime).getTime() : Date.now());
-    if (isNaN(start)) return 0;
-    return Math.max(0, end - start);
+    if (this.endTime > 0) {
+      return this.endTime - this.startTime;
+    }
+    return Date.now() - this.startTime.toDate();
   }
 
   getDurationInMinutes() {
@@ -55,7 +55,7 @@ export class Workout extends BaseModel {
 
     return (this.exercises.reduce((total, exercise) => {
       if (exercise.startTime && exercise.endTime) {
-        return total + exercise.getDurationMinutes(exercise.startTime, exercise.endTime);
+        return total + exercise.getDurationMs(exercise.startTime, exercise.endTime);
       }
       return total;
     }, 0));

@@ -3,7 +3,6 @@ import FirebaseManager from './FirestoreManager';
 import UserManagement from './UserManagementSystem';
 import GroupManagementSystem from './GroupManagementSystem';
 import RewardSystem from './RewardSystem';
-import { serverTimestamp } from 'firebase/firestore';
 import { Challenge, ChallengeParticipant } from '../interfaces/challenge';
 import { CHALLENGE_STYLE, CHALLENGE_STATUS, CHALLENGE_PARTICIPATION_STATUS } from '../interfaces/constants';
 import { CHALLENGES_COLLECTION, CHALLENGE_PARTICIPANTS_SUBCOLLECTION } from './collections.jsx'
@@ -338,7 +337,7 @@ const updateChallengeProgress = async (challengeId, userId, progress) => {
             progress,
             ...(isCompleted && {
                 completed: true,
-                completedAt: serverTimestamp(),
+                completedAt: Date.now(),
                 status: CHALLENGE_PARTICIPATION_STATUS.COMPLETED
             })
         };

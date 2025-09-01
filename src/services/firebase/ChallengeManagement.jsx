@@ -1,6 +1,20 @@
+/**
+ * @fileoverview Challenge Management Module
+ * 
+ * This module provides comprehensive challenge management functionality for the fitness application.
+ * It handles all CRUD operations for challenges including creation, retrieval, updating, and deletion.
+ * Additionally, it manages challenge participation, user assignments, and group-based challenges.
+ * 
+ * The module supports different challenge types and visibility levels (public, private, group-based)
+ * and provides proper error handling for all database operations.
+ * 
+ * @author Igor, Alexander, Hyunu, Robert
+ * @version 1.0.0
+ */
+
 import FirebaseManager from './FirestoreManager.jsx';
 import { Challenge, ChallengeParticipant } from '../interfaces/challenge.jsx';
-import { CHALLENGE_VISIBILITY, CHALLENGE_PARTICIPATION_STATUS } from '../interfaces/constants.jsx';
+import { CHALLENGE_STATUS, CHALLENGE_VISIBILITY } from '../interfaces/constants.jsx';
 import UserManagement from './UserManagementSystem.jsx';
 import GroupManagement from './GroupManagementSystem.jsx';
 import { CHALLENGES_COLLECTION, CHALLENGE_PARTICIPANTS_SUBCOLLECTION } from './collections';
@@ -28,26 +42,11 @@ import RewardSystem from './RewardSystem.jsx';
  */
 const createChallenge = async (challengeData) => {
     try {
-        const challenge = new Challenge({
-            name: challengeData.name,
-            description: challengeData.description,
-            startDate: challengeData.startDate,
-            endDate: challengeData.endDate,
-            creatorId: challengeData.creatorId,
-            rewardPoints: challengeData.rewardPoints,
-            challengeType: challengeData.challengeType,
-            visibility: challengeData.visibility,
-            groupId: challengeData.groupId || null,
-            targetExerciseId: challengeData.targetExerciseId || null,
-            targetValue: challengeData.targetValue || null,
-            // store targetField and conditions similar to badges so we can evaluate progress
-            targetField: challengeData.targetField || null,
-            conditions: challengeData.conditions || ''
-        });
+        const challenge = new Challenge(challengeData);
 
         const { challengeId, participants, creator, targetExercise, ...challengeDataForFirebase } = challenge;
 
-        const docRef = await FirebaseManager.createDocument(CHALLENGES_COLLECTION, challengeDataForFirebase);
+        const docRef = await FirebaseManager.createDocument(CHALLENGES_COLLECTION, challengeDataForFirebase, challenge.uid);
 
         if (!docRef || !docRef.id) {
             throw new Error('Failed to create challenge document');
@@ -81,88 +80,10 @@ const createChallenge = async (challengeData) => {
 };
 
 /**
- * Build analytics conditions from a challenge's conditions string, allowing {user.*} placeholders.
- * Falls back to filtering by current user at depth 0 if no uid filter is present.
+ * Adds a user to all active and upcoming group challenges when they join a group.
+ * @param {string} groupId - The ID of the group
+ * @param {string} userId - The ID of the user to add to challenges
  */
-function buildChallengeConditions(challengeConditions, mappingData, userId) {
-    try {
-        const raw = typeof challengeConditions === 'string'
-            ? challengeConditions.split('\n').filter(Boolean)
-            : Array.isArray(challengeConditions)
-                ? challengeConditions
-                : [];
-
-        let conditions = buildConditions(raw, mappingData);
-
-        const hasUserFilter = conditions.some(c => (c.field === 'uid' || c.field === 'userId') && String(c.depth) === '0');
-        if (!hasUserFilter && userId) {
-            conditions.push({ field: 'uid', operator: '==', value: userId, depth: 0 });
-        }
-        return conditions;
-    } catch (e) {
-        console.error('Failed to build challenge conditions:', e);
-        return userId ? [{ field: 'uid', operator: '==', value: userId, depth: 0 }] : [];
-    }
-}
-
-/**
- * Evaluate a challenge for a specific user using the targetField and conditions.
- * This version uses Firestore collection group queries (exercises) instead of the deprecated analytics layer.
- * Updates the participant's currentValue and completion status accordingly.
- * @returns {Promise<{total:number, completed:boolean}>}
- */
-const evaluateChallengeForUser = async (challengeId, userId) => {
-    const challenge = await getChallenge(challengeId);
-    if (!challenge) throw new Error('Challenge not found');
-
-    if (!challenge.targetField || !challenge.targetValue) {
-        return { total: 0, completed: false };
-    }
-
-    const user = await UserManagement.getUser(userId);
-    const mappingData = { user };
-    const parsedConds = buildChallengeConditions(challenge.conditions || '', mappingData, userId);
-
-    // Translate our internal conditions to Firestore where filters for the exercises collection group.
-    // Only conditions at depth 2 (exercises) or global (no depth) apply here directly.
-    const groupFilters = parsedConds
-        .filter(c => c.depth === undefined || c.depth === null || Number(c.depth) === 2)
-        .map(c => ({ field: c.field, operator: c.operator || '==', value: c.value }));
-
-    // Always ensure we're querying for the given user, even if depth metadata differs
-    if (!groupFilters.some(f => f.field === 'userId' || f.field === 'uid')) {
-        // Our exercise model uses userId, prefer it
-        groupFilters.push({ field: 'userId', operator: '==', value: userId });
-    }
-
-    // Query all exercises matching conditions and sum the target field client-side
-    const snap = await FirebaseManager.queryCollectionGroup(EXERCISE_COLLECTION, groupFilters);
-    const total = Array.isArray(snap?.docs)
-        ? snap.docs.reduce((acc, d) => {
-            const v = d.data()?.[challenge.targetField];
-            return acc + (typeof v === 'number' ? v : 0);
-        }, 0)
-        : 0;
-    const isCompleted = total >= Number(challenge.targetValue || 0);
-
-    // Update nested participant document
-    const participantDocPath = `${CHALLENGES_COLLECTION}/${challengeId}/${CHALLENGE_PARTICIPANTS_SUBCOLLECTION}`;
-    const participant = await FirebaseManager.readDocument(participantDocPath, userId);
-    if (!participant) {
-        // Not joined or participant missing; nothing to update
-        return { total, completed: false };
-    }
-
-    const update = { currentValue: total };
-    if (isCompleted && !participant.completedAt) {
-        update.completedAt = serverTimestamp();
-        update.status = CHALLENGE_PARTICIPATION_STATUS.COMPLETED;
-    }
-    await FirebaseManager.updateDocument(participantDocPath, userId, update, true);
-
-    return { total, completed: isCompleted };
-};
-
 const addUserToGroupChallenges = async (groupId, userId) => {
     try {
         const groupChallenges = await getGroupChallenges(groupId);
@@ -182,6 +103,11 @@ const addUserToGroupChallenges = async (groupId, userId) => {
     }
 };
 
+/**
+ * Removes a user from all group challenges when they leave a group.
+ * @param {string} groupId - The ID of the group
+ * @param {string} userId - The ID of the user to remove from challenges
+ */
 const removeUserFromGroupChallenges = async (groupId, userId) => {
     try {
         const groupChallenges = await getGroupChallenges(groupId);
@@ -198,6 +124,11 @@ const removeUserFromGroupChallenges = async (groupId, userId) => {
     }
 };
 
+/**
+ * Adds a new user to all public and hidden challenges that are active or not yet started.
+ * Called when a new user registers in the system.
+ * @param {string} userId - The ID of the new user to add to challenges
+ */
 const addNewUserToChallenges = async (userId) => {
     try {
         const allChallenges = await getAllChallenges();
@@ -220,6 +151,11 @@ const addNewUserToChallenges = async (userId) => {
     }
 };
 
+/**
+ * Retrieves all challenges from the database.
+ * Loads participants for each challenge and returns complete Challenge objects.
+ * @returns {Promise<Challenge[]>} An array of Challenge objects with participants loaded, or empty array if retrieval fails
+ */
 const getAllChallenges = async () => {
     try {
         const snapshot = await FirebaseManager.getAllDocuments(CHALLENGES_COLLECTION);
@@ -243,6 +179,11 @@ const getAllChallenges = async () => {
     }
 };
 
+/**
+ * Retrieves all public challenges from the database.
+ * Public challenges are visible to all users regardless of group membership.
+ * @returns {Promise<Challenge[]>} An array of public Challenge objects with participants loaded, or empty array if retrieval fails
+ */
 const getPublicChallenges = async () => {
     try {
         const snapshot = await FirebaseManager.queryDocuments(
@@ -269,6 +210,12 @@ const getPublicChallenges = async () => {
     }
 };
 
+/**
+ * Retrieves all challenges associated with a specific group.
+ * Only returns challenges with GROUP visibility that belong to the specified group.
+ * @param {string} groupId - The ID of the group to get challenges for
+ * @returns {Promise<Challenge[]>} An array of group Challenge objects, or empty array if retrieval fails
+ */
 const getGroupChallenges = async (groupId) => {
     try {
         const allChallenges = await getAllChallenges();
@@ -285,6 +232,14 @@ const getGroupChallenges = async (groupId) => {
     }
 };
 
+/**
+ * Updates an existing challenge with new data.
+ * Merges the provided challenge data with the existing challenge document.
+ * @param {string} challengeId - The unique identifier of the challenge to update
+ * @param {Object} challengeData - The challenge data to update
+ * @returns {Promise<boolean>} True if update was successful
+ * @throws {Error} If challenge update fails
+ */
 const updateChallenge = async (challengeId, challengeData) => {
     try {
         await FirebaseManager.updateDocument(CHALLENGES_COLLECTION, challengeId, challengeData, true);
@@ -295,6 +250,13 @@ const updateChallenge = async (challengeId, challengeData) => {
     }
 };
 
+/**
+ * Deletes a challenge and all its participants from the database.
+ * Removes both the challenge document and all participant subcollection documents.
+ * @param {string} challengeId - The unique identifier of the challenge to delete
+ * @returns {Promise<boolean>} True if deletion was successful
+ * @throws {Error} If challenge deletion fails
+ */
 const deleteChallenge = async (challengeId) => {
     try {
         const participantsSnapshot = await FirebaseManager.getAllDocuments(
@@ -317,32 +279,27 @@ const deleteChallenge = async (challengeId) => {
     }
 };
 
+/**
+ * Adds a user as a participant to a specific challenge.
+ * Creates a new participant record with user information and join timestamp.
+ * @param {string} challengeId - The unique identifier of the challenge to join
+ * @param {string} userId - The unique identifier of the user joining the challenge
+ * @returns {Promise<ChallengeParticipant>} The created ChallengeParticipant object
+ * @throws {Error} If joining the challenge fails
+ */
 const joinChallenge = async (challengeId, userId) => {
     try {
-        const userData = await UserManagement.getUser(userId);
+
+        // const userData = await UserManagement.getUser(userId);
 
         const participant = new ChallengeParticipant({
-            participantId: userId,
+            uid: userId,
             challengeId: challengeId,
             userId: userId,
-            joinedAt: serverTimestamp(),
-            completedAt: null,
-            user: userData.displayName || 'Unknown User'
+            // user: userData.displayName || 'Unknown User'
         });
 
-        await FirebaseManager.createDocument(
-            `${CHALLENGES_COLLECTION}/${challengeId}/${CHALLENGE_PARTICIPANTS_SUBCOLLECTION}`,
-            participant,
-            userId,
-            true
-        );
-
-        // Initialize progress using targetField/conditions if available
-        try {
-            await evaluateChallengeForUser(challengeId, userId);
-        } catch (e) {
-            console.warn('Failed to evaluate challenge upon join:', e?.message || e);
-        }
+        await FirebaseManager.createDocument(`${CHALLENGES_COLLECTION}/${challengeId}/${CHALLENGE_PARTICIPANTS_SUBCOLLECTION}`, participant, participant.uid);
 
         return participant;
     } catch (error) {
@@ -351,6 +308,14 @@ const joinChallenge = async (challengeId, userId) => {
     }
 };
 
+/**
+ * Removes a user from a specific challenge.
+ * Deletes the participant record from the challenge's participants subcollection.
+ * @param {string} challengeId - The unique identifier of the challenge to leave
+ * @param {string} userId - The unique identifier of the user leaving the challenge
+ * @returns {Promise<boolean>} True if leaving the challenge was successful
+ * @throws {Error} If leaving the challenge fails
+ */
 const leaveChallenge = async (challengeId, userId) => {
     try {
         await FirebaseManager.deleteDocument(
@@ -365,6 +330,12 @@ const leaveChallenge = async (challengeId, userId) => {
     }
 };
 
+/**
+ * Retrieves all participants of a specific challenge.
+ * Returns an array of ChallengeParticipant objects for the given challenge.
+ * @param {string} challengeId - The unique identifier of the challenge
+ * @returns {Promise<ChallengeParticipant[]>} An array of ChallengeParticipant objects, or empty array if retrieval fails
+ */
 const getChallengeParticipants = async (challengeId) => {
     try {
         const snapshot = await FirebaseManager.getAllDocuments(
@@ -385,6 +356,11 @@ const getChallengeParticipants = async (challengeId) => {
     }
 };
 
+/**
+ * Loads participants for a challenge object.
+ * Fetches and assigns participants to the challenge's participants property.
+ * @param {Challenge} challenge - The Challenge object to load participants for
+ */
 const loadChallengeParticipants = async (challenge) => {
     try {
         const participants = await getChallengeParticipants(challenge.challengeId);
@@ -395,6 +371,13 @@ const loadChallengeParticipants = async (challenge) => {
     }
 };
 
+/**
+ * Retrieves a specific challenge by its ID.
+ * Loads the challenge data and its participants from the database.
+ * @param {string} challengeId - The unique identifier of the challenge to retrieve
+ * @returns {Promise<Challenge>} The Challenge object with participants loaded
+ * @throws {Error} If challenge retrieval fails or challenge is not found
+ */
 const getChallenge = async (challengeId) => {
     try {
         const challengeDoc = await FirebaseManager.readDocument(CHALLENGES_COLLECTION, challengeId);
@@ -417,10 +400,14 @@ const getChallenge = async (challengeId) => {
     }
 };
 
+/**
+ * Retrieves all challenges that a specific user is participating in.
+ * Filters all challenges to return only those where the user is a participant.
+ * @param {string} userId - The unique identifier of the user
+ * @returns {Promise<Challenge[]>} An array of Challenge objects the user is participating in, or empty array if retrieval fails
+ */
 const getUserChallenges = async (userId) => {
     try {
-        // 모든 챌린지를 조회한 후 해당 사용자가 참가한 것만 필터링
-        // 더 효율적인 방법이 있다면 나중에 개선 가능
         const allChallenges = await getAllChallenges();
 
         const userChallenges = allChallenges.filter(challenge =>
@@ -434,6 +421,14 @@ const getUserChallenges = async (userId) => {
     }
 };
 
+/**
+ * Marks a challenge as completed for a specific user.
+ * Updates the participant's record with a completion timestamp.
+ * @param {string} challengeId - The unique identifier of the challenge
+ * @param {string} userId - The unique identifier of the user completing the challenge
+ * @returns {Promise<boolean>} True if completion was successful
+ * @throws {Error} If challenge completion fails or participant is not found
+ */
 const completeChallengeForUser = async (challengeId, userId) => {
     try {
         const participant = await FirebaseManager.readDocument(
@@ -524,7 +519,7 @@ const ChallengeManagement = {
     addUserToGroupChallenges,
     removeUserFromGroupChallenges,
     addNewUserToChallenges,
-    evaluateChallengeForUser
+    updateProgress
 };
 
 export default ChallengeManagement;

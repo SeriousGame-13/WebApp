@@ -163,14 +163,16 @@ function Modal({ open, onClose, children, title, size = "md" }) {
   return (
     <div className="modal-overlay">
       <div className="modal-backdrop" onClick={onClose} />
-      <div className={`modal-content card ${maxW}`}>
-        <div className="modal-header">
-          <h3 className="modal-title">{title}</h3>
-          <button onClick={onClose} className="modal-close">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+      <div className='centered'>
+        <div className={`modal-content card ${maxW}`}>
+          <div className="modal-header">
+            <h3 className="modal-title">{title}</h3>
+            <button onClick={onClose} className="modal-close">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         {children}
+        </div>
       </div>
     </div>
   );

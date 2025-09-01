@@ -6,6 +6,8 @@ import { Workout } from '../interfaces/workout.jsx';
 import UserManagement from './UserManagementSystem.jsx';
 import HighscoreManager from './HighscoreManager.jsx';
 import ChallengeManagement from './ChallengeManagement.jsx';
+import RewardSystem from './RewardSystem.jsx';
+
 
 const createPath = (userId) => {
     return `${UserManagement.getUserDatabasePath(userId)}${WORKOUT_COLLECTION}`;
@@ -91,7 +93,7 @@ function calculateWorkoutTimes(exercises) {
     return {
         activeTime: Math.round(activeTime / 1000),
         idleTime: Math.round(idleTime / 1000),
-        endTime: lastEndTime
+        endTime: sortedExercises[sortedExercises.length - 1].endTime
     };
 }
 
@@ -118,19 +120,20 @@ const calculateAndSaveWorkoutTimes = async (userId, workoutId) => {
     }
 }
 
-// Post-exercise processing: update related systems after a new/updated exercise
-const handlePostExercise = async (userId, exercise) => {
-    try {
-        // Re-evaluate all user challenges that might depend on exercise/workout progress
-        const challenges = await ChallengeManagement.getUserChallenges(userId);
-        const evalPromises = challenges
-            .filter(ch => ch?.targetField && ch?.targetValue && (ch.isActive?.() || ch.hasStarted?.()))
-            .map(ch => ChallengeManagement.evaluateChallengeForUser(ch.challengeId, userId));
-        await Promise.allSettled(evalPromises);
-    } catch (e) {
-        console.warn('Post-exercise challenge evaluation failed:', e?.message || e);
+async function handlePostExercise(userId, exercise) {
+    RewardSystem.awardBadges(userId);
+    GoalSystem.updateGoalsFromWorkout(userId, exercise.stationId, exercise.points);
+    exercise.userId = userId;
+    if (exercise.stationId && exercise.userId) {
+        HighscoreManager.create(exercise);
     }
-};
+
+    const challenges = await ChallengeManagement.getUserChallenges(userId);
+    challenges.forEach(obj => {
+        ChallengeManagement.updateProgress(obj.uid);
+    });
+}
+
 
 const saveWorkout = async (workout) => {
     if (!(workout instanceof Workout)) {
@@ -254,8 +257,7 @@ const addExercise = async (userId, workoutId, exerData) => {
         }
         // Recalculate and save times after adding the exercise
         await calculateAndSaveWorkoutTimes(userId, workoutId);
-        // Run post-exercise updates (e.g., challenge evaluation)
-        await handlePostExercise(userId, exercise);
+        handlePostExercise(userId, exercise);
     } catch (error) {
         console.error('Error adding exercise:', error);
         throw error;

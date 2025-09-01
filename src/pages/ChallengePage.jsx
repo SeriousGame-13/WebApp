@@ -315,7 +315,7 @@ function ClickableChallengeCard({ challenge, groupNames, onClick, userData }) {
         </div>
         <div className='mt-3'>
             <ExpElements.NewLinearExpContainerSimple
-            expnow={userProgress}  // 0 대신 실제 사용자 진행도
+            expnow={userProgress}
             expmax={challenge.targetValue || 100}
             />
         </div>

@@ -182,7 +182,7 @@ function Stat({ label, value }) {
   return (
     <div className="flex flex-col gap-1">
       <span className="text-slate-400 text-sm">{label}</span>
-      <span className="text-2xl font-semibold text-slate-100">{value}</span>
+      <span className="text-xl font-semibold text-slate-100">{value}</span>
     </div>
   );
 }

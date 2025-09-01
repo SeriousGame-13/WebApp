@@ -1027,6 +1027,38 @@ html {
   box-shadow: 0 0 0 1px #c4b5fd;
 }
 
+select.form-input {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-right: 2.5rem;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  color: #f1f5f9 !important;
+}
+
+select.form-input:focus {
+  border-color: #c4b5fd !important;
+  box-shadow: 0 0 0 1px #c4b5fd !important;
+  outline: none !important;
+  transform: none !important;
+  background-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+select.form-input option {
+  background-color: rgba(0, 0, 0, 0.8)!important;
+  color: #f1f5f9 !important;
+  padding: 0.5rem;
+}
+
+select.form-input option:checked {
+  background-color: #c4b5fd !important;
+  color: #1e293b !important;
+}
+
 .form-label {
   font-size: 0.875rem;
   color: #cbd5e1;

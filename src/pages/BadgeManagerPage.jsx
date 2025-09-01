@@ -5,6 +5,7 @@ import BadgeImageElements from '../utils/BadgeImageUploader';
 import '../components/styles/LayoutElements.css';
 import { Badge } from '../services/interfaces/badge';
 import RewardSystem from '../services/firebase/RewardSystem';
+import BaseModel from '../services/interfaces/base.jsx';
 
 // Shared Badge Form Component
 function BadgeForm({ badge = null, onSubmit, onCancel, isProcessing, submitText }) {
@@ -215,12 +216,10 @@ function AdminBadgeDetailPopup({ badge, onClose, onBadgeUpdated }) {
         }
     };
 
-    const formatDate = (timestamp) => {
-        return new Date(timestamp).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
+    const formatDate = (ts) => {
+        if (!ts) return '';
+        const bm = new BaseModel({ createdAt: ts });
+        return bm.getCreateAt();
     };
 
     return (
@@ -252,7 +251,7 @@ function AdminBadgeDetailPopup({ badge, onClose, onBadgeUpdated }) {
                     <div className='GroupDetailDescription' style={{ textAlign: 'left' }}>
                         {badge.description || 'No description available.'}
                     </div>
-                    
+
                     <div className='GroupDetailInfo' style={{ textAlign: 'left' }}>
                         <div>Badge ID: {badge.badgeId}</div>
                         <div>Reward Points: {badge.rewardPoints}</div>
@@ -378,7 +377,7 @@ function BadgeManagerPage({ user }) {
 
             <div className="AdminGroupContainer">
                 <div className="GuideText">All Badges</div>
-                
+
                 {renderBadgeList()}
 
                 <button

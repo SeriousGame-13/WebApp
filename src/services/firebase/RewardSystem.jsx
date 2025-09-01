@@ -1,8 +1,10 @@
-import CompetitonSystem from './CompetitionSystem';
+import CompetitonSystem from './TournamentManagement';
 import UserManagement from './UserManagementSystem';
 import BadgeManagement from "./BadgeManagement";
-import { createCustomAnalytics } from "../../utils/FirestoreAnalytics";
-import { CHALLENGE_STYLE } from '../interfaces/constants';
+import { CHALLENGE_STATUS, CHALLENGE_STYLE } from '../interfaces/constants';
+import FirestoreManager from './FirestoreManager';
+import { aggregate, buildConditions } from '../../utils/helper';
+import ChallengeManagement from './ChallengeManagement';
 
 /**
  * Awards rewards to challenge participants
@@ -11,17 +13,33 @@ import { CHALLENGE_STYLE } from '../interfaces/constants';
  */
 const awardChallengeRewards = async (challengeId) => {
     try {
-        const challenge = await CompetitonSystem.getChallenge(challengeId);
+        const challenge = await ChallengeManagement.getChallenge(challengeId);
         if (!challenge || challenge.rewardPoints <= 0) {
             return;
         }
 
-        const participants = await CompetitonSystem.getChallengeParticipants(challengeId);
-        
+        const participants = await ChallengeManagement.getChallengeParticipants(challengeId);
+
+        let setFinished = false;
         for (const participant of participants) {
-            if (participant.completed) {
-                await UserManagement.addPoints(participant.userId, challenge.rewardPoints);
+            switch (challenge.challengeStyle) {
+                case CHALLENGE_STYLE.GROUP:
+                    UserManagement.addPoints(participant.userId, challenge.rewardPoints);
+                    setFinished = true;
+                    break;
+                case CHALLENGE_STYLE.INDIVIDUAL:
+                    if (participant.completed) {
+                        UserManagement.addPoints(participant.userId, challenge.rewardPoints);
+                    }
+                    break;
+                case CHALLENGE_STYLE.TOURNAMENT:
+                    console.error("Implement !!!");
+                    break;
             }
+        }
+
+        if (setFinished) {
+            await ChallengeManagement.updateChallenge(challengeId, { status: CHALLENGE_STATUS.FINISHED });
         }
     } catch (error) {
         console.error('Failed to award challenge rewards:', error);
@@ -41,14 +59,14 @@ const awardTournamentRewards = async (challengeId) => {
         }
 
         const results = await CompetitonSystem.getChallengeResults(challengeId);
-        
+
         // TODO: Award different points based on ranking?
         const rewardStructure = {
             1: challenge.rewardPoints * 5,
-            2: challenge.rewardPoints * 4, 
-            3: challenge.rewardPoints * 3, 
-            4: challenge.rewardPoints * 2, 
-            5: challenge.rewardPoints * 1.5, 
+            2: challenge.rewardPoints * 4,
+            3: challenge.rewardPoints * 3,
+            4: challenge.rewardPoints * 2,
+            5: challenge.rewardPoints * 1.5,
         };
 
         for (const result of results) {
@@ -77,68 +95,28 @@ const awardTournamentRewards = async (challengeId) => {
  */
 const awardBadges = async (userId) => {
     const user = await UserManagement.getUser(userId);
-
     const mappingData = { user: user };
 
     const badges = await BadgeManagement.getAllBadges();
+
     for (let badge of badges) {
-        const rawstructure = badge.structure.replaceAll('\n', '').split(';');
-        let structure = [];
-        rawstructure.forEach(str => {
-            const temp = str.split(',');
-            if (temp.length == 2) {
-                const first = temp[0].split(':');
-                const second = temp[1].split(':');
-                structure.push({ name: first[1], idField: second[1] });
-            }
-        });
-        const rawmapping = badge.mapping.replaceAll('\n', '').split(';');
-
-        let mapping = {};
-        rawmapping.forEach(str => {
-            const temp = str.split(':');
-            if (temp.length == 2) {
-                const fields = temp[1].split(',');
-                mapping[temp[0]] = fields;
-            }
-        });
-
         const rawConditions = badge.conditions.split('\n');
+        const conditions = buildConditions(rawConditions, mappingData);
 
-        let conditions = [];
-        rawConditions.forEach(str => {
-            const temp = str.split(',');
-            let cond = {};
-            if (temp.length > 1) {
-                temp.forEach(x => {
-                    let t = x.split(':');
-                    cond[t[0]] = t[1];
-                });
-                if (cond['value'].includes('{')) {
-                    const tt = cond['value'].replaceAll('{', '').replaceAll('}', '').split('.');
-                    let curData = mappingData;
-                    for(let n of tt){
-                        curData = curData[n];
-                    }
-                    cond['value'] = curData;
-                }
-                conditions.push(cond);
-
-            }
-        });
-
-
-        const analytics = createCustomAnalytics(structure, mapping);
-        const totalCalories = await analytics.query({
-            targetDepth: 2,
-            sumField: 'calories',
-            conditions: conditions,
-        });
-        console.log(totalCalories);
+        const docs = await FirestoreManager.queryDocuments(badge.collection, conditions);
+        if (!docs) {
+            continue;
+        }
+        const result = aggregate([{ function: badge.aggregate, field: badge.field }], docs.docs);
+        if (result[Object.keys(result)[0]] >= badge.valueToReach) {
+            UserManagement.awardBadge(userId, badge.uid);
+        }
     }
 };
 
-const RewardSystem = {    
+
+
+const RewardSystem = {
     awardChallengeRewards,
     awardTournamentRewards,
     awardBadges,

@@ -473,11 +473,7 @@ function Page({ userData }) {
       
       let startTime = helpers.getDateFromTimestamp(workout.startTime);
       let endTime = helpers.getDateFromTimestamp(workout.endTime);
-      
-      const durationMs = endTime - startTime;
-      const durationSeconds = Math.floor(durationMs / 1000);
-      
-      return helpers.formatDuration(durationSeconds);
+      return userData.formatDuration(endTime - startTime);
     },
     
     // Get total calories from a workout
@@ -551,11 +547,9 @@ function Page({ userData }) {
   const loadLastWorkout = async () => {
     try {
       setLoadingState(prev => ({ ...prev, isLoadingLastWorkout: true }));
-      
-      // Check if workouts are already in userData
-      if (userData.workouts && userData.workouts.length > 0) {
-        const workouts = userData.workouts;
+      const workouts = await WorkoutManager.loadWorkouts(userData.uid);
         
+      if (workouts && workouts.length > 0) {
         // Sort by start time to get the most recent workout
         const sortedWorkouts = workouts.sort((a, b) => {
           let dateA = helpers.getDateFromTimestamp(a.startTime);
@@ -564,20 +558,6 @@ function Page({ userData }) {
         });
         
         setDataState(prev => ({ ...prev, lastWorkout: sortedWorkouts[0] }));
-      } else {
-        // Fallback to WorkoutManager if no workouts in userData
-        const workouts = await WorkoutManager.loadWorkouts(userData.uid);
-        
-        if (workouts && workouts.length > 0) {
-          // Sort by start time to get the most recent workout
-          const sortedWorkouts = workouts.sort((a, b) => {
-            let dateA = helpers.getDateFromTimestamp(a.startTime);
-            let dateB = helpers.getDateFromTimestamp(b.startTime);
-            return dateB - dateA;
-          });
-          
-          setDataState(prev => ({ ...prev, lastWorkout: sortedWorkouts[0] }));
-        }
       }
     } catch (error) {
       console.error('Failed to load last workout:', error);
@@ -743,28 +723,23 @@ function Page({ userData }) {
       let updatedWorkout;
       
       if (isEditing && dataState.selectedExercise) {
-        // If editing, update the existing exercise
         updatedWorkout = {
           ...lastWorkout,
           exercises: lastWorkout.exercises.map(ex => 
             (ex.uid === dataState.selectedExercise.uid) ? { ...ex, ...exerciseData } : ex
           )
         };
+        await WorkoutManager.updateExercise(userData.uid, lastWorkout.uid, exerciseData);
         alert("Exercise updated successfully");
       } else {
-        // If adding new, create a new exercise with a UID
-        exerciseData.uid = `exercise_${Date.now()}`; // Generate a temporary ID
-        
-        // Add the exercise to the current workout
         updatedWorkout = {
           ...lastWorkout,
           exercises: [...(lastWorkout.exercises || []), exerciseData]
         };
+        await WorkoutManager.addExercise(userData.uid, lastWorkout.uid, exerciseData);
         alert("Exercise added successfully");
       }
 
-      // Update the workout in the database
-      await WorkoutManager.updateWorkout(updatedWorkout);
       
       // Update local state
       setDataState(prev => ({ ...prev, lastWorkout: updatedWorkout }));
@@ -789,12 +764,7 @@ function Page({ userData }) {
         alert('End time must be after start time');
         return;
       }
-      
-      // Calculate points and calories based on duration
-      const durationMs = workoutForm.workoutEndTime - workoutForm.workoutStartTime;
-      const points = Math.floor(durationMs / 60000); // 1 point per minute
-      const calories = Math.floor(durationMs / 30000); // 2 calories per minute
-      
+            
       const { editingWorkout } = modalState;
       const { lastWorkout } = dataState;
       
@@ -806,12 +776,10 @@ function Page({ userData }) {
           description: workoutForm.workoutDescription.trim(),
           startTime: workoutForm.workoutStartTime,
           endTime: workoutForm.workoutEndTime,
-          points: points,
-          calories: calories
         };
         
         // Update workout in database
-        await WorkoutManager.updateWorkout(updatedWorkout);
+        await WorkoutManager.saveWorkout(updatedWorkout);
         
         // Update local state
         setDataState(prev => ({ ...prev, lastWorkout: updatedWorkout }));

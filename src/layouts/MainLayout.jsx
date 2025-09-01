@@ -7,7 +7,7 @@ import DatamanagerElements from '../utils/dataManager';
 import ChallengePageElements from '../pages/ChallengePage';
 import GroupPageElements from '../pages/GroupPage';
 import HomePageElements from '../pages/HomePage';
-import RankingPageElements from '../pages/RankingPage';
+import RankingPage from '../pages/RankingPage';
 import UserPageElements from '../pages/UserPage';
 import '../components/styles/LayoutElements.css'
 import MainFooter from './MainFooter';
@@ -52,38 +52,41 @@ function HomePage() {
 
     const [currentPage, setCurrentPage] = useState('home');
 
+    // Groups state
+    const [groups, setGroups] = useState([]);
+    const [joinedIds, setJoinedIds] = useState([]);
+
     const renderCurrentPage = () => {
         switch (currentPage) {
             case 'home':
                 console.log('Rendering GroupPage with data:', userData);
                 return (
                 <div className='app-container'>
-                    <HomePageElements.Page data={userData} />
+                    <HomePageElements.Page userData={userData} />
                     <div className='border-t border-white/10' />
                     <MainFooter.newFooter tab={currentPage} setTab={setCurrentPage} />
                 </div>)
             case 'rankings':
                 return (
                 <div className='app-container'>
-                    <RankingPageElements.Page data={userData} />
+                    <RankingPage.Page userData={userData} />
                     <div className='border-t border-white/10' />
                     <MainFooter.newFooter tab={currentPage} setTab={setCurrentPage} />
                 </div>)
             case 'challenges':
                 return (
-                <div className='app-container'>
-                    <ChallengePageElements.Page data={userData} />
-                    <div className='border-t border-white/10' />
-                    <MainFooter.newFooter tab={currentPage} setTab={setCurrentPage} />
-                </div>)
+                    <div className='app-container'>
+                        <ChallengePageElements.Page data={userData} />
+                        <div className='border-t border-white/10' />
+                        <MainFooter.newFooter tab={currentPage} setTab={setCurrentPage} />
+                    </div>)
             case 'groups':
-
                 return (
-                <div className='app-container'>
-                    <GroupPageElements.Page data={userData} />
-                    <div className='border-t border-white/10' />
-                    <MainFooter.newFooter tab={currentPage} setTab={setCurrentPage} />
-                </div>)
+                    <div className='app-container'>
+                        <GroupPageElements.Page groups={groups} setGroups={setGroups} joinedIds={joinedIds} setJoinedIds={setJoinedIds} />
+                        <div className='border-t border-white/10' />
+                        <MainFooter.newFooter tab={currentPage} setTab={setCurrentPage} />
+                    </div>)
             case 'user':
                 return (
                 <div className='app-container'>
@@ -94,11 +97,11 @@ function HomePage() {
                 </div>)
             default:
                 return (
-                <div className='app-container'>
-                    <HomePageElements.Page data={userData} />
-                    <div className='border-t border-white/10' />
-                    <MainFooter.newFooter tab={currentPage} setTab={setCurrentPage} />
-                </div>)
+                    <div className='app-container'>
+                        <HomePageElements.Page data={userData} />
+                        <div className='border-t border-white/10' />
+                        <MainFooter.newFooter tab={currentPage} setTab={setCurrentPage} />
+                    </div>)
         }
     }
 
@@ -120,7 +123,7 @@ function HomePage() {
     return (
         <div>
             {renderCurrentPage()}
-            
+
         </div>
     );
 }

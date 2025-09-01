@@ -10,7 +10,7 @@ import '../sphere-styles.css';
 // ---------- Avatar & UI helpers ----------
 const GRADIENTS = [
   "avatar-gradient-0",
-  "avatar-gradient-1", 
+  "avatar-gradient-1",
   "avatar-gradient-2",
   "avatar-gradient-3",
   "avatar-gradient-4",
@@ -37,7 +37,7 @@ function Avatar({ name, size = 48, seed }) {
 function HeartIcon() {
   return (
     <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      <path d="M12 21s-7.5-4.35-10-8.57C-.66 7.66 2.1 3 6.6 3c2.17 0 3.76 1.1 4.4 2.17C11.64 4.1 13.23 3 15.4 3 19.9 3 22.66 7.66 22 12.43 19.5 16.65 12 21 12 21z"/>
+      <path d="M12 21s-7.5-4.35-10-8.57C-.66 7.66 2.1 3 6.6 3c2.17 0 3.76 1.1 4.4 2.17C11.64 4.1 13.23 3 15.4 3 19.9 3 22.66 7.66 22 12.43 19.5 16.65 12 21 12 21z" />
     </svg>
   );
 }
@@ -97,33 +97,33 @@ const BASE_USERS = [
 ];
 
 const DEFAULT_GROUPS = [
-  { 
-    id: "g1", 
-    name: "Sport Enthusiasts", 
-    members: 24, 
-    description: "Mixed team training every Tue & Thu.", 
-    memberIds: ["u1","u2","u3","me"] 
+  {
+    id: "g1",
+    name: "Sport Enthusiasts",
+    members: 24,
+    description: "Mixed team training every Tue & Thu.",
+    memberIds: ["u1", "u2", "u3", "me"]
   },
-  { 
-    id: "g2", 
-    name: "Runners", 
-    members: 15, 
-    description: "Intervals & mobility on Wednesdays.", 
-    memberIds: ["u11","u12","u13"] 
+  {
+    id: "g2",
+    name: "Runners",
+    members: 15,
+    description: "Intervals & mobility on Wednesdays.",
+    memberIds: ["u11", "u12", "u13"]
   },
-  { 
-    id: "g3", 
-    name: "Fitness Buddies", 
-    members: 8, 
-    description: "Weekend bootcamps + brunch.", 
-    memberIds: ["u3","u4"] 
+  {
+    id: "g3",
+    name: "Fitness Buddies",
+    members: 8,
+    description: "Weekend bootcamps + brunch.",
+    memberIds: ["u3", "u4"]
   },
-  { 
-    id: "g4", 
-    name: "Sphere Team Tuesday", 
-    members: 12, 
-    description: "Internal team challenge night.", 
-    memberIds: ["u1","u11","u12"] 
+  {
+    id: "g4",
+    name: "Sphere Team Tuesday",
+    members: 12,
+    description: "Internal team challenge night.",
+    memberIds: ["u1", "u11", "u12"]
   },
 ];
 
@@ -158,33 +158,33 @@ function badgeLevelColor(level) {
 function buildRanking(mode) {
   const base = mode === "weekly"
     ? [
-        ...BASE_USERS.map(u => ({ 
-          id: u.id, 
-          name: u.name, 
-          points: u.weeklyPoints, 
-          level: u.level, 
-          badgesCount: u.badges.length 
-        })),
-        { 
-          id: "me", 
-          name: "You", 
-          points: DUMMY_USER.weeklyPoints, 
-          level: DUMMY_USER.level, 
-          badgesCount: DUMMY_USER.badges.length 
-        }
-      ]
+      ...BASE_USERS.map(u => ({
+        id: u.id,
+        name: u.name,
+        points: u.weeklyPoints,
+        level: u.level,
+        badgesCount: u.badges.length
+      })),
+      {
+        id: "me",
+        name: "You",
+        points: DUMMY_USER.weeklyPoints,
+        level: DUMMY_USER.level,
+        badgesCount: DUMMY_USER.badges.length
+      }
+    ]
     : [
-        { id: "u11", name: "Atlas", points: 1830, level: 18, badgesCount: 2 },
-        { id: "u12", name: "Nova", points: 1700, level: 15, badgesCount: 2 },
-        { id: "u13", name: "Kai", points: 1520, level: 12, badgesCount: 2 },
-        { 
-          id: "me", 
-          name: "You", 
-          points: 1337, 
-          level: DUMMY_USER.level, 
-          badgesCount: DUMMY_USER.badges.length 
-        },
-      ];
+      { id: "u11", name: "Atlas", points: 1830, level: 18, badgesCount: 2 },
+      { id: "u12", name: "Nova", points: 1700, level: 15, badgesCount: 2 },
+      { id: "u13", name: "Kai", points: 1520, level: 12, badgesCount: 2 },
+      {
+        id: "me",
+        name: "You",
+        points: 1337,
+        level: DUMMY_USER.level,
+        badgesCount: DUMMY_USER.badges.length
+      },
+    ];
 
   const extra = EXTRA_NAMES.slice(0, 40).map((n, i) => ({
     id: `e${i}`,
@@ -380,26 +380,26 @@ function Groups({ groups, setGroups, joinedIds, setJoinedIds }) {
   const [newName, setNewName] = useState("");
   const [newDesc, setNewDesc] = useState("");
 
-  const filtered = useMemo(() => 
-    groups.filter(g => g.name.toLowerCase().includes(search.toLowerCase())), 
+  const filtered = useMemo(() =>
+    groups.filter(g => g.name.toLowerCase().includes(search.toLowerCase())),
     [groups, search]
   );
-  
+
   const current = opened ? groups.find(g => g.id === opened) : null;
 
   const createGroup = () => {
     if (!newName.trim()) return;
     const id = `g${Math.random().toString(36).slice(2, 7)}`;
-    const g = { 
-      id, 
-      name: newName, 
-      members: 1, 
-      description: newDesc || "", 
-      memberIds: ["me"] 
+    const g = {
+      id,
+      name: newName,
+      members: 1,
+      description: newDesc || "",
+      memberIds: ["me"]
     };
     setGroups(prev => [g, ...prev]);
-    setCreateOpen(false); 
-    setNewName(""); 
+    setCreateOpen(false);
+    setNewName("");
     setNewDesc("");
   };
 
@@ -407,9 +407,9 @@ function Groups({ groups, setGroups, joinedIds, setJoinedIds }) {
     setGroups(prev => prev.map(g => {
       if (g.id !== gid) return g;
       const already = (g.memberIds || []).includes("me");
-      const memberIds = already 
-        ? g.memberIds.filter(id => id !== "me") 
-        : [...(g.memberIds || []), "me"]; 
+      const memberIds = already
+        ? g.memberIds.filter(id => id !== "me")
+        : [...(g.memberIds || []), "me"];
       const members = Math.max(0, (g.members || memberIds.length) + (already ? -1 : 1));
       return { ...g, memberIds, members };
     }));
@@ -438,8 +438,8 @@ function Groups({ groups, setGroups, joinedIds, setJoinedIds }) {
                 className="search-input"
               />
             </div>
-            <button 
-              onClick={() => setCreateOpen(true)} 
+            <button
+              onClick={() => setCreateOpen(true)}
               className="btn-primary flex items-center gap-2 px-3 py-2"
             >
               <Plus className="w-4 h-4" /> Create
@@ -457,8 +457,8 @@ function Groups({ groups, setGroups, joinedIds, setJoinedIds }) {
                     <p className="text-lg font-semibold">{g.name}</p>
                     <p className="text-slate-400 text-sm">{g.members} members</p>
                   </div>
-                  <button 
-                    onClick={() => setOpened(g.id)} 
+                  <button
+                    onClick={() => setOpened(g.id)}
                     className="btn-secondary"
                   >
                     Open
@@ -472,30 +472,30 @@ function Groups({ groups, setGroups, joinedIds, setJoinedIds }) {
             <div className="space-y-3">
               <label className="form-label">
                 Name
-                <input 
-                  value={newName} 
-                  onChange={e=>setNewName(e.target.value)} 
-                  className="form-input mt-1" 
+                <input
+                  value={newName}
+                  onChange={e => setNewName(e.target.value)}
+                  className="form-input mt-1"
                 />
               </label>
               <label className="form-label">
                 Description
-                <textarea 
-                  value={newDesc} 
-                  onChange={e=>setNewDesc(e.target.value)} 
-                  className="form-textarea mt-1" 
-                  rows={3} 
+                <textarea
+                  value={newDesc}
+                  onChange={e => setNewDesc(e.target.value)}
+                  className="form-textarea mt-1"
+                  rows={3}
                 />
               </label>
               <div className="flex justify-end gap-2">
-                <button 
-                  onClick={()=>setCreateOpen(false)} 
+                <button
+                  onClick={() => setCreateOpen(false)}
                   className="btn-secondary"
                 >
                   Cancel
                 </button>
-                <button 
-                  onClick={createGroup} 
+                <button
+                  onClick={createGroup}
                   className="btn-primary"
                 >
                   Create
@@ -508,14 +508,14 @@ function Groups({ groups, setGroups, joinedIds, setJoinedIds }) {
 
       {opened && current && (
         <div className="space-y-4">
-          <button 
-            onClick={() => setOpened(null)} 
+          <button
+            onClick={() => setOpened(null)}
             className="text-sm text-slate-300 hover:text-white cursor-pointer"
             style={{ background: 'none', border: 'none' }}
           >
             ← Back
           </button>
-          
+
           <Card>
             <p className="text-slate-300 mb-2">{current.description}</p>
             <p className="text-slate-400 text-sm">Members: {current.members}</p>
@@ -542,8 +542,8 @@ function Groups({ groups, setGroups, joinedIds, setJoinedIds }) {
           </div>
 
           <div className="flex gap-2">
-            <button 
-              onClick={() => toggleJoin(current.id)} 
+            <button
+              onClick={() => toggleJoin(current.id)}
               className={joinedIds.includes(current.id) ? "btn-secondary" : "btn-primary"}
             >
               {joinedIds.includes(current.id) ? "Joined" : "Join Group"}
@@ -575,8 +575,8 @@ function Ranking({ onPreviewUser }) {
       <div className="space-y-3">
         {top20.map((row, idx) => (
           <Card key={row.id}>
-            <button 
-              onClick={() => onPreviewUser(row)} 
+            <button
+              onClick={() => onPreviewUser(row)}
               className="w-full text-left"
               style={{ background: 'none', border: 'none', color: 'inherit', padding: 0 }}
             >
@@ -596,8 +596,8 @@ function Ranking({ onPreviewUser }) {
           <>
             <div className="h-px bg-white/10 mt-2 mb-2" />
             <Card>
-              <button 
-                onClick={() => onPreviewUser(full[myIdx])} 
+              <button
+                onClick={() => onPreviewUser(full[myIdx])}
                 className="w-full text-left opacity-90"
                 style={{ background: 'none', border: 'none', color: 'inherit', padding: 0 }}
               >
@@ -640,8 +640,8 @@ function Challenges() {
                 <p className="text-lg font-semibold">{c.title}</p>
                 <p className="text-slate-400 text-sm">{c.description}</p>
               </div>
-              <button 
-                onClick={() => markDone(c.id)} 
+              <button
+                onClick={() => markDone(c.id)}
                 className={c.done ? "btn-secondary" : "btn-primary"}
               >
                 {c.done ? "Undo" : "Mark"}
@@ -673,8 +673,8 @@ function Profile({ onOpenBadge, onOpenSettings }) {
           <p className="screen-subtitle">Level {u.level}</p>
         </div>
       </div>
-      <button 
-        onClick={onOpenSettings} 
+      <button
+        onClick={onOpenSettings}
         className="btn-secondary text-sm flex items-center gap-2"
       >
         <Settings className="w-4 h-4" /> Settings
@@ -735,11 +735,11 @@ const TABS = [
 
 export default function App() {
   const [tab, setTab] = useState("home");
-  
+
   // Groups state
   const [groups, setGroups] = useState(DEFAULT_GROUPS);
   const [joinedIds, setJoinedIds] = useState([]);
-  
+
   // Modals
   const [previewUserData, setPreviewUserData] = useState(null);
   const [activeBadgeId, setActiveBadgeId] = useState(null);
@@ -757,11 +757,11 @@ export default function App() {
   const saveWorkout = () => {
     const [mm, ss] = (wTime || "0:0").split(":");
     const secs = (parseInt(mm, 10) || 0) * 60 + (parseInt(ss, 10) || 0);
-    DUMMY_USER.lastWorkout = { 
-      time: secs, 
-      heartRate: parseInt(wHR, 10) || 0, 
-      points: parseInt(wPoints, 10) || 0, 
-      calories: parseInt(wCals, 10) || 0 
+    DUMMY_USER.lastWorkout = {
+      time: secs,
+      heartRate: parseInt(wHR, 10) || 0,
+      points: parseInt(wPoints, 10) || 0,
+      calories: parseInt(wCals, 10) || 0
     };
     DUMMY_USER.weeklyPoints += parseInt(wPoints, 10) || 0;
     DUMMY_USER.xp = (DUMMY_USER.xp || 0) + (parseInt(wPoints, 10) || 0);
@@ -779,18 +779,18 @@ export default function App() {
   };
 
   const renderCurrentTab = () => {
-    switch(tab) {
-      case "home": 
+    switch (tab) {
+      case "home":
         return <Home onStartWorkout={() => setWorkoutOpen(true)} />;
-      case "groups": 
+      case "groups":
         return <Groups groups={groups} setGroups={setGroups} joinedIds={joinedIds} setJoinedIds={setJoinedIds} />;
-      case "ranking": 
+      case "ranking":
         return <Ranking onPreviewUser={(row) => setPreviewUserData(row)} />;
-      case "challenges": 
+      case "challenges":
         return <Challenges />;
-      case "profile": 
+      case "profile":
         return <Profile onOpenBadge={(id) => setActiveBadgeId(id)} onOpenSettings={() => { setUsernameInput(DUMMY_USER.name); setSettingsOpen(true); }} />;
-      default: 
+      default:
         return <Home onStartWorkout={() => setWorkoutOpen(true)} />;
     }
   };
@@ -806,9 +806,8 @@ export default function App() {
             <li key={t.key} className="nav-item">
               <button
                 onClick={() => setTab(t.key)}
-                className={`nav-button ${
-                  tab === t.key ? "nav-button-active" : "nav-button-inactive"
-                }`}
+                className={`nav-button ${tab === t.key ? "nav-button-active" : "nav-button-inactive"
+                  }`}
               >
                 {t.icon}
                 <span className="nav-label">{t.label}</span>
@@ -876,20 +875,20 @@ export default function App() {
         <div className="space-y-3">
           <div className="grid-2 gap-3">
             <label className="form-label">Time (mm:ss)
-              <input value={wTime} onChange={e=>setWTime(e.target.value)} className="form-input mt-1" />
+              <input value={wTime} onChange={e => setWTime(e.target.value)} className="form-input mt-1" />
             </label>
             <label className="form-label">Heart Rate (bpm)
-              <input type="number" value={wHR} onChange={e=>setWHR(e.target.value)} className="form-input mt-1" />
+              <input type="number" value={wHR} onChange={e => setWHR(e.target.value)} className="form-input mt-1" />
             </label>
             <label className="form-label">Points
-              <input type="number" value={wPoints} onChange={e=>setWPoints(e.target.value)} className="form-input mt-1" />
+              <input type="number" value={wPoints} onChange={e => setWPoints(e.target.value)} className="form-input mt-1" />
             </label>
             <label className="form-label">Calories
-              <input type="number" value={wCals} onChange={e=>setWCals(e.target.value)} className="form-input mt-1" />
+              <input type="number" value={wCals} onChange={e => setWCals(e.target.value)} className="form-input mt-1" />
             </label>
           </div>
           <div className="flex justify-end gap-2 pt-2">
-            <button onClick={()=>setWorkoutOpen(false)} className="btn-secondary">Cancel</button>
+            <button onClick={() => setWorkoutOpen(false)} className="btn-secondary">Cancel</button>
             <button onClick={saveWorkout} className="btn-primary">Save</button>
           </div>
         </div>
@@ -899,19 +898,19 @@ export default function App() {
       <Modal open={settingsOpen} onClose={() => setSettingsOpen(false)} title="Settings" size="sm">
         <div className="space-y-3">
           <label className="form-label">Username
-            <input value={usernameInput} onChange={e=>setUsernameInput(e.target.value)} className="form-input mt-1" />
+            <input value={usernameInput} onChange={e => setUsernameInput(e.target.value)} className="form-input mt-1" />
           </label>
           <label className="flex items-center justify-between form-label">
             <span>Benachrichtigungen</span>
-            <button 
-              onClick={()=>setNotificationsOn(v=>!v)} 
+            <button
+              onClick={() => setNotificationsOn(v => !v)}
               className={`toggle ${notificationsOn ? 'toggle-active' : 'toggle-inactive'}`}
             >
               <span className={`toggle-thumb ${notificationsOn ? 'translate-x-5' : 'translate-x-1'}`} />
             </button>
           </label>
           <div className="flex justify-end gap-2">
-            <button onClick={()=>setSettingsOpen(false)} className="btn-secondary">Cancel</button>
+            <button onClick={() => setSettingsOpen(false)} className="btn-secondary">Cancel</button>
             <button onClick={saveSettings} className="btn-primary">Save</button>
           </div>
         </div>

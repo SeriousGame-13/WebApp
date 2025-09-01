@@ -278,6 +278,7 @@ const addExercise = async (userId, workoutId, exerciseData) => {
         await calculateAndSaveWorkoutTimes(userId, workoutId);
         handlePostExercise(userId, exercise);
         return exercise.uid;
+        return exercise.uid;
     } catch (error) {
         console.error('Error adding exercise:', error);
         throw error;

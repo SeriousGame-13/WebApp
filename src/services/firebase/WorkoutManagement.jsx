@@ -107,10 +107,10 @@ const calculateAndSaveWorkoutTimes = async (userId, workoutId) => {
         const exerSnap = await FirestoreManager.getAllDocuments(exercisePath);
         const exercises = exerSnap.docs.map(doc => doc.data());
 
-    const { activeTime, idleTime, endTime } = calculateWorkoutTimes(exercises);
+        const { activeTime, idleTime, endTime } = calculateWorkoutTimes(exercises);
 
         const workoutPath = createPath(userId);
-    await FirestoreManager.updateDocument(workoutPath, workoutId, { activeTime, idleTime, endTime });
+        await FirestoreManager.updateDocument(workoutPath, workoutId, { activeTime, idleTime, endTime });
 
     } catch (error) {
         console.error(`Failed to calculate and save times for workout ${workoutId}:`, error);

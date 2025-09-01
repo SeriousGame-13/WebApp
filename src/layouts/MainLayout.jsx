@@ -7,7 +7,7 @@ import DatamanagerElements from '../utils/dataManager';
 import ChallengePageElements from '../pages/ChallengePage';
 import GroupPageElements from '../pages/GroupPage';
 import HomePageElements from '../pages/HomePage';
-import RankingPageElements from '../pages/RankingPage';
+import RankingPage from '../pages/RankingPage';
 import UserPageElements from '../pages/UserPage';
 import '../components/styles/LayoutElements.css'
 import MainFooter from './MainFooter';
@@ -61,18 +61,18 @@ function HomePage() {
             case 'home':
                 console.log('Rendering GroupPage with data:', userData);
                 return (
-                    <div className='app-container'>
-                        <HomePageElements.Page data={userData} />
-                        <div className='border-t border-white/10' />
-                        <MainFooter.newFooter tab={currentPage} setTab={setCurrentPage} />
-                    </div>)
+                <div className='app-container'>
+                    <HomePageElements.Page userData={userData} />
+                    <div className='border-t border-white/10' />
+                    <MainFooter.newFooter tab={currentPage} setTab={setCurrentPage} />
+                </div>)
             case 'rankings':
                 return (
-                    <div className='app-container'>
-                        <RankingPageElements.Page data={userData} />
-                        <div className='border-t border-white/10' />
-                        <MainFooter.newFooter tab={currentPage} setTab={setCurrentPage} />
-                    </div>)
+                <div className='app-container'>
+                    <RankingPage.Page userData={userData} />
+                    <div className='border-t border-white/10' />
+                    <MainFooter.newFooter tab={currentPage} setTab={setCurrentPage} />
+                </div>)
             case 'challenges':
                 return (
                     <div className='app-container'>

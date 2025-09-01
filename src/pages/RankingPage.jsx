@@ -1,394 +1,213 @@
 import { useState, useEffect } from 'react';
 import RankingSystem from '../services/firebase/RankingSystem';
 import StationManager from '../services/firebase/StationManagement';
-import {Card, Modal, Legend, Pill,Screen,Stat} from '../components/ui/UIComponents';
+import {Card, Modal, Legend, Pill, Screen, Stat, Avatar} from '../components/ui/UIComponents';
+import IconElements from '../components/ui/IconElements';
 
 import '../sphere-styles.css';
 
-function newRanking({ onPreviewUser }) {
-  const [tab, setTab] = useState("weekly");
-  const full = buildRanking(tab);
-  const top20 = full.slice(0, 20);
-  const myIdx = full.findIndex(r => r.id === "me");
+function Page({ userData }) {
+  const [tab, setTab] = useState("points");
+  const [rankings, setRankings] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [stations, setStations] = useState([]);
+  const [selectedStation, setSelectedStation] = useState(null);
+  const [userRank, setUserRank] = useState(null);
+  const [selectedUser, setSelectedUser] = useState(null);
+
+  useEffect(() => {
+    const loadStations = async () => {
+      try {
+        const stationsList = await StationManager.loadAll();
+        setStations(stationsList);
+      } catch (error) {
+        console.error('Failed to load stations:', error);
+      }
+    };
+    
+    loadStations();
+  }, []);
+
+  useEffect(() => {
+    loadRankings();
+  }, [tab, selectedStation]);
+
+  const loadRankings = async () => {
+    try {
+      setIsLoading(true);
+      let rankingData = [];
+
+      if (selectedStation) {
+        rankingData = await RankingSystem.getStationRankings(selectedStation.uid, 50);
+      } else if (tab === "points") {
+        rankingData = await RankingSystem.getTopUsersPointsRankings(50);
+      }
+
+      const enrichedRankings = rankingData.map((ranking, index) => ({
+        ...ranking,
+        id: ranking.uid || `user-${index}`,
+        name: ranking.displayName || 'Unknown User',
+        points: ranking.points || 0,
+        rank: index + 1,
+        level: ranking.level || 1
+      }));
+      
+      setRankings(enrichedRankings);
+
+      // Find the current user in rankings
+      const myIdx = enrichedRankings.findIndex(r => r.id === userData.uid);
+      if (myIdx >= 0) {
+        setUserRank(enrichedRankings[myIdx]);
+      }
+    } catch (error) {
+      console.error('Failed to load rankings:', error);
+      setRankings([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleStationSelect = (station) => {
+    setSelectedStation(station);
+    setTab("station");
+  };
+
+  const getTitle = () => {
+    if (selectedStation) {
+      return `${selectedStation.name} Rankings`;
+    }
+    return "Points Ranking";
+  };
+
+  const getRankIcon = (rank) => {
+    switch (rank) {
+      case 1: return '🏆';
+      case 2: return '🥈';
+      case 3: return '🥉';
+      default: return `${rank}`;
+    }
+  };
+  
+  const top100 = rankings.slice(0, 100)
+
+  // Find the current user's position
+
+  const myIdx = rankings.findIndex(r => r.id === userData.uid || r.uid === userData.uid);
 
   return (
-    <Screen title="Ranking">
-      <div className="flex gap-2 mb-5">
-        <Pill active={tab === "weekly"} onClick={() => setTab("weekly")}>
-          Weekly
+    
+    <Screen title={getTitle()}>
+      <div className="flex gap-2 mb-5 flex-wrap">
+        <Pill 
+          active={tab === "points" && !selectedStation} 
+          onClick={() => { setTab("points"); setSelectedStation(null); }}
+        >
+          Points
         </Pill>
-        <Pill active={tab === "all"} onClick={() => setTab("all")}>
-          All-time
-        </Pill>
-      </div>
-
-      <div className="space-y-3">
-        {top20.map((row, idx) => (
-          <Card key={row.id}>
-            <button 
-              onClick={() => onPreviewUser(row)} 
-              className="w-full text-left"
-              style={{ background: 'none', border: 'none', color: 'inherit', padding: 0 }}
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-8 text-center font-bold text-slate-300">
-                  {idx + 1}
-                </div>
-                <Avatar name={row.name} size={40} seed={row.id} />
-                <div className="flex-1 font-medium">{row.name}</div>
-                <div className="text-lg font-semibold">{row.points}</div>
-              </div>
-            </button>
-          </Card>
+        
+        {stations.map(station => (
+          <Pill 
+            key={station.uid}
+            active={selectedStation && selectedStation.uid === station.uid} 
+            onClick={() => handleStationSelect(station)}
+          >
+            {station.name}
+          </Pill>
         ))}
+      </div>
+      
+      {userRank && myIdx >= 0 && (
+        <Card>
+          <div className="text-center p-0">
+            <div className="text-gradient font-semibold">
+              Your Rank: #{myIdx + 1}
+            </div>
+            <div className="text-sm text-slate-200">
+              {userRank.points} points | Level {userRank.level}
+            </div>
+          </div>
+        </Card>
+      )}
 
-        {myIdx >= 20 && (
+      <div className="space-y-3 mt-4">
+        {isLoading ? (
+          <div className="text-center text-slate-400 py-3">
+            Loading rankings...
+          </div>
+        ) : rankings.length === 0 ? (
+          <div className="text-center text-slate-400 py-3">
+            No rankings available for this category.
+          </div>
+        ) : (
           <>
-            <div className="h-px bg-white/10 mt-2 mb-2" />
-            <Card>
-              <button 
-                onClick={() => onPreviewUser(full[myIdx])} 
-                className="w-full text-left opacity-90"
-                style={{ background: 'none', border: 'none', color: 'inherit', padding: 0 }}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 text-center font-bold text-slate-300">
-                    {myIdx + 1}
+            {top100.map((row, idx) => (
+              <Card key={row.id || row.uid}>
+                <button 
+                  onClick={() => setSelectedUser(row)} 
+                  className="w-full text-left"
+                  style={{ background: 'none', border: 'none', color: 'inherit', padding: 0 }}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 text-center font-bold" >
+                      {getRankIcon(idx + 1)}
+                    </div>
+                    <Avatar name={row.name || row.displayName} size={40} seed={row.id || row.uid} />
+                    <div className="flex-1 font-medium">
+                      {row.name || row.displayName}
+                      {(row.id === userData.uid || row.uid === userData.uid) && (
+                        <span className="text-xs ml-2" >
+                           {" "}(You)
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-lg font-semibold">{row.points}</div>
                   </div>
-                  <Avatar name="You" size={40} seed="me" />
-                  <div className="flex-1 font-medium">You</div>
-                  <div className="text-lg font-semibold">{full[myIdx].points}</div>
-                </div>
-              </button>
-            </Card>
+                </button>
+              </Card>
+            ))}
           </>
         )}
       </div>
+       {/* User Preview Modal */}
+      <Modal open={!!selectedUser} onClose={() => setSelectedUser(null)} title="User Profile" size="sm">
+        {selectedUser && (
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <Avatar name={selectedUser.name || selectedUser.displayName} size={48} seed={selectedUser.id || selectedUser.uid} />
+              <div>
+                <p className="text-lg font-semibold">{selectedUser.name || selectedUser.displayName}</p>
+                <p className="text-slate-400 text-sm">Level {selectedUser.level || 1}</p>
+              </div>
+            </div>
+            <div className="grid-3 gap-3">
+              <Card>
+                <div className="text-center">
+                  <div className="text-xs text-slate-400">Points</div>
+                  <div className="text-lg font-semibold">{selectedUser.points || 0}</div>
+                </div>
+              </Card>
+              <Card>
+                <div className="text-center">
+                  <div className="text-xs text-slate-400">Rank</div>
+                  <div className="text-lg font-semibold">#{rankings.findIndex(r => r.id === selectedUser.id || r.uid === selectedUser.uid) + 1}</div>
+                </div>
+              </Card>
+              <Card>
+                <div className="text-center">
+                  <div className="text-xs text-slate-400">Level</div>
+                  <div className="text-lg font-semibold">{selectedUser.level || 1}</div>
+                </div>
+              </Card>
+            </div>
+          </div>
+        )}
+    </Modal>
     </Screen>
   );
 }
 
-function Page({ data }) {
-    const userData = data;
-    const [rankings, setRankings] = useState([]);
-    const [leaderboardType, setLeaderboardType] = useState('level');
-    const [isLoading, setIsLoading] = useState(true);
-    const [userRank, setUserRank] = useState(null);
-    const [orientation, setOrientation] = useState('landscape');
-    const [stations, setStations] = useState([]);
-    const [selectedStation, setSelectedStation] = useState(null);
-
-    useEffect(() => {
-        const checkOrientation = () => {
-            const isPortrait = window.innerHeight > window.innerWidth;
-            setOrientation(isPortrait ? 'portrait' : 'landscape');
-        };
-
-        checkOrientation();
-        window.addEventListener('resize', checkOrientation);
-        window.addEventListener('orientationchange', checkOrientation);
-
-        // Load all stations for the dropdown
-        const loadStations = async () => {
-            const stationsList = await StationManager.loadAll();
-            setStations(stationsList);
-        };
-        
-        loadStations();
-
-        return () => {
-            window.removeEventListener('resize', checkOrientation);
-            window.removeEventListener('orientationchange', checkOrientation);
-        };
-    }, []);
-
-    useEffect(() => {
-        loadRankings();
-    }, [leaderboardType, selectedStation]);
-
-    const loadRankings = async () => {
-        try {
-            setIsLoading(true);
-            let rankingData = [];
-
-            if (selectedStation) {
-                rankingData = await RankingSystem.getStationRankings(selectedStation.uid, 50);
-            } else {
-                switch (leaderboardType) {
-                    case 'points':
-                        rankingData = await RankingSystem.getTopUsersPointsRankings(50);
-                        break;
-                }
-            }
-
-            const enrichedRankings = enrichRankingsWithUserData(rankingData);
-            setRankings(enrichedRankings);
-            
-            const currentUserRank = enrichedRankings.find(ranking => ranking.uid === userData?.uid);
-            setUserRank(currentUserRank);
-        } catch (error) {
-            console.error('Failed to load rankings:', error);
-            setRankings([]);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const enrichRankingsWithUserData = (rankingData) => {
-        return rankingData.map((ranking, index) => ({
-            ...ranking,
-            rank: index + 1,
-            displayName: ranking.displayName || 'Unknown User'
-        }));
-    };
-
-    const getLeaderboardTitle = () => {
-        if (selectedStation) {
-            return `${selectedStation.name} Station Leaderboard`;
-        }
-        
-        switch (leaderboardType) {
-            case 'points':
-                return 'Points Leaderboard';
-            default:
-                return 'Leaderboard';
-        }
-    };
-
-    const getScoreLabel = () => {
-        if (selectedStation) {
-            return 'Station Points';
-        }
-        
-        switch (leaderboardType) {
-            case 'points':
-                return 'Points';
-            default:
-                return 'Score';
-        }
-    };
-
-    const getScoreValue = (ranking) => {
-        if (selectedStation) {
-            return ranking.points || 0;
-        }
-        
-        switch (leaderboardType) {
-            case 'points':
-                return ranking.points || 0;
-            default:
-                return 0;
-        }
-    };
-
-    const getRankIcon = (rank) => {
-        switch (rank) {
-            case 1:
-                return '🏆';
-            case 2:
-                return '🥈';
-            case 3:
-                return '🥉';
-            default:
-                return `#${rank}`;
-        }
-    };
-
-    const handleLeaderboardTypeChange = (e) => {
-        setLeaderboardType(e.target.value);
-        setSelectedStation(null);
-    };
-    
-    const handleStationChange = (e) => {
-        const stationId = e.target.value;
-        if (stationId === 'points') {
-            setSelectedStation(null);
-            setLeaderboardType('points');
-        } else if (stationId === 'level') {
-            setSelectedStation(null);
-            setLeaderboardType('level');
-        } else {
-            const station = stations.find(s => s.uid === stationId);
-            setSelectedStation(station);
-        }
-    };
-
-    return (
-        <div className="app-container">
-            <div className="screen">
-                <div className="background">
-                    <div className="bg-gradient-1"></div>
-                    <div className="bg-gradient-2"></div>
-                    <div className="bg-overlay"></div>
-                </div>
-                <header className="screen-header">
-                    <h1 className="screen-title">Ranking</h1>
-                    <p className="screen-subtitle">{getLeaderboardTitle()}</p>
-                </header>
-                
-                <main className="screen-main">
-                    {orientation === 'portrait' ? (
-                        <>
-                            <div className="card mb-4">
-                                <label className="form-label">Leaderboard Type</label>
-                                <select 
-                                    value={selectedStation ? selectedStation.uid : leaderboardType}
-                                    onChange={handleStationChange}
-                                    className="form-input mt-2"
-                                >
-                                    <option value="points">Total Points</option>
-                                    {stations.length > 0 && (
-                                        <>
-                                            {stations.map((station) => (
-                                                <option key={station.uid} value={station.uid}>
-                                                    {station.name}
-                                                </option>
-                                            ))}
-                                        </>
-                                    )}
-                                </select>
-                            </div>
-
-                            {userRank && (
-                                <div className="card mb-4 text-center p-5">
-                                    <div className="text-2xl font-bold text-gradient">
-                                        My Ranking: #{userRank.rank}
-                                    </div>
-                                </div>
-                            )}
-
-                            <h2 className="text-lg font-semibold text-slate-300 mb-3">
-                                {getLeaderboardTitle()}
-                            </h2>
-                            
-                            <div className="space-y-3">
-                                {isLoading ? (
-                                    <div className="text-center text-slate-400 py-3">
-                                        Loading rankings...
-                                    </div>
-                                ) : rankings.length === 0 ? (
-                                    <div className="text-center text-slate-400 py-3">
-                                        No rankings available for this category.
-                                    </div>
-                                ) : (
-                                    rankings.map((ranking) => (
-                                        <div key={`${ranking.uid}_${leaderboardType}`} className="card">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-8 text-center font-bold" 
-                                                    style={{ color: ranking.rank <= 3 ? '#FFD700' : 'var(--main-color)' }}>
-                                                    {getRankIcon(ranking.rank)}
-                                                </div>
-                                                <div className="flex-1">
-                                                    <div className="font-medium">
-                                                        {ranking.displayName}
-                                                        {ranking.uid === userData?.uid && (
-                                                            <span className="text-xs ml-2" style={{ color: '#00FF94' }}>
-                                                                (You)
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                    <div className="text-sm text-slate-400">
-                                                        Level {ranking.level || 1} | {getScoreLabel()}: {getScoreValue(ranking).toLocaleString()}
-                                                        {selectedStation && ranking.exerciseCount !== undefined && (
-                                                            <span className="ml-2">
-                                                                ({ranking.exerciseCount} {ranking.exerciseCount === 1 ? 'exercise' : 'exercises'})
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
-                        </>
-                    ) : (
-                        <>
-                            <div className="flex gap-4 mb-4">
-                                <div className="card flex-1">
-                                    <label className="form-label">Leaderboard Type</label>
-                                    <select 
-                                        value={selectedStation ? selectedStation.uid : leaderboardType}
-                                        onChange={handleStationChange}
-                                        className="form-input mt-2"
-                                    >
-                                        <option value="points">Total Points</option>
-                                        {stations.length > 0 && (
-                                            <>
-                                                {stations.map((station) => (
-                                                    <option key={station.uid} value={station.uid}>
-                                                        {station.name}
-                                                    </option>
-                                                ))}
-                                            </>
-                                        )}
-                                    </select>
-                                </div>
-
-                                {userRank && (
-                                    <div className="card flex-1 flex items-center justify-center">
-                                        <div className="text-xl font-bold text-gradient">
-                                            My Ranking: #{userRank.rank}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            <h2 className="text-lg font-semibold text-slate-300 mb-3">
-                                {getLeaderboardTitle()}
-                            </h2>
-                            
-                            <div className="space-y-3" style={{ maxHeight: 'calc(100vh - 240px)', overflowY: 'auto' }}>
-                                {isLoading ? (
-                                    <div className="text-center text-slate-400 py-3">
-                                        Loading rankings...
-                                    </div>
-                                ) : rankings.length === 0 ? (
-                                    <div className="text-center text-slate-400 py-3">
-                                        No rankings available for this category.
-                                    </div>
-                                ) : (
-                                    rankings.map((ranking) => (
-                                        <div key={`${ranking.uid}_${leaderboardType}`} className="card">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-8 text-center font-bold" 
-                                                    style={{ color: ranking.rank <= 3 ? '#FFD700' : 'var(--main-color)' }}>
-                                                    {getRankIcon(ranking.rank)}
-                                                </div>
-                                                <div className="flex-1">
-                                                    <div className="font-medium">
-                                                        {ranking.displayName}
-                                                        {ranking.uid === userData?.uid && (
-                                                            <span className="text-xs ml-2" style={{ color: '#00FF94' }}>
-                                                                (You)
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                    <div className="text-sm text-slate-400">
-                                                        Level {ranking.level || 1} | {getScoreLabel()}: {getScoreValue(ranking).toLocaleString()}
-                                                        {selectedStation && ranking.exerciseCount !== undefined && (
-                                                            <span className="ml-2">
-                                                                ({ranking.exerciseCount} {ranking.exerciseCount === 1 ? 'exercise' : 'exercises'})
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
-                        </>
-                    )}
-                </main>
-            </div>
-        </div>
-    );
-}
-
-const RankingPageElements = {
-    Page,
-    newRanking
+const RankingPage = {
+    Page
 };
 
-export default RankingPageElements;
+export default RankingPage;

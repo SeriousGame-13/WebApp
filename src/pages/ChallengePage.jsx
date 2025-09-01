@@ -470,7 +470,7 @@ function Page({ data }) {
                         console.log("Updating challenge:", updatedData);
                         setShowEditChallenge(false);
                         setEditingChallenge(null);
-                        loadUserActiveChallenges(); // 챌린지 목록 새로고침
+                        loadUserActiveChallenges();
                     }}
                 />
             )}

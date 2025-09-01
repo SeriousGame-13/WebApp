@@ -258,6 +258,7 @@ const addExercise = async (userId, workoutId, exerData) => {
         // Recalculate and save times after adding the exercise
         await calculateAndSaveWorkoutTimes(userId, workoutId);
         handlePostExercise(userId, exercise);
+        return exercise.uid;
     } catch (error) {
         console.error('Error adding exercise:', error);
         throw error;
@@ -268,7 +269,6 @@ const updateExercise = async (userId, workoutId, exerciseData) => {
     try {
         const exercisePath = `${createPath(userId)}/${workoutId}/${EXERCISE_COLLECTION}`;
         const dataToUpdate = { ...exerciseData };
-        delete dataToUpdate.uid;
         await FirestoreManager.updateDocument(exercisePath, exerciseData.uid, dataToUpdate);
 
         exerciseData.userId = userId;

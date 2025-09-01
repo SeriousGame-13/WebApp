@@ -189,7 +189,7 @@ function Page({ userData }) {
               <Card>
                 <div className="text-center">
                   <div className="text-xs text-slate-400">Rank</div>
-                  <div className="text-lg font-semibold">#{rankings.findIndex(r => r.id === selectedUser.id || r.uid === selectedUser.uid) + 1}</div>
+                  <div className="text-lg font-semibold">{rankings.findIndex(r => r.id === selectedUser.id || r.uid === selectedUser.uid) + 1}</div>
                 </div>
               </Card>
               <Card>

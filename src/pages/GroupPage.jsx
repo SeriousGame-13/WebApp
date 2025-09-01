@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import ExpElements from '../components/ui/ExpBar';
 import IconElements from '../components/ui/IconElements';
 import UserManagement from '../services/firebase/UserManagementSystem';
 import GroupManagement from '../services/firebase/GroupManagementSystem';

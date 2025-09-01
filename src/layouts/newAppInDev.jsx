@@ -239,29 +239,6 @@ function App() {
         })()}
       </Modal>
 
-      {/* Workout Modal */}
-      <Modal open={workoutOpen} onClose={() => setWorkoutOpen(false)} title="Create Workout" size="md">
-        <div className="space-y-3">
-          <div className="grid-2 gap-3">
-            <label className="form-label">Time (mm:ss)
-              <input value={wTime} onChange={e=>setWTime(e.target.value)} className="form-input mt-1" />
-            </label>
-            <label className="form-label">Heart Rate (bpm)
-              <input type="number" value={wHR} onChange={e=>setWHR(e.target.value)} className="form-input mt-1" />
-            </label>
-            <label className="form-label">Points
-              <input type="number" value={wPoints} onChange={e=>setWPoints(e.target.value)} className="form-input mt-1" />
-            </label>
-            <label className="form-label">Calories
-              <input type="number" value={wCals} onChange={e=>setWCals(e.target.value)} className="form-input mt-1" />
-            </label>
-          </div>
-          <div className="flex justify-end gap-2 pt-2">
-            <button onClick={()=>setWorkoutOpen(false)} className="btn-secondary">Cancel</button>
-            <button onClick={saveWorkout} className="btn-primary">Save</button>
-          </div>
-        </div>
-      </Modal>
 
       {/* Settings Modal */}
       <Modal open={settingsOpen} onClose={() => setSettingsOpen(false)} title="Settings" size="sm">

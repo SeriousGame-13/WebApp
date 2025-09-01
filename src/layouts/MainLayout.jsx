@@ -52,6 +52,10 @@ function HomePage() {
 
     const [currentPage, setCurrentPage] = useState('home');
 
+    // Groups state
+    const [groups, setGroups] = useState([]);
+    const [joinedIds, setJoinedIds] = useState([]);
+
     const renderCurrentPage = () => {
         switch (currentPage) {
             case 'home':
@@ -71,32 +75,21 @@ function HomePage() {
                 </div>)
             case 'challenges':
                 return (
-                <div className='app-container'>
-                    <ChallengePageElements.Page data={userData} />
-                    <div className='border-t border-white/10' />
-                    <MainFooter.newFooter tab={currentPage} setTab={setCurrentPage} />
-                </div>)
+                    <div className='app-container'>
+                        <ChallengePageElements.Page data={userData} />
+                        <div className='border-t border-white/10' />
+                        <MainFooter.newFooter tab={currentPage} setTab={setCurrentPage} />
+                    </div>)
             case 'groups':
-
                 return (
-                <div className='app-container'>
-                    <GroupPageElements.Page data={userData} />
-                    <div className='border-t border-white/10' />
-                    <MainFooter.newFooter tab={currentPage} setTab={setCurrentPage} />
-                </div>)
+                    <div className='app-container'>
+                        <GroupPageElements.Page groups={groups} setGroups={setGroups} joinedIds={joinedIds} setJoinedIds={setJoinedIds} />
+                        <div className='border-t border-white/10' />
+                        <MainFooter.newFooter tab={currentPage} setTab={setCurrentPage} />
+                    </div>)
             case 'user':
                 return (
                 <div className='app-container'>
-                    <header className="screen-header flex justify-between items-center">
-                        <UserInfoHeaderContainer user={userData} />
-                        {/*
-                        <IconContainer />
-                        */}
-                        <button className='btn-secondary'
-                            onClick={UserManagement.logoutUser}>
-                            Logout
-                        </button>
-                    </header>
                     <div className='border-t border-white/10' />
                     <UserPageElements.Page data={userData} />
                     <div className='border-t border-white/10' />
@@ -104,11 +97,11 @@ function HomePage() {
                 </div>)
             default:
                 return (
-                <div className='app-container'>
-                    <HomePageElements.Page data={userData} />
-                    <div className='border-t border-white/10' />
-                    <MainFooter.newFooter tab={currentPage} setTab={setCurrentPage} />
-                </div>)
+                    <div className='app-container'>
+                        <HomePageElements.Page data={userData} />
+                        <div className='border-t border-white/10' />
+                        <MainFooter.newFooter tab={currentPage} setTab={setCurrentPage} />
+                    </div>)
         }
     }
 
@@ -130,7 +123,7 @@ function HomePage() {
     return (
         <div>
             {renderCurrentPage()}
-            
+
         </div>
     );
 }

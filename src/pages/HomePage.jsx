@@ -793,8 +793,6 @@ function Page({ userData }) {
           description: workoutForm.workoutDescription.trim(),
           startTime: workoutForm.workoutStartTime,
           endTime: workoutForm.workoutEndTime,
-          points: points,
-          calories: calories,
           exercises: []
         };
         
@@ -881,7 +879,7 @@ function Page({ userData }) {
       </div>
 
       {/* Exercise List Section */}
-      {!isLoadingLastWorkout && lastWorkout && lastWorkout.exercises && lastWorkout.exercises.length > 0 && (
+      {!isLoadingLastWorkout && lastWorkout && (
         <div className="mt-8">
           <ExerciseSectionHeader />
           <ExerciseList 

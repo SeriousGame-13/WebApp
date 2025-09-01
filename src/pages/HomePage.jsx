@@ -192,7 +192,6 @@ return (
             onChange={e => handleChange('selectedStation', e.target.value)} 
             className="form-input w-full"
           >
-            <option value="">Select a station</option>
             {stations.map(station => (
               <option key={station.uid} value={station.uid}>
                 {station.name}

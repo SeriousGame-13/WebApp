@@ -1002,8 +1002,11 @@ html {
 }
 
 .form-input:focus {
-  border-color: #c4b5fd;
-  box-shadow: 0 0 0 1px #c4b5fd;
+  border-color: #c4b5fd !important;
+  box-shadow: 0 0 0 1px #c4b5fd !important;
+  outline: none !important;
+  transform: none !important;
+  color: #f1f5f9 !important;
 }
 
 .form-textarea {

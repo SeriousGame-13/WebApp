@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import IconElements from '../components/ui/IconElements';
 import UserManagement from '../services/firebase/UserManagementSystem';
 import GroupManagement from '../services/firebase/GroupManagementSystem';
@@ -11,9 +11,6 @@ import { Timestamp } from 'firebase/firestore';
 
 import '../components/styles/LayoutElements.css'
 import '../components/styles/GroupPage.css'
-
-import { Group } from '../services/interfaces/group';
-import { GROUPS_COLLECTION } from '../services/firebase/collections';
 
 function Page({ groups, setGroups, joinedIds, setJoinedIds }) {
     const [search, setSearch] = useState("");

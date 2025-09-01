@@ -5,7 +5,7 @@ import { serverTimestamp, Timestamp } from 'firebase/firestore';
 export default class BaseModel {
   constructor(data = {}) {
     Object.assign(this, data);
-    this.uid = data.uid ? data.uid : uuidv4();
+    this.uid = data.uid || uuidv4();
     this.createdAt = data.createdAt || serverTimestamp();
     this.updatedAt = data.updatedAt || serverTimestamp();
   }

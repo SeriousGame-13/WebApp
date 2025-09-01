@@ -82,18 +82,25 @@ function WorkoutSelector({ workouts, selectedWorkoutId, onWorkoutSelect, helpers
         onChange={(e) => onWorkoutSelect(e.target.value)}
         className="form-input w-full"
       >
-        {workouts.map((workout, index) => (
-          <option key={workout.uid} value={workout.uid}>
-            {workout.name || `Workout ${index + 1}`}
-          </option>
-        ))}
+        {workouts.map((workout, index) => {
+          const workoutDate = workout.startTime 
+            ? helpers.getDateFromTimestamp(workout.startTime)
+            : new Date();
+          const formattedDate = `${workoutDate.getDate().toString().padStart(2, '0')}.${(workoutDate.getMonth() + 1).toString().padStart(2, '0')}.${workoutDate.getFullYear()}`;
+          
+          return (
+            <option key={workout.uid} value={workout.uid}>
+              {workout.name || `Workout ${index + 1}`} - {formattedDate}
+            </option>
+          );
+        })}
       </select>
     </Card>
   );
 }
 
 // Stats display for the workout
-function WorkoutStats({ lastWorkout, helpers }) {
+function WorkoutStats({ lastWorkout }) {
   if (!lastWorkout) return null;
     
   return (
@@ -482,26 +489,12 @@ function Page({ userData }) {
       }
     },
     
-
+    // Get station name from ID
     getStationNameById: (stationId) => {
       const station = dataState.stations.find(s => s.uid === stationId);
       return station ? station.name : 'Unknown Station';
     }
   };
-
-  // Fetch user rank
-  useEffect(() => {
-    const fetchUserRank = async () => {
-      try {
-        const userRank = await RankingSystem.getUserPointsRank(userData.uid);
-        setDataState(prev => ({ ...prev, rank: userRank }));
-      } catch (error) {
-        console.error('Failed to fetch user rank:', error);
-      }
-    };
-    
-    fetchUserRank();
-  }, [userData.uid]);
 
   // Load last workout
   useEffect(() => {
@@ -524,6 +517,16 @@ function Page({ userData }) {
 
     loadStations();
   }, []);
+
+  // Function to refresh user data (level, points) after exercise changes
+  const refreshUserData = () => {
+    // This will trigger a re-render with updated user data
+    // The userData prop should be refreshed from the parent component
+    if (window.location.reload) {
+      // Force a refresh of user data in parent component
+      window.dispatchEvent(new CustomEvent('userDataUpdate'));
+    }
+  };
 
   const loadLastWorkout = async () => {
     try {
@@ -590,6 +593,7 @@ function Page({ userData }) {
         await WorkoutManager.deleteExercise(userData.uid, lastWorkout.uid, selectedExercise.uid);
         setModalState(prev => ({ ...prev, showExerciseModal: false }));
         loadLastWorkout();
+        refreshUserData(); // Update user level after deleting exercise
         setModalState(prev => ({ ...prev, addExerciseOpen: false }));
       }
     } catch (error) {
@@ -619,8 +623,8 @@ function Page({ userData }) {
   };
 
   const handleDeleteCurrentWorkout = () => {
-    if (selectedWorkoutId) {
-      handleDeleteWorkout(selectedWorkoutId);
+    if (dataState.selectedWorkoutId) {
+      handleDeleteWorkout(dataState.selectedWorkoutId);
     }
   };
   
@@ -696,10 +700,10 @@ function Page({ userData }) {
 
   const saveExercise = async () => {
     try {
-      const { lastWorkout } = dataState;
+      const { lastWorkout: selectedWorkout } = dataState;
       const { isEditing } = modalState;
       
-      if (!lastWorkout) {
+      if (!selectedWorkout) {
         alert('No active workout found. Please start a workout first.');
         return;
       }
@@ -736,18 +740,19 @@ function Page({ userData }) {
         points: parseInt(exerciseForm.exercisePoints) || 0,
         calories: parseInt(exerciseForm.exerciseCals) || 0,
       };
-      
-      let updatedWorkout;
-      
+            
       if (isEditing && dataState.selectedExercise) {
-        dataState.selectedExercise = { ...dataState.selectedExercise, ...exerciseData };
-        await WorkoutManager.updateExercise(userData.uid, lastWorkout.uid, dataState.selectedExercise);
+        const updatedExercise = { ...dataState.selectedExercise, ...exerciseData };
+        await WorkoutManager.updateExercise(userData.uid, selectedWorkout.uid, updatedExercise);
       } else {
-        await WorkoutManager.addExercise(userData.uid, lastWorkout.uid, exerciseData);
+        await WorkoutManager.addExercise(userData.uid, selectedWorkout.uid, exerciseData);
       }
 
       // Reload workout data to get updated heart rate statistics
       await loadLastWorkout();
+      
+      // Refresh user data to update level/points
+      refreshUserData();
       
       setModalState(prev => ({ ...prev, addExerciseOpen: false }));
       
@@ -825,7 +830,7 @@ function Page({ userData }) {
 
   // Destructuring for cleaner code
   const { lastWorkout, allWorkouts, selectedWorkoutId, stations, selectedExercise } = dataState;
-  const { isLoadingLastWorkout, isLoadingStations } = loadingState;
+  const { isLoadingLastWorkout } = loadingState;
   const { workoutOpen, addExerciseOpen, showExerciseModal, isEditing } = modalState;
 
   return (
@@ -848,8 +853,7 @@ function Page({ userData }) {
       {!isLoadingLastWorkout && lastWorkout && (
         <WorkoutStats 
           lastWorkout={lastWorkout} 
-          helpers={helpers}
-        />
+          />
       )}
 
       {/* Workout Buttons */}

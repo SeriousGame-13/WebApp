@@ -30,7 +30,7 @@ function Legend({ userBadgesMap, allBadges }) {
   };
 
   allBadges.forEach(badge => {
-    const badgeId = badge.id || badge.badgeId;
+    const badgeId = badge.id || badge.uid;
     if (userBadgesMap && userBadgesMap.has(badgeId)) {
       const rarity = badge.rarity?.toLowerCase() || 'common';
       if (Object.prototype.hasOwnProperty.call(rarityCount, rarity)) {
@@ -96,14 +96,14 @@ function BadgeItem({ badge, userBadgeLevel, onClick }) {
 
   useEffect(() => {
     const loadBadgeImage = async () => {
-      if (!badge?.badgeId) {
+      if (!badge?.uid) {
         setImageLoading(false);
         return;
       }
 
       setImageLoading(true);
       try {
-        const imageBase64 = await BadgeManagement.getBadgeImage(badge.badgeId);
+        const imageBase64 = await BadgeManagement.getBadgeImage(badge.uid);
         setBadgeImage(imageBase64);
       } catch (error) {
         console.error('Failed to load badge image:', error);
@@ -114,9 +114,9 @@ function BadgeItem({ badge, userBadgeLevel, onClick }) {
     };
 
     loadBadgeImage();
-  }, [badge?.badgeId]);
+  }, [badge?.uid]);
 
-  const badgeId = badge.id || badge.badgeId;
+  const badgeId = badge.id || badge.uid;
   const unlocked = !!userBadgeLevel;
 
   // Fallback to static icon if no image
@@ -198,13 +198,13 @@ function BadgeDetailModal({ badgeId, open, onClose, allBadges, userBadgesMap }) 
       setLoading(true);
       try {
         // Find badge from allBadges array
-        const foundBadge = allBadges.find(b => (b.id || b.badgeId) === badgeId);
+        const foundBadge = allBadges.find(b => (b.id || b.uid) === badgeId);
         setBadge(foundBadge || null);
 
         // Load badge image if it's a Firebase badge
-        if (foundBadge?.badgeId) {
+        if (foundBadge?.uid) {
           try {
-            const imageBase64 = await BadgeManagement.getBadgeImage(foundBadge.badgeId);
+            const imageBase64 = await BadgeManagement.getBadgeImage(foundBadge.uid);
             setBadgeImage(imageBase64);
           } catch (error) {
             console.error('Failed to load badge image:', error);
@@ -505,7 +505,7 @@ function Page({ data, onOpenBadge, onOpenSettings, onUserUpdated }) {
         snapshot.forEach(doc => {
             const badgeData = doc.data();
             console.log('Badge data:', badgeData);
-            if (badgeData.badgeId) {
+            if (badgeData.uid) {
             badgesMap.set(badgeData.badgeId, badgeData.level || 1);
             }
         });
@@ -534,8 +534,8 @@ function Page({ data, onOpenBadge, onOpenSettings, onUserUpdated }) {
           // Use Firebase badges
           const sortedBadges = firebaseBadges.sort((a, b) => {
             // Put owned badges first
-            const badgeIdA = a.id || a.badgeId;
-            const badgeIdB = b.id || b.badgeId;
+            const badgeIdA = a.id || a.uid;
+            const badgeIdB = b.id || b.uid;
             const aOwned = userBadgesMap.has(badgeIdA);
             const bOwned = userBadgesMap.has(badgeIdB);
             if (aOwned && !bOwned) return -1;
@@ -640,7 +640,7 @@ function Page({ data, onOpenBadge, onOpenSettings, onUserUpdated }) {
         ) : (
           <div className="grid-3">
             {allBadges.map((badge) => {
-              const badgeId = badge.id || badge.badgeId;
+              const badgeId = badge.id || badge.uid;
               const userBadgeLevel = userBadgesMap.get(badgeId);
               
               return (

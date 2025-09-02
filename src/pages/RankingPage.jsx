@@ -148,19 +148,19 @@ function Page({ userData }) {
                   style={{ background: 'none', border: 'none', color: 'inherit', padding: 0 }}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-8 text-center font-bold" >
+                    <div className="w-8 text-center font-bold flex items-center justify-center" >
                       {getRankIcon(idx + 1)}
                     </div>
                     <Avatar name={row.name || row.displayName} size={40} seed={row.id || row.uid} />
-                    <div className="flex-1 font-medium">
+                    <div className="flex-1 font-medium flex items-center">
                       {row.name || row.displayName}
                       {(row.id === userData.uid || row.uid === userData.uid) && (
-                        <span className="text-xs ml-2" >
-                           {" "}(You)
+                        <span className="text-xs ml-1" >
+                          (You)
                         </span>
                       )}
                     </div>
-                    <div className="text-lg font-semibold">{row.points}</div>
+                    <div className="text-lg font-semibold flex items-center">{row.points}</div>
                   </div>
                 </button>
               </Card>
@@ -172,11 +172,11 @@ function Page({ userData }) {
       <Modal open={!!selectedUser} onClose={() => setSelectedUser(null)} title="User Profile" size="sm">
         {selectedUser && (
           <div className="space-y-3">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center justify-left gap-3">
               <Avatar name={selectedUser.name || selectedUser.displayName} size={48} seed={selectedUser.id || selectedUser.uid} />
               <div>
-                <p className="text-lg font-semibold">{selectedUser.name || selectedUser.displayName}</p>
-                <p className="text-slate-400 text-sm">Level {selectedUser.level || 1}</p>
+                <p className="flex justify-left text-lg font-semibold">{selectedUser.name || selectedUser.displayName}</p>
+                <p className="flex justify-left text-slate-400 text-sm">Level {selectedUser.level || 1}</p>
               </div>
             </div>
             <div className="grid-3 gap-3">

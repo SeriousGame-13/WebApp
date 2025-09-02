@@ -75,11 +75,12 @@ export const ImageSelector = ({
       setExistingImage(resizedBase64);
 
       // Call result callback
-      onImageProcessed && onImageProcessed({
+      const result = {
         originalFile: file,
         base64Data: resizedBase64,
         previewUrl: resizedBase64
-      });
+      };
+      onImageProcessed && onImageProcessed(result);
 
     } catch (error) {
       console.error('Image processing failed:', error);
@@ -134,7 +135,7 @@ export const ImageSelector = ({
       />
 
       {/* Selection button */}
-      <button className={buttonClassName}
+      <button className='btn-primary flex items-center gap-2 px-3 py-2'
         onClick={handleButtonClick}
         disabled={processing || disabled || imageLoading}
       >

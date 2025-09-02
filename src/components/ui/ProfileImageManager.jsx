@@ -43,17 +43,15 @@ const ProfileImageSelector = ({ userId, onImageProcessed, onError }) => {
 
 // Main component
 const ProfileImageUploader = ({ userId, onUploadComplete }) => {
-  const [result, setResult] = useState(null);
   const [error, setError] = useState('');
 
   const handleImageProcessed = (processResult) => {
-    setResult(processResult);
     setError('');
     
     // Pass result to parent component
     onUploadComplete && onUploadComplete({
       base64Data: processResult.base64Data,
-      size: processResult.saveResult.size,
+      size: processResult.saveResult?.size || 0,
       userId: userId
     });
   };
@@ -61,16 +59,20 @@ const ProfileImageUploader = ({ userId, onUploadComplete }) => {
   const handleError = (errorMessage) => {
     console.error('Error:', errorMessage);
     setError(errorMessage);
-    setResult(null);
   };
 
   return (
     <div>
-      <ImageSelector 
+      <ProfileImageSelector 
         userId={userId}
         onImageProcessed={handleImageProcessed}
         onError={handleError}
       />
+      {error && (
+        <div style={{ color: '#FF4757', fontSize: '12px', marginTop: '8px' }}>
+          {error}
+        </div>
+      )}
     </div>
   );
 };

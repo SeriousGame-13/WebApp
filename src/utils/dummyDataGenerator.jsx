@@ -1,14 +1,14 @@
-import { Workout } from '../services/interfaces/workout.jsx';
-import { Exercise } from '../services/interfaces/exercise.jsx';
+import { Workout } from '../services/interfaces/Workout.jsx';
+import { Exercise } from '../services/interfaces/Exercise.jsx';
 import {
   Timestamp
 } from 'firebase/firestore';
 
 import initialData from './dummydata.json';
-import UserManagement from '../services/firebase/UserManagementSystem';
+import UserManagement from '../services/UserManagementSystem.jsx';
 
-import { Badge, UserBadge } from '../services/interfaces/badge.jsx';
-import BadgeManager from '../services/firebase/BadgeManagement.jsx';
+import { Badge } from '../services/interfaces/Badge.jsx';
+import BadgeManager from '../services/BadgeManagement.jsx';
 
 const DEFAULT_PASSWORD = '1q2w3e4r!';
 
@@ -120,7 +120,7 @@ async function createSingleDummyUser(userData, index) {
     const badges = getDummyBadges();
     badges.map(badge => {
       BadgeManager.createBadge(badge);
-      BadgeManager.awardBadge(user.uid, badge.uid)
+      UserManagement.awardBadge(user.uid, badge.uid)
     }
     );
 
@@ -225,7 +225,7 @@ export function getDummyExerciseDefinitions() {
         isAdmin: false,
     });
 const createDocument = async (documentName, docId, newData) => {
-await FirebaseManager.createDocument(documentName, docId, newData, true);
+await FirestoreManager.createDocument(documentName, docId, newData, true);
 };
 
 
@@ -250,7 +250,7 @@ async function createSingleDummyExerciseDefinition(exerciseData, index) {
 
     console.log('About to create with data:', newDummyExerciseDefinition); 
 
-    const docRef = await FirebaseManager.createDocument('exercise_definitions', newDummyExerciseDefinition);
+    const docRef = await FirestoreManager.createDocument('exercise_definitions', newDummyExerciseDefinition);
     
     console.log('docRef result:', docRef);
     console.log(`Exercise Definition erstellt`);
@@ -323,7 +323,7 @@ async function createSingleDummyChallenge(challengeData, index, creatorId) {
     let targetExerciseName = null;
     
     if (challengeData.targetExerciseIndex === 0) {
-      const cardioBoxer = await FirebaseManager.findDocumentByField(
+      const cardioBoxer = await FirestoreManager.findDocumentByField(
         'exercise_definitions', 
         'name', 
         'Cardio Boxer'
@@ -359,7 +359,7 @@ async function createSingleDummyChallenge(challengeData, index, creatorId) {
       ])
     );
 
-    const docRef = await FirebaseManager.createDocument('challenges', cleanedData);
+    const docRef = await FirestoreManager.createDocument('challenges', cleanedData);
     
     if (!docRef) {
       throw new Error('Challenge creation failed');

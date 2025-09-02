@@ -1,4 +1,4 @@
-import { Timestamp } from 'firebase/firestore';
+import { Timestamp } from '../services/firebase/FirebaseHelper.jsx';
 
 /**
  * Wandelt einen String im Format "HH:mm" oder "YYYY-MM-DDTHH:mm"
@@ -57,3 +57,47 @@ export function toDateTime(date) {
     const min = pad(date.getMinutes());
     return `${y}-${m}-${d}T${h}:${min}`;
 };
+
+export function toDate(date) {
+    try {
+      // Handle Firebase Timestamp objects
+      if (date?.toDate && typeof date.toDate === 'function') {
+        return date.toDate();
+      }
+      
+      // Handle serverTimestamp() placeholder (returns current time)
+      if (date && typeof date === 'object' && !date.toDate) {
+        return new Date();
+      }
+      
+      // Handle regular Date objects or date strings
+      if (date instanceof Date) {
+        return date;
+      }
+      
+      // Handle date strings
+      if (typeof date === 'string' || typeof date === 'number') {
+        const nDate = new Date(date);
+        if (!isNaN(nDate.getTime())) {
+          return nDate;
+        }
+      }
+      
+      // Fallback to current time if createdAt is invalid or missing
+      return new Date();
+    } catch (error) {
+      console.error('Error formatting createdAt:', error, date);
+      return null;
+    }
+}
+
+export function toGermanDateFormat(date) {
+    date = toDate(date);
+    return date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric'});
+}
+
+
+export function toGermanDateLongFormat(date) {
+    date = toDate(date);
+    return date.toLocaleTimeString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+}

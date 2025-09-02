@@ -1,68 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { Trophy, Users, Home as HomeIcon, User, CalendarDays, Flame, Star, Moon, Settings, Search, Plus, Check, X, Dumbbell, Bike, HeartPulse, Activity, Info, Medal } from "lucide-react";
-import ProfileImageElements from '../utils/profileImageManager';
-import DatamanagerElements from '../utils/dataManager';
-import BadgeManagement from '../services/firebase/BadgeManagement';
-import FirebaseManager from '../services/firebase/FirestoreManager';
-import FireAuthManager from '../services/firebase/FirebaseAuthenticationManager';
-import { USERS_COLLECTION } from '../services/firebase/collections';
-import '../sphere-styles.css';
+import { Activity, Bike, CalendarDays, Check, Dumbbell, Flame, HeartPulse, Medal, Moon, Settings, Star, Trophy, Users, X } from "lucide-react";
+import { useEffect, useState } from 'react';
+import '../components/styles/sphere-styles.css';
+import { Avatar, Card, Modal, Screen } from '../components/ui/UIComponents';
+import ProfileAvatar from '../components/ui/ProfileAvatar.jsx';
+import BadgeManagement from '../services/BadgeManagement.jsx';
+import FireAuthManager from '../services/firebase/FirebaseAuthenticationManager.jsx';
+import FirestoreManager from '../services/firebase/FirestoreManager.jsx';
+import { USERS_COLLECTION } from '../services/firebase/Collections.jsx';
+import ProfileImageElements from "../components/ui/ProfileImageManager.jsx";
 
-// ------------ Helper Components ----------
-const GRADIENTS = [
-  "avatar-gradient-0",
-  "avatar-gradient-1", 
-  "avatar-gradient-2",
-  "avatar-gradient-3",
-  "avatar-gradient-4",
-  "avatar-gradient-5",
-];
 
-function initials(name = "?") {
-  const parts = name.split(new RegExp("\\s+")).filter(Boolean);
-  const letters = parts.slice(0, 2).map(p => p[0]?.toUpperCase() || "?");
-  return letters.join("");
-}
-
-// ---------- Profile Avatar Component ----------
-function ProfileAvatar({ user, size = 48 }) {
-  const [profileImage, setProfileImage] = useState(null);
-  const [imageLoading, setImageLoading] = useState(true);
-
-  useEffect(() => {
-    if (!user?.uid) return;
-
-    const loadProfileImage = async () => {
-      setImageLoading(true);
-      try {
-        // This will handle the profile image loading automatically
-        // We just need to set a state to trigger re-render when it's loaded
-        setImageLoading(false);
-      } catch (error) {
-        console.error('Profile image loading error:', error);
-        setImageLoading(false);
-      }
-    };
-
-    loadProfileImage();
-  }, [user?.uid]);
-
-  if (!user?.uid) {
-    // Fallback to Avatar component if no user
-    return <Avatar name={user?.name || user?.displayName} size={size} seed={user?.id || 'default'} />;
-  }
-
-  return (
-    <div style={{ width: size, height: size }} className="flex-shrink-0">
-      <DatamanagerElements.ProfileImageDisplay 
-        userId={user.uid} 
-        imageclass={`w-full h-full rounded-full object-cover`}
-        style={{ width: size, height: size }}
-      />
-    </div>
-  );
-}
-
+//TODO Refactor!!!!!!!!!!!!!!!!!!!!!!!
 function HeartIcon() {
   return (
     <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
@@ -71,50 +19,7 @@ function HeartIcon() {
   );
 }
 
-function badgeLevelColor(level) {
-  if (level === 3) return "badge-level-3";
-  if (level === 2) return "badge-level-2";
-  return "badge-level-1";
-}
-
-function Card({ children, onClick }) {
-  const Comp = onClick ? "button" : "div";
-  return (
-    <Comp onClick={onClick} className={onClick ? "card-button" : "card"}>
-      {children}
-    </Comp>
-  );
-}
-
-function Background() {
-  return (
-    <div className="background" aria-hidden>
-      <div className="bg-gradient-1" />
-      <div className="bg-gradient-2" />
-      <div className="bg-overlay" />
-    </div>
-  );
-}
-
-function Screen({ children, title, subtitle, titleNode }) {
-  return (
-    <div className="screen">
-      <Background />
-      <header className="screen-header">
-        {titleNode ? (
-          titleNode
-        ) : (
-          <>
-            {title && <h1 className="screen-title">{title}</h1>}
-            {subtitle && <p className="screen-subtitle">{subtitle}</p>}
-          </>
-        )}
-      </header>
-      <main className="screen-main">{children}</main>
-    </div>
-  );
-}
-
+//TODO Refactor
 function Legend({ userBadgesMap, allBadges }) {
   // Count badges by rarity that the user has unlocked
   const rarityCount = {
@@ -126,10 +31,10 @@ function Legend({ userBadgesMap, allBadges }) {
   };
 
   allBadges.forEach(badge => {
-    const badgeId = badge.id || badge.badgeId;
+    const badgeId = badge.id || badge.uid;
     if (userBadgesMap && userBadgesMap.has(badgeId)) {
       const rarity = badge.rarity?.toLowerCase() || 'common';
-      if (rarityCount.hasOwnProperty(rarity)) {
+      if (Object.prototype.hasOwnProperty.call(rarityCount, rarity)) {
         rarityCount[rarity]++;
       }
     }
@@ -152,25 +57,6 @@ function Legend({ userBadgesMap, allBadges }) {
       <div className="flex items-center gap-4">
         {item("Epic", rarityCount.epic, '#a335ee')}
         {item("Legendary", rarityCount.legendary, '#ff8000')}
-      </div>
-    </div>
-  );
-}
-
-function Modal({ open, onClose, children, title, size = "md" }) {
-  if (!open) return null;
-  const maxW = size === "sm" ? "max-w-sm" : size === "lg" ? "max-w-xl" : "max-w-lg";
-  return (
-    <div className="modal-overlay">
-      <div className="modal-backdrop" onClick={onClose} />
-      <div className={`modal-content card ${maxW}`}>
-        <div className="modal-header">
-          <h3 className="modal-title">{title}</h3>
-          <button onClick={onClose} className="modal-close">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-        {children}
       </div>
     </div>
   );
@@ -211,14 +97,14 @@ function BadgeItem({ badge, userBadgeLevel, onClick }) {
 
   useEffect(() => {
     const loadBadgeImage = async () => {
-      if (!badge?.badgeId) {
+      if (!badge?.uid) {
         setImageLoading(false);
         return;
       }
 
       setImageLoading(true);
       try {
-        const imageBase64 = await BadgeManagement.getBadgeImage(badge.badgeId);
+        const imageBase64 = await BadgeManagement.getBadgeImage(badge.uid);
         setBadgeImage(imageBase64);
       } catch (error) {
         console.error('Failed to load badge image:', error);
@@ -229,9 +115,9 @@ function BadgeItem({ badge, userBadgeLevel, onClick }) {
     };
 
     loadBadgeImage();
-  }, [badge?.badgeId]);
+  }, [badge?.uid]);
 
-  const badgeId = badge.id || badge.badgeId;
+  const badgeId = badge.id || badge.uid;
   const unlocked = !!userBadgeLevel;
 
   // Fallback to static icon if no image
@@ -313,13 +199,13 @@ function BadgeDetailModal({ badgeId, open, onClose, allBadges, userBadgesMap }) 
       setLoading(true);
       try {
         // Find badge from allBadges array
-        const foundBadge = allBadges.find(b => (b.id || b.badgeId) === badgeId);
+        const foundBadge = allBadges.find(b => (b.id || b.uid) === badgeId);
         setBadge(foundBadge || null);
 
         // Load badge image if it's a Firebase badge
-        if (foundBadge?.badgeId) {
+        if (foundBadge?.uid) {
           try {
-            const imageBase64 = await BadgeManagement.getBadgeImage(foundBadge.badgeId);
+            const imageBase64 = await BadgeManagement.getBadgeImage(foundBadge.uid);
             setBadgeImage(imageBase64);
           } catch (error) {
             console.error('Failed to load badge image:', error);
@@ -432,16 +318,24 @@ function BadgeDetailModal({ badgeId, open, onClose, allBadges, userBadgesMap }) 
 }
 
 // ---------- Settings Modal ----------
-function SettingsModal({ open, onClose, user, onUserUpdated }) {
+function SettingsModal({ open, onClose, user, onUserUpdated, onImageUpdated, onNameUpdated }) {
   const [isEditingName, setIsEditingName] = useState(false);
   const [newName, setNewName] = useState('');
   const [isSavingName, setIsSavingName] = useState(false);
 
   useEffect(() => {
     if (open && user) {
-      setNewName(user.displayName || user.name || '');
+      setNewName(user.displayName || '');
     }
   }, [open, user]);
+
+  const handleImageUploadComplete = (result) => {
+    console.log('Profile image uploaded successfully:', result);
+    // Notify parent component that image was updated
+    if (onImageUpdated) {
+      onImageUpdated();
+    }
+  };
 
   const handleNameSave = async () => {
     if (!newName.trim() || !user?.uid) return;
@@ -457,11 +351,17 @@ function SettingsModal({ open, onClose, user, onUserUpdated }) {
       }
 
       // Update Firestore document
-      await FirebaseManager.updateDocument(USERS_COLLECTION, user.uid, {
+      await FirestoreManager.updateDocument(USERS_COLLECTION, user.uid, {
         displayName: newName.trim()
       }, true);
       
       setIsEditingName(false);
+      
+      // Notify parent component that name was updated
+      if (onNameUpdated) {
+        onNameUpdated(newName.trim());
+      }
+      
       if (onUserUpdated) {
         onUserUpdated();
       }
@@ -470,6 +370,12 @@ function SettingsModal({ open, onClose, user, onUserUpdated }) {
       alert('Failed to update name: ' + error.message);
     } finally {
       setIsSavingName(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (window.confirm('Bist du sicher, dass du dein Konto löschen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.')) {
+        // await FirestoreManager.deleteAllData();
     }
   };
 
@@ -485,7 +391,12 @@ function SettingsModal({ open, onClose, user, onUserUpdated }) {
           <div className="card p-4">
             <div className="flex items-start gap-4">
               <div className="flex-shrink-0">
-                {user?.uid && <ProfileImageElements.ProfileImageUploader userId={user.uid} />}
+                {user?.uid && (
+                  <ProfileImageElements.ProfileImageUploader 
+                    userId={user.uid} 
+                    onUploadComplete={handleImageUploadComplete}
+                  />
+                )}
               </div>
               <div className="flex-1 space-y-3">
                 {/* Name Edit */}
@@ -553,29 +464,66 @@ function SettingsModal({ open, onClose, user, onUserUpdated }) {
             </p>
           </div>
         </div>
+
+        {/* Danger Zone */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-red-500">Danger Zone</h3>
+          <div className="card p-4 bg-red-900/20">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-semibold text-red-400">Konto löschen</p>
+                <p className="text-sm text-slate-400">
+                  Diese Aktion kann nicht rückgängig gemacht werden. Alle deine Daten werden dauerhaft entfernt.
+                </p>
+              </div>
+              <button
+                onClick={handleDeleteAccount}
+                className="btn-danger text-sm"
+              >
+                Löschen
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </Modal>
   );
 }
 
-// ---------- Main Page Component ----------
-function Page({ data, onOpenBadge, onOpenSettings, onUserUpdated }) {
+function UserPage({ data, onOpenBadge, onOpenSettings, onUserUpdated }) {
   const [allBadges, setAllBadges] = useState([]);
   const [isLoadingBadges, setIsLoadingBadges] = useState(true);
   const [selectedBadgeId, setSelectedBadgeId] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [imageRefreshTrigger, setImageRefreshTrigger] = useState(0);
+  const [displayName, setDisplayName] = useState('');
 
   console.log('UserPage executing with data:', data);
 
     // Use real user data if available, fallback to dummy data  
-    const userData = data || {
+    const baseUserData = data || {
     id: "me",
+    uid: "dummy-uid-for-testing", // Add uid for testing
     name: "Max Mustermann",
     displayName: "Max Mustermann",
     level: 5
     };
 
+    // Create userData with updated display name if available
+    const userData = {
+      ...baseUserData,
+      displayName: displayName || baseUserData.displayName || baseUserData.name,
+      name: displayName || baseUserData.displayName || baseUserData.name
+    };
+
     console.log('Final userData:', userData);
+
+    // Initialize display name from data when component mounts or data changes
+    useEffect(() => {
+      if (data && !displayName) {
+        setDisplayName(data.displayName || data.name || '');
+      }
+    }, [data, displayName]);
 
     // Load user badges from Firebase
     const [userBadgesMap, setUserBadgesMap] = useState(new Map());
@@ -587,13 +535,13 @@ function Page({ data, onOpenBadge, onOpenSettings, onUserUpdated }) {
         
         try {
         console.log('Loading badges for:', userData.uid);
-        const snapshot = await FirebaseManager.getAllDocuments(`${USERS_COLLECTION}/${userData.uid}/ubadges`);
+        const snapshot = await FirestoreManager.getAllDocuments(`${USERS_COLLECTION}/${userData.uid}/ubadges`);
         const badgesMap = new Map();
         
         snapshot.forEach(doc => {
             const badgeData = doc.data();
             console.log('Badge data:', badgeData);
-            if (badgeData.badgeId) {
+            if (badgeData.uid) {
             badgesMap.set(badgeData.badgeId, badgeData.level || 1);
             }
         });
@@ -622,8 +570,8 @@ function Page({ data, onOpenBadge, onOpenSettings, onUserUpdated }) {
           // Use Firebase badges
           const sortedBadges = firebaseBadges.sort((a, b) => {
             // Put owned badges first
-            const badgeIdA = a.id || a.badgeId;
-            const badgeIdB = b.id || b.badgeId;
+            const badgeIdA = a.id || a.uid;
+            const badgeIdB = b.id || b.uid;
             const aOwned = userBadgesMap.has(badgeIdA);
             const bOwned = userBadgesMap.has(badgeIdB);
             if (aOwned && !bOwned) return -1;
@@ -661,7 +609,7 @@ function Page({ data, onOpenBadge, onOpenSettings, onUserUpdated }) {
     };
 
     loadAllBadges();
-  }, [userData.badges]);
+  }, [userData.badges, userBadgesMap]);
 
   const total = allBadges.length;
 
@@ -679,10 +627,28 @@ function Page({ data, onOpenBadge, onOpenSettings, onUserUpdated }) {
     }
   };
 
+  const handleImageUpdated = () => {
+    // Trigger refresh of profile image display by incrementing the refresh trigger
+    setImageRefreshTrigger(prev => prev + 1);
+  };
+
+  const handleNameUpdated = (newName) => {
+    // Update the display name state to immediately reflect the change
+    setDisplayName(newName);
+  };
+
   const header = (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-3">
-        <ProfileAvatar user={userData} size={48} />
+        <div className="relative" style={{ width: 48, height: 48 }}>
+          <ProfileAvatar 
+            name={userData.name || userData.displayName} 
+            size={48} 
+            seed={userData.id || 'default'}
+            userId={userData.uid}
+            refreshTrigger={imageRefreshTrigger}
+          />
+        </div>
         <div>
           <h1 className="screen-title">{userData.name || userData.displayName}</h1>
           <p className="screen-subtitle">Level {userData.level}</p>
@@ -719,7 +685,7 @@ function Page({ data, onOpenBadge, onOpenSettings, onUserUpdated }) {
         ) : (
           <div className="grid-3">
             {allBadges.map((badge) => {
-              const badgeId = badge.id || badge.badgeId;
+              const badgeId = badge.id || badge.uid;
               const userBadgeLevel = userBadgesMap.get(badgeId);
               
               return (
@@ -733,7 +699,6 @@ function Page({ data, onOpenBadge, onOpenSettings, onUserUpdated }) {
             })}
           </div>
         )}
-        <p className="text-slate-400 text-xs mt-3">Tippe auf ein Badge für Details.</p>
       </Screen>
 
       {/* Badge Detail Modal */}
@@ -751,19 +716,11 @@ function Page({ data, onOpenBadge, onOpenSettings, onUserUpdated }) {
         onClose={() => setShowSettings(false)}
         user={userData}
         onUserUpdated={onUserUpdated}
+        onImageUpdated={handleImageUpdated}
+        onNameUpdated={handleNameUpdated}
       />
     </>
   );
 }
 
-// ---------- Legacy newProfile component for backward compatibility ----------
-function newProfile({ onOpenBadge, onOpenSettings }) {
-  return <Page onOpenBadge={onOpenBadge} onOpenSettings={onOpenSettings} />;
-}
-
-const UserPageElements = {
-  Page,
-  newProfile
-};
-
-export default UserPageElements;
+export default UserPage;

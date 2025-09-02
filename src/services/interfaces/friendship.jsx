@@ -1,6 +1,6 @@
-import BaseModel from './base.jsx';
-import { FRIENDSHIP_STATUS } from './constants.jsx';
-import { serverTimestamp } from 'firebase/firestore';
+import BaseModel from './Base.jsx';
+import { FRIENDSHIP_STATUS } from './Constants.jsx';
+import { serverTimestamp } from '../firebase/FirebaseHelper.jsx';
 
 export default class Friendship extends BaseModel {
   constructor(data = {}) {

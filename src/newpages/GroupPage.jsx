@@ -1,7 +1,7 @@
-import React, { useMemo, useState } from "react";
-import { Trophy, Users, Home as HomeIcon, User, CalendarDays, Flame, Star, Moon, Settings, Search, Plus, Check, X, Dumbbell, Bike, HeartPulse, Activity, Info, Medal } from "lucide-react";
-import './sphere-styles.css';
-import Helper from "./Helper.jsx"
+import { useMemo, useState } from "react";
+import { Users, Search, Plus, Dumbbell, Bike, HeartPulse, Activity } from "lucide-react";
+import '../components/styles/sphere-styles.css';
+import Helper from "./Helper.jsx";
 
 
 // ---------- Dummy Data ----------

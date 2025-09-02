@@ -1,6 +1,7 @@
 // Base Model Klasse
 import { v4 as uuidv4 } from 'uuid';
-import { serverTimestamp, Timestamp } from 'firebase/firestore';
+import { serverTimestamp } from '../firebase/FirebaseHelper.jsx';
+import { toDate } from '../../utils/DateUtils.jsx';
 
 export default class BaseModel {
   constructor(data = {}) {
@@ -32,13 +33,18 @@ export default class BaseModel {
   // Update mit neuen Daten
   update(data) {
     Object.assign(this, data);
+    this.updatedAt = serverTimestamp();
     return this;
   }
 
   getCreateAt() {
-    const createdAtDate = this.createdAt?.toDate?.() ?? new Date(this.createdAt);
-    return createdAtDate.toLocaleString();
+    return toDate(this.createdAt);
   }
+
+  getUpdatedAt() {
+    return toDate(this.updatedAt);
+  }
+
   getDurationMinutes(startTime, endTime) {
     try {
       let start, end;
@@ -96,6 +102,23 @@ export default class BaseModel {
     if (!calories || isNaN(calories)) return '0';
     return new Intl.NumberFormat('de-DE').format(calories);
   }
-  // Calculate duration between two dates in minutes (kept above)
+
+  getDurationMs(startTime, endTime) {
+    try {
+      // Handle ISO strings like '2025-05-29T13:50:00.000Z'
+      const start = startTime.toDate();
+      const end = endTime.toDate();
+
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        console.warn('Invalid date format:', { startTime, endTime });
+        return 0;
+      }
+
+      return end.getTime() - start.getTime();
+    } catch (error) {
+      console.error('Error calculating duration:', error, { startTime, endTime });
+      return 0;
+    }
+  }
 
 }

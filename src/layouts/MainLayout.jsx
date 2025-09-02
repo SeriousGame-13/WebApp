@@ -1,54 +1,70 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
-import IconElements from '../components/ui/IconElements';
-import LoginPage from '../pages/LoginPage';
-import UserManagement from '../services/firebase/UserManagementSystem';
-import DatamanagerElements from '../utils/dataManager';
-import ChallengePageElements from '../pages/ChallengePage';
-import GroupPageElements from '../pages/GroupPage';
-import HomePageElements from '../pages/HomePage';
-import RankingPage from '../pages/RankingPage';
-import UserPageElements from '../pages/UserPage';
-import '../components/styles/LayoutElements.css'
-import MainFooter from './MainFooter';
+import '../components/styles/LayoutElements.css';
+import GroupPage from '../pages/GroupPage.jsx';
+import HomePage from '../pages/HomePage.jsx';
+import LoginPage from '../pages/LoginPage.jsx';
+import ProgressPage from '../pages/ProgressPage.jsx';
+import RankingPage from '../pages/RankingPage.jsx';
+import UserPage from '../pages/UserPage.jsx';
+import UserManagement from '../services/UserManagementSystem.jsx';
+import FirebaseAuthenticationManager from '../services/firebase/FirebaseAuthenticationManager.jsx';
+import MainFooter from './MainFooter.jsx';
 
-/**
- * Where elements for layouts that will be used commonly will be placed.
- * Content for each page should be written in the corresponding jsx file inside the 
- * 'pages' directory.
- */
+const useAuth = () => {
+    const [currentUser, setCurrentUser] = useState(null);
+    const [userData, setUserData] = useState(null);
+    const [loading, setLoading] = useState(true);
 
+    useEffect(() => {
+        const unsubscribe = FirebaseAuthenticationManager.subscribeToAuthChanges(async (user) => {
+            if (user) {
+                setCurrentUser(user);
+                
+                // Use UserManagement system to fetch detailed user information
+                try {
+                    const userDataFromManagement = await UserManagement.getUser(user.uid);
+                    if (userDataFromManagement) {
+                        setUserData(userDataFromManagement);
+                    } else {
+                        console.warn('User data not found in UserManagement system');
+                        setUserData(null);
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch user data from UserManagement:', error);
+                    setUserData(null);
+                }
+            } else {
+                setCurrentUser(null);
+                setUserData(null);
+            }
+            setLoading(false);
+        });
+        
+        return () => unsubscribe(); // Prevent memory leaks
+    }, []);
 
+    // Listen for global user-data refresh events (e.g., after workout/exercise changes)
+    useEffect(() => {
+        const onRefresh = async () => {
+            try {
+                if (currentUser?.uid) {
+                    const updated = await UserManagement.getUser(currentUser.uid);
+                    setUserData(updated);
+                }
+            } catch (error) {
+                console.error('Failed to refresh user data:', error);
+            }
+        };
+        window.addEventListener('refreshUserData', onRefresh);
+        return () => window.removeEventListener('refreshUserData', onRefresh);
+    }, [currentUser?.uid]);
 
-function UserInfoHeaderContainer({ user }) {
-    const name = user.displayName;
+    return { currentUser, userData, loading };
+};
 
-    return (
-        <div className='flex items-center gap-4'>
-            <DatamanagerElements.ProfileImageDisplay userId={user.uid} imageclass={'w-10 h-10 rounded-full'} />
-            <div className='flex flex-col'>
-                <div className='text-gradient font-semibold'>{name}</div>
-            </div>
-        </div>
-    )
-}
-
-function IconContainer() {
-    return (
-        <div className='flex gap-4'>
-            <div className='p-2 bg-white/5 rounded-full'>
-                <IconElements.NotificationIcon />
-            </div>
-            <div className='p-2 bg-white/5 rounded-full'>
-                <IconElements.SettingsIcon />
-            </div>
-        </div>
-    );
-}
-
-
-function HomePage() {
-    const { currentUser, userData, loading } = DatamanagerElements.useAuth();
+function AppLayout() {
+    const { userData, loading } = useAuth();
 
     const [currentPage, setCurrentPage] = useState('home');
 
@@ -59,48 +75,48 @@ function HomePage() {
     const renderCurrentPage = () => {
         switch (currentPage) {
             case 'home':
-                console.log('Rendering GroupPage with data:', userData);
+                console.log('Rendering HomePage with data:', userData);
                 return (
                 <div className='app-container'>
-                    <HomePageElements.Page userData={userData} />
+                    <HomePage userData={userData} />
                     <div className='border-t border-white/10' />
-                    <MainFooter.newFooter tab={currentPage} setTab={setCurrentPage} />
+                    <MainFooter.Footer tab={currentPage} setTab={setCurrentPage} />
                 </div>)
             case 'rankings':
                 return (
                 <div className='app-container'>
-                    <RankingPage.Page userData={userData} />
+                    <RankingPage userData={userData} />
                     <div className='border-t border-white/10' />
-                    <MainFooter.newFooter tab={currentPage} setTab={setCurrentPage} />
+                    <MainFooter.Footer tab={currentPage} setTab={setCurrentPage} />
                 </div>)
-            case 'challenges':
+            case 'progress':
                 return (
                     <div className='app-container'>
-                        <ChallengePageElements.Page data={userData} />
+                        <ProgressPage data={userData} />
                         <div className='border-t border-white/10' />
-                        <MainFooter.newFooter tab={currentPage} setTab={setCurrentPage} />
+                        <MainFooter.Footer tab={currentPage} setTab={setCurrentPage} />
                     </div>)
             case 'groups':
                 return (
                     <div className='app-container'>
-                        <GroupPageElements.Page groups={groups} setGroups={setGroups} joinedIds={joinedIds} setJoinedIds={setJoinedIds} />
+                        <GroupPage groups={groups} setGroups={setGroups} joinedIds={joinedIds} setJoinedIds={setJoinedIds} />
                         <div className='border-t border-white/10' />
-                        <MainFooter.newFooter tab={currentPage} setTab={setCurrentPage} />
+                        <MainFooter.Footer tab={currentPage} setTab={setCurrentPage} />
                     </div>)
             case 'user':
                 return (
                 <div className='app-container'>
                     <div className='border-t border-white/10' />
-                    <UserPageElements.Page data={userData} />
+                    <UserPage data={userData} />
                     <div className='border-t border-white/10' />
-                    <MainFooter.newFooter tab={currentPage} setTab={setCurrentPage} />
+                    <MainFooter.Footer tab={currentPage} setTab={setCurrentPage} />
                 </div>)
             default:
                 return (
                     <div className='app-container'>
-                        <HomePageElements.Page data={userData} />
+                        <HomePage data={userData} />
                         <div className='border-t border-white/10' />
-                        <MainFooter.newFooter tab={currentPage} setTab={setCurrentPage} />
+                        <MainFooter.Footer tab={currentPage} setTab={setCurrentPage} />
                     </div>)
         }
     }
@@ -129,8 +145,7 @@ function HomePage() {
 }
 
 const MainLayout = {
-    IconContainer,
-    HomePage
+    AppLayout
 };
 
 export default MainLayout;

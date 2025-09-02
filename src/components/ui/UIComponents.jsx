@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Trophy, Users, Home as HomeIcon, User, CalendarDays, Flame, Star, Moon, Settings, Search, Plus, Check, X, Dumbbell, Bike, HeartPulse, Activity, Info, Medal } from "lucide-react";
 
 const GRADIENTS = [
@@ -10,18 +10,29 @@ const GRADIENTS = [
   "avatar-gradient-5",
 ];
 
-function initials(name = "?") {
+export function initials(name = "?") {
   const parts = name.split(new RegExp("\\s+")).filter(Boolean);
   const letters = parts.slice(0, 2).map(p => p[0]?.toUpperCase() || "?");
   return letters.join("");
 }
 
-export function Avatar({ name, size = 48, seed }) {
+export function badgeLevelColor(level) {
+  if (level === 3) return "badge-level-3";
+  if (level === 2) return "badge-level-2";
+  return "badge-level-1";
+}
+
+export function Avatar({ name, image, size = 48, seed }) {
   const idx = Math.abs((seed ?? name ?? "0").split("").reduce((a, c) => a + c.charCodeAt(0), 0)) % GRADIENTS.length;
   const style = { width: size, height: size };
+  
   return (
     <div className={`avatar ${GRADIENTS[idx]}`} style={style}>
-      <span className="avatar-text">{initials(name)}</span>
+      {image ? (
+        <img src={image} alt={name} className="avatar-image w-full h-full rounded-full object-cover" />
+      ) : (
+        <span className="avatar-text">{initials(name)}</span>
+      )}
     </div>
   );
 }
@@ -31,15 +42,17 @@ export function Modal({ open, onClose, children, title, size = "md" }) {
   const maxW = size === "sm" ? "max-w-sm" : size === "lg" ? "max-w-xl" : "max-w-lg";
   return (
     <div className="modal-overlay">
-      <div className="modal-backdrop" onClick={onClose} />
-      <div className={`modal-content ${maxW}`}>
-        <div className="modal-header">
-          <h3 className="modal-title">{title}</h3>
-          <button onClick={onClose} className="modal-close">
-            <X className="w-5 h-5" />
-          </button>
+      <div className="centered">
+        <div className="modal-backdrop" onClick={onClose} />
+        <div className={`modal-content ${maxW}`}>
+          <div className="modal-header">
+            <h3 className="modal-title">{title}</h3>
+            <button onClick={onClose} className="modal-close">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          {children}
         </div>
-        {children}
       </div>
     </div>
   );
@@ -54,7 +67,7 @@ export function Card({ children, onClick }) {
   );
 }
 
-function Background() {
+export function Background() {
   return (
     <div className="background" aria-hidden>
       <div className="bg-gradient-1" />
@@ -87,7 +100,7 @@ export function Stat({ label, value }) {
   return (
     <div className="flex flex-col gap-1">
       <span className="text-slate-400 text-sm">{label}</span>
-      <span className="text-2xl font-semibold text-slate-100">{value}</span>
+      <span className="text-xl font-semibold text-slate-100">{value}</span>
     </div>
   );
 }

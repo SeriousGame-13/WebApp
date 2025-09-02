@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import UserManagement from '../../services/UserManagementSystem.jsx';
-import ProfileImageElements from '../../components/ui/ProfileImageManager.jsx'; 
+import { Avatar } from '../../components/ui/UIComponents.jsx'; 
 import '../../components/styles/LayoutElements.css';
 
 function AdminHeader({ user, onPageSelect, currentPage }) {
@@ -33,7 +33,12 @@ function AdminHeader({ user, onPageSelect, currentPage }) {
     return (
         <header className="AppHeader">
             <div className='SeyHelloContainer'>
-                <ProfileImageElements.ProfileImageDisplay userId={user.uid} imageclass={'ProfileImageForHeader'} />
+                <Avatar 
+                    name={name} 
+                    userId={user.uid} 
+                    size={48} 
+                    seed={user.uid}
+                />
                 <div className='SeyHello'>
                     <div className='UserName'>{name}</div>
                 </div>

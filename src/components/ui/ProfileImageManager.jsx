@@ -77,55 +77,10 @@ const ProfileImageUploader = ({ userId, onUploadComplete }) => {
   );
 };
 
-const ProfileImageDisplay = ({ userId, imageclass, refreshTrigger }) => {
-  
-  const [imageLoading, setImageLoading] = useState(true);
-  const [existingImage, setExistingImage] = useState('');
-
-  // Load existing image when the component mounts or refreshTrigger changes
-  useEffect(() => {
-    const loadExistingImage = async () => {
-      if (!userId) {
-        setImageLoading(false);
-        return;
-      }
-      
-      setImageLoading(true);
-      try {
-        const existingImageBase64 = await FirestoreManager.getUserImage(userId);
-        setExistingImage(existingImageBase64 || '');
-      } catch (error) {
-        console.error('Failed to load user image:', error);
-        setExistingImage('');
-      } finally {
-        setImageLoading(false);
-      }
-    };
-
-    loadExistingImage();
-  }, [userId, refreshTrigger]); // Runs whenever userId or refreshTrigger changes
-
-  if (imageLoading) {
-    return <div className={imageclass}>Loading...</div>;
-  }
-
-  if (!existingImage) {
-    return null; // Don't render anything if no image exists
-  }
-
-  return (
-    <img className={imageclass}
-      src={existingImage} 
-      alt="Profile" 
-    />
-  );
-};
-
 // Export functions
 const ProfileImageElements = { 
     ProfileImageSelector,
-    ProfileImageUploader,
-    ProfileImageDisplay
+    ProfileImageUploader
 };
 
 export default ProfileImageElements;

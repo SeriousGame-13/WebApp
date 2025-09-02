@@ -415,7 +415,7 @@ function Page({ groups, setGroups, joinedIds, setJoinedIds }) {
                             {members.map((member) => (
                                 <Card key={member.uid}>
                                     <div className="flex items-center gap-3">
-                                        <Avatar name={member.displayName} size={36} seed={member.uid} />
+                                        <Avatar name={member.displayName} size={36} seed={member.uid} userId={member.uid} />
                                         <span className="font-medium">{member.displayName}</span>
                                     </div>
                                 </Card>

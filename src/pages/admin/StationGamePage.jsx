@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
-import '../../components/styles/LayoutElements.css';
+import { AdminPageLayout, AdminCard } from '../../components/ui/AdminComponents.jsx';
+import '../../components/styles/sphere-styles.css';
 import StationGameManager from '../../services/GameManager.jsx';
 import StationManager from '../../services/StationManagement.jsx';
+import { Plus, Gamepad2, Edit, Trash2, X, Search } from 'lucide-react';
 
 function EditForm({ object = null, onSubmit, onCancel, isProcessing, submitText, stations }) {
     const inputFields = [
@@ -68,77 +70,88 @@ function EditForm({ object = null, onSubmit, onCancel, isProcessing, submitText,
 
     if (isProcessing) {
         return (
-            <div className='PopupBackground'>
-                <div className='PopupContainer'>
-                    <h2>{object ? 'Updating' : 'Creating'}...</h2>
+            <div className="modal-overlay">
+                <div className="modal-backdrop"></div>
+                <div className="modal-content">
+                    <div className="text-center py-12">
+                        <div className="login-spinner mx-auto mb-4"></div>
+                        <p className="text-slate-400">{object ? 'Updating' : 'Creating'}...</p>
+                    </div>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className='PopupBackground'>
-            <div className='LargePopupContainer'>
-                <h2 style={{ margin: '20px 0', textAlign: 'center' }}>
-                    {object ? 'Edit ' : 'Create New '}
-                </h2>
-                <div className='BadgeCreateContent'>
-                    <div className='BadgeInputSection'>
-                        {inputFields.map(field => (
-
-                            <div key={field.key} className='BadgeInputGroup'>
-                                <label className='BadgeInputLabel'>{field.label}</label>
-                                {field.type === 'textarea' ? (
-                                    <textarea
-                                        className='Input'
-                                        value={formData[field.key]}
-                                        onChange={(e) => handleInputChange(field.key, e.target.value)}
-                                        placeholder={field.placeholder}
-                                        rows={4}
-                                        style={{ resize: 'vertical' }}
-                                    />
-                                ) : field.type === 'selectStation' ? (
-                                    <select
-                                        className='Input'
-                                        value={formData[field.key]}
-                                        onChange={(e) => handleInputChange(field.key, e.target.value)}
-                                    >
-                                        <option value="" disabled>{field.placeholder}</option>
-                                        {stations && stations.map(obj => (
-                                            <option key={obj.uid} value={obj.uid}>
-                                                {obj.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                ) : (
-                                    <input
-                                        className='Input'
-                                        type={field.type}
-                                        value={formData[field.key]}
-                                        onChange={(e) => handleInputChange(field.key, e.target.value)}
-                                        placeholder={field.placeholder}
-                                        maxLength={field.maxLength}
-                                        min={field.min}
-                                    />
-                                )}
-                            </div>
-                        ))}
-                    </div>
+        <div className="modal-overlay">
+            <div className="modal-backdrop" onClick={onCancel}></div>
+            <div className="modal-content max-w-lg">
+                <div className="modal-header">
+                    <h3 className="text-xl font-bold text-gradient">
+                        {object ? 'Edit Station Game' : 'Create New Station Game'}
+                    </h3>
+                    <button
+                        onClick={onCancel}
+                        className="modal-close"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
                 </div>
-                <div className='BadgeCreateFooter'>
-                    <div className='Line'></div>
-                    <div className='Buttonfield'>
-                        <button className='CancelButton' onClick={onCancel}>
-                            Cancel
-                        </button>
-                        <button
-                            className='ConfirmButton'
-                            onClick={handleSubmit}
-                            disabled={!isValid}
-                        >
-                            {submitText}
-                        </button>
-                    </div>
+
+                <div className="modal-body space-y-4">
+                    {inputFields.map(field => (
+                        <div key={field.key} className="form-group">
+                            <label className="form-label">{field.label}</label>
+                            {field.type === 'textarea' ? (
+                                <textarea
+                                    className="form-input"
+                                    value={formData[field.key]}
+                                    onChange={(e) => handleInputChange(field.key, e.target.value)}
+                                    placeholder={field.placeholder}
+                                    rows={4}
+                                />
+                            ) : field.type === 'selectStation' ? (
+                                <select
+                                    className="form-input"
+                                    value={formData[field.key]}
+                                    onChange={(e) => handleInputChange(field.key, e.target.value)}
+                                >
+                                    <option value="" disabled>{field.placeholder}</option>
+                                    {stations && stations.map(obj => (
+                                        <option key={obj.uid} value={obj.uid}>
+                                            {obj.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            ) : (
+                                <input
+                                    className="form-input"
+                                    type={field.type}
+                                    value={formData[field.key]}
+                                    onChange={(e) => handleInputChange(field.key, e.target.value)}
+                                    placeholder={field.placeholder}
+                                    maxLength={field.maxLength}
+                                    min={field.min}
+                                />
+                            )}
+                        </div>
+                    ))}
+                </div>
+
+                <div className="modal-footer mt-4 flex justify-end">
+                    <button
+                        className="btn-secondary"
+                        onClick={onCancel}
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        className="btn-primary"
+                        onClick={handleSubmit}
+                        disabled={!isValid}
+                    >
+                        {submitText}
+                    </button>
                 </div>
             </div>
         </div>
@@ -173,7 +186,7 @@ function DetailPopup({ object, onClose, onUpdated, stations }) {
         try {
             await StationGameManager.update({
                 ...updates,
-                uid:object.uid
+                uid: object.uid
             });
             setShowEditPopup(false);
             onUpdated();
@@ -186,29 +199,73 @@ function DetailPopup({ object, onClose, onUpdated, stations }) {
     };
 
     return (
-        <div className='PopupBackground'>
-            <div className='LargePopupContainer'>
-                <h2 style={{ textAlign: 'center' }}>Details</h2>
-                <div className='GroupDetailContainer'>
-                    <div className='BadgeDetailHeader'>
-                        <div className='BadgeDetailTitle' style={{ color: 'var(--main-color)' }}>
-                            {object.name}
-                        </div>
+        <div className="modal-overlay">
+            <div className="modal-backdrop" onClick={onClose}></div>
+            <div className="modal-content max-w-lg">
+                <div className="modal-header gap-6">
+                    <div>
+                        <h3 className="text-xl font-bold text-gradient">{object.name}</h3>
                     </div>
-                    <div className="GroupActionButtons" style={{ marginTop: '40px' }}>
-                        <button className='AdminActionButton' onClick={() => setShowEditPopup(true)} disabled={isProcessing}>
-                            Edit Info
-                        </button>
-                        <button className='GroupActionButton' onClick={handleDelete} disabled={isProcessing}>
-                            {isProcessing ? 'Deleting...' : 'Delete'}
-                        </button>
-                    </div>
-                </div>
-                <div className='Line'></div>
-                <div className='Buttonfield'>
-                    <button className='CancelButton' onClick={onClose}>Close</button>
+                    <button
+                        onClick={onClose}
+                        className="modal-close"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
                 </div>
 
+                <div className="modal-body space-y-8">
+                    {/* Game Overview */}
+                    <div className="card">
+                        <div className="flex items-start gap-4">
+                            <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-blue-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <Gamepad2 className="w-6 h-6 text-white" />
+                            </div>
+                            <div className="flex-1">
+                                <div className="text-sm text-slate-300">
+                                    <div className="mb-2">
+                                        <span className="text-slate-400">Game ID:</span>
+                                        <span className="text-slate-300 ml-2 font-mono text-xs">{object.uid}</span>
+                                    </div>
+                                    {object.stationId && (
+                                        <div className="mb-2">
+                                            <span className="text-slate-400">Station ID:</span>
+                                            <span className="text-slate-300 ml-2 font-mono text-xs">{object.stationId}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex justify-end gap-3 pt-6 mt-4">
+                        <button
+                            className="btn-secondary "
+                            onClick={onClose}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            className="btn-danger flex items-center gap-2"
+                            onClick={handleDelete}
+                            disabled={isProcessing}
+                        >
+                            <Trash2 className="w-4 h-4" />
+                            {isProcessing ? 'Deleting...' : 'Delete'}
+                        </button>
+                        <button
+                            className="btn-primary flex items-center gap-2"
+                            onClick={() => setShowEditPopup(true)}
+                            disabled={isProcessing}
+                        >
+                            <Edit className="w-4 h-4" />
+                            Edit Info
+                        </button>
+                    </div>
+                </div>
+
+                
                 {showEditPopup && (
                     <EditForm
                         object={object}
@@ -227,29 +284,30 @@ function DetailPopup({ object, onClose, onUpdated, stations }) {
 
 
 function StationGamePage({ user }) {
-    const [objects, sets] = useState([]);
+    const [objects, setObjects] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [selectedObject, setSelected] = useState(null);
+    const [selectedObject, setSelectedObject] = useState(null);
     const [showCreatePopup, setShowCreatePopup] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
     const [stations, setStations] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
 
     const loadObjects = async () => {
         setIsLoading(true);
         try {
             const data = await StationGameManager.loadAll();
-            sets(data);
+            setObjects(data);
 
             const stationData = await StationManager.loadAll();
             setStations(stationData);
 
             if (selectedObject) {
                 const updatedSelected = data.find(s => s.uid === selectedObject.uid);
-                setSelected(updatedSelected || null);
+                setSelectedObject(updatedSelected || null);
             }
         } catch (error) {
             console.error('Failed to load:', error);
-            sets([]);
+            setObjects([]);
         } finally {
             setIsLoading(false);
         }
@@ -266,55 +324,75 @@ function StationGamePage({ user }) {
             setShowCreatePopup(false);
             await loadObjects();
         } catch (error) {
-            console.error('Failed to create :', error);
-            alert('Failed to create : ' + error.message);
+            console.error('Failed to create:', error);
+            alert('Failed to create: ' + error.message);
         } finally {
             setIsCreating(false);
         }
     };
 
-    const renderList = () => {
-        if (isLoading) {
-            return <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>Loading...</div>;
-        }
+    const filteredObjects = objects.filter(obj =>
+        obj.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
-        if (objects.length === 0) {
-            return <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>Nothing Found. Create something to get started!</div>;
-        }
+    const getStationName = (stationId) => {
+        const station = stations.find(s => s.uid === stationId);
+        return station ? station.name : 'Unknown Station';
+    };
 
-        return objects.map(obj => (
-            <div
+    const stats = [
+        { value: objects.length, label: 'Total Games' },
+        { value: stations.length, label: 'Available Stations' },
+        { value: objects.filter(obj => obj.stationId).length, label: 'Assigned Games' }
+    ];
+
+    const renderGameCards = () => {
+        return filteredObjects.map(obj => (
+            <AdminCard
                 key={obj.uid}
-                className="CardContainer"
-                onClick={() => setSelected(obj)}
+                onClick={() => setSelectedObject(obj)}
             >
-                <div className="CardHeader" style={{ color: 'var(--main-color)' }}>
-                    {obj.name}
+                <div className="flex items-start gap-3">
+                    <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-blue-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <Gamepad2 className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gradient truncate mb-1">
+                            {obj.name}
+                        </h3>
+                        <p className="text-sm text-slate-300 mb-3">
+                            Station: {obj.stationId ? getStationName(obj.stationId) : 'No station assigned'}
+                        </p>
+                    </div>
                 </div>
-            </div>
+            </AdminCard>
         ));
     };
 
     return (
-        <div className="AppContents">
-            <h2 style={{ color: '#E5E5E5', margin: '0 0 20px 0' }}>Manager</h2>
-            <div className="AdminGroupContainer">
-                <div className="GuideText">All</div>
-                {renderList()}
-                <button
-                    className="AdminActionButton"
-                    onClick={() => setShowCreatePopup(true)}
-                >
-                    Create New
-                </button>
-            </div>
+        <>
+            <AdminPageLayout
+                title="Station Game Manager"
+                stats={stats}
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                searchPlaceholder="Search station games by name..."
+                onCreateClick={() => setShowCreatePopup(true)}
+                createButtonText="Create Game"
+                isLoading={isLoading}
+                emptyMessage="No station games found."
+                contentGridClass="grid-2 gap-6"
+            >
+                {renderGameCards()}
+            </AdminPageLayout>
 
+            {/* Modals */}
             {showCreatePopup && (
                 <EditForm
                     onSubmit={handleCreation}
                     onCancel={() => setShowCreatePopup(false)}
                     isProcessing={isCreating}
-                    submitText="Create "
+                    submitText="Create Game"
                     stations={stations}
                 />
             )}
@@ -322,12 +400,12 @@ function StationGamePage({ user }) {
             {selectedObject && (
                 <DetailPopup
                     object={selectedObject}
-                    onClose={() => setSelected(null)}
+                    onClose={() => setSelectedObject(null)}
                     onUpdated={loadObjects}
                     stations={stations}
                 />
             )}
-        </div>
+        </>
     );
 }
 

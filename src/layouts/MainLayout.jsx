@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 
-import '../components/styles/LayoutElements.css';
 import GroupPage from '../pages/GroupPage.jsx';
 import HomePage from '../pages/HomePage.jsx';
 import LoginPage from '../pages/LoginPage.jsx';

@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import '../../components/styles/LoginPage.css';
 import BadgeManagement from '../../services/BadgeManagement.jsx';
 import { ImageSelector } from './ImageComponents.jsx';
 

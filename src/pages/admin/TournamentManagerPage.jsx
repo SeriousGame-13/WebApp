@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
-import '../../components/styles/LayoutElements.css';
 import TournamentManagement from '../../services/TournamentManagement.jsx';
 import UserManagement from '../../services/UserManagementSystem.jsx';
 import { CHALLENGE_VISIBILITY } from '../../services/interfaces/Constants.jsx';
 import BaseModel from '../../services/interfaces/Base.jsx';
 import { localDateTimeStringToTimestamp, localTime } from '../../utils/DateUtils.jsx';
+import { AdminPageLayout, AdminCard } from '../../components/ui/AdminComponents.jsx';
+import { Plus, Trophy, Calendar, Users, Target, X, Search, Edit, Trash2 } from 'lucide-react';
+import '../../components/styles/sphere-styles.css';
 
 
 function FormBase({
@@ -427,6 +429,7 @@ function TournamentManagerPage({ user }) {
     const [selectedTournament, setSelectedTournament] = useState(null);
     const [showCreatePopup, setShowCreatePopup] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
 
     const loadData = async () => {
         setIsLoading(true);
@@ -479,16 +482,28 @@ function TournamentManagerPage({ user }) {
         }
     };
 
-    const renderList = () => {
-        if (isLoading) {
-            return <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>Loading Tournaments...</div>;
-        }
+    const filteredTournaments = tournaments.filter(tournament =>
+        tournament.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        tournament.description?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
-        if (tournaments.length === 0) {
-            return <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>No Tournaments Found. Create one to get started!</div>;
-        }
+    const getActiveTournaments = () => {
+        const now = new Date();
+        return tournaments.filter(tournament => {
+            const startDate = tournament.startDate?.toDate ? tournament.startDate.toDate() : null;
+            const endDate = tournament.endDate?.toDate ? tournament.endDate.toDate() : null;
+            return (!startDate || now >= startDate) && (!endDate || now <= endDate);
+        });
+    };
 
-        return tournaments.map(tournament => {
+    const stats = [
+        { value: tournaments.length, label: 'Total Tournaments' },
+        { value: getActiveTournaments().length, label: 'Active Now' },
+        { value: tournaments.reduce((sum, tournament) => sum + (tournament.participants?.length || 0), 0), label: 'Total Participants' }
+    ];
+
+    const renderTournamentCards = () => {
+        return filteredTournaments.map(tournament => {
             // Get visibility text
             let visibilityText = 'Unknown';
             if (tournament.visibility === CHALLENGE_VISIBILITY.PUBLIC) visibilityText = 'Public';
@@ -502,55 +517,64 @@ function TournamentManagerPage({ user }) {
             const isActive = (!startDate || now >= startDate) && (!endDate || now <= endDate);
 
             return (
-                <div
+                <AdminCard
                     key={tournament.uid}
-                    className="CardContainer"
                     onClick={() => setSelectedTournament(tournament)}
                 >
-                    <div className="CardHeader" style={{ color: 'var(--main-color)' }}>
-                        {tournament.name}
-                        <span style={{
-                            color: isActive ? 'var(--success-color)' : 'var(--error-color)',
-                            fontSize: '14px',
-                            marginLeft: '10px'
-                        }}>
-                            ({isActive ? 'Active' : 'Inactive'})
-                        </span>
-                    </div>
-                    <div className="CardContents">
-                        {tournament.description || 'No description available.'}
-                    </div>
-                    <div className="CardContents" style={{ fontSize: '12px', color: '#A0A0A0' }}>
-                        Visibility: {visibilityText}
-                    </div>
-                    {startDate && (
-                        <div className="CardContents" style={{ fontSize: '12px', marginTop: '5px' }}>
-                            {(() => { const bm = new BaseModel({ createdAt: tournament.startDate }); return `Starts: ${bm.getCreateAt()}`; })()}
+                    <div className="flex items-start gap-3">
+                        <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <Trophy className="w-6 h-6 text-white" />
                         </div>
-                    )}
-                    {endDate && (
-                        <div className="CardContents" style={{ fontSize: '12px', marginTop: '5px' }}>
-                            {(() => { const bm = new BaseModel({ createdAt: tournament.endDate }); return `Ends: ${bm.getCreateAt()}`; })()}
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                                <h3 className="font-semibold text-gradient truncate">
+                                    {tournament.name}
+                                </h3>
+                                <span 
+                                    className="text-xs px-2 py-1 rounded-full"
+                                    style={{ 
+                                        backgroundColor: isActive ? '#10B98120' : '#EF444420',
+                                        color: isActive ? '#10B981' : '#EF4444'
+                                    }}
+                                >
+                                    {isActive ? 'Active' : 'Inactive'}
+                                </span>
+                            </div>
+                            <p className="text-sm text-slate-300 line-clamp-2 mb-3">
+                                {tournament.description || 'No description available.'}
+                            </p>
+                            <div className="text-xs text-slate-400 space-y-1">
+                                <div>Visibility: {visibilityText}</div>
+                                {startDate && (
+                                    <div>Starts: {(() => { const bm = new BaseModel({ createdAt: tournament.startDate }); return bm.getCreateAt(); })()}</div>
+                                )}
+                                {endDate && (
+                                    <div>Ends: {(() => { const bm = new BaseModel({ createdAt: tournament.endDate }); return bm.getCreateAt(); })()}</div>
+                                )}
+                            </div>
                         </div>
-                    )}
-                </div>
+                    </div>
+                </AdminCard>
             );
         });
     };
 
     return (
-        <div className="AppContents">
-            <h2 style={{ color: '#E5E5E5', margin: '0 0 20px 0' }}>Tournament Manager</h2>
-            <div className="AdminGroupContainer">
-                <div className="GuideText">All Tournaments</div>
-                {renderList()}
-                <button
-                    className="AdminActionButton"
-                    onClick={() => setShowCreatePopup(true)}
-                >
-                    Create New Tournament
-                </button>
-            </div>
+        <>
+            <AdminPageLayout
+                title="Tournament Manager"
+                stats={stats}
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                searchPlaceholder="Search tournaments by name or description..."
+                onCreateClick={() => setShowCreatePopup(true)}
+                createButtonText="Create Tournament"
+                isLoading={isLoading}
+                emptyMessage="No tournaments found."
+                contentGridClass="grid-2 gap-6"
+            >
+                {renderTournamentCards()}
+            </AdminPageLayout>
 
             {showCreatePopup && (
                 <TournamentForm
@@ -573,7 +597,7 @@ function TournamentManagerPage({ user }) {
                     exercises={exercises}
                 />
             )}
-        </div>
+        </>
     );
 }
 

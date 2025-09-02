@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
-import '../../components/styles/LayoutElements.css';
 import WorkoutManager from '../../services/WorkoutManagement.jsx';
 import StationManager from '../../services/StationManagement.jsx';
 import { Workout } from '../../services/interfaces/Workout.jsx';
 import { Timestamp } from '../../services/firebase/FirebaseHelper.jsx';
+import BaseModel from '../../services/interfaces/Base.jsx';
+import { AdminPageLayout, AdminCard } from '../../components/ui/AdminComponents.jsx';
+import '../../components/styles/sphere-styles.css';
+import { Plus, Dumbbell, Edit, Trash2, X, Search, Clock, Activity, Target } from 'lucide-react';
 
 function localDateTimeStringToTimestamp(value) {
     const [date, time] = value.split('T');
@@ -96,63 +99,71 @@ function EditWorkoutForm({ workout = null, onSubmit, onCancel, isProcessing, sub
 
     if (isProcessing) {
         return (
-            <div className='PopupBackground'>
-                <div className='PopupContainer'>
-                    <h2>{workout ? 'Updating' : 'Creating'} Workout...</h2>
+            <div className="modal-overlay">
+                <div className="modal-backdrop"></div>
+                <div className="modal-content max-w-sm">
+                    <div className="text-center py-8">
+                        <div className="login-spinner mx-auto mb-4"></div>
+                        <h2 className="text-lg font-semibold">{workout ? 'Updating' : 'Creating'} Workout...</h2>
+                    </div>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className='PopupBackground'>
-            <div className='LargePopupContainer'>
-                <h2 style={{ margin: '20px 0', textAlign: 'center' }}>
-                    {workout ? 'Edit' : 'Create New'} Workout
-                </h2>
-                <div className='BadgeCreateContent' style={{ maxHeight: '60vh', overflowY: 'auto', paddingRight: '15px' }}>
-                    <div className='BadgeInputSection'>
+        <div className="modal-overlay">
+            <div className="modal-backdrop" onClick={onCancel}></div>
+            <div className="modal-content max-w-2xl">
+                <div className="modal-header">
+                    <h2 className="modal-title">
+                        {workout ? 'Edit' : 'Create New'} Workout
+                    </h2>
+                    <button className="modal-close" onClick={onCancel}>
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+
+                <div className="space-y-6 max-h-[60vh] overflow-y-auto">
+                    <div className="grid-2 gap-4">
                         {inputFields.map(field => (
-                            <div key={field.key} className='BadgeInputGroup'>
-                                <label className='BadgeInputLabel'>{field.label}</label>
+                            <div key={field.key} className="form-field">
+                                <label className="form-label">{field.label}</label>
                                 {field.type === 'textarea' ? (
                                     <textarea
-                                        className='Input'
+                                        className="form-textarea"
                                         value={formData[field.key]}
                                         onChange={(e) => handleInputChange(field.key, e.target.value)}
                                         placeholder={field.placeholder}
                                         rows={4}
-                                        style={{ resize: 'vertical' }}
                                     />
                                 ) : (
                                     <input
-                                        className='Input'
+                                        className="form-input"
                                         type={field.type}
                                         value={formData[field.key]}
                                         onChange={(e) => handleInputChange(field.key, e.target.value)}
                                         placeholder={field.placeholder}
                                         maxLength={field.maxLength}
-                                        disabled={field.disabled || false}
+                                        min={field.min}
                                     />
                                 )}
                             </div>
                         ))}
                     </div>
                 </div>
-                <div className='BadgeCreateFooter'>
-                    <div className='Line'></div>
-                    <div className='Buttonfield'>
-                        <button className='CancelButton' onClick={onCancel}>
-                            Cancel
-                        </button>
-                        <button
-                            className='ConfirmButton'
-                            onClick={handleSubmit}
-                            disabled={!isValid}
-                        >
-                            {submitText}
-                        </button>
-                    </div>
+
+                <div className="flex gap-3 justify-end pt-4 border-t border-white/10">
+                    <button className="btn-secondary" onClick={onCancel}>
+                        Cancel
+                    </button>
+                    <button
+                        className="btn-primary"
+                        onClick={handleSubmit}
+                        disabled={!isValid}
+                    >
+                        {submitText}
+                    </button>
                 </div>
             </div>
         </div>
@@ -248,28 +259,39 @@ function ExerciseForm({
 
     if (isProcessing) {
         return (
-            <div className='PopupBackground'>
-                <div className='PopupContainer'>
-                    <h2>{exerciseToEdit ? 'Updating' : 'Adding'} Exercise...</h2>
+            <div className="modal-overlay">
+                <div className="modal-backdrop"></div>
+                <div className="modal-content max-w-sm">
+                    <div className="text-center py-8">
+                        <div className="login-spinner mx-auto mb-4"></div>
+                        <h2 className="text-lg font-semibold">{exerciseToEdit ? 'Updating' : 'Adding'} Exercise...</h2>
+                    </div>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className='PopupBackground'>
-            <div className='LargePopupContainer'>
-                <h2 style={{ margin: '20px 0', textAlign: 'center' }}>
-                    {exerciseToEdit ? 'Edit Exercise' : 'Add New Exercise'}
-                </h2>
-                <div className='BadgeCreateContent' style={{ maxHeight: '60vh', overflowY: 'auto', paddingRight: '15px' }}>
-                    <div className='BadgeInputSection'>
+        <div className="modal-overlay">
+            <div className="modal-backdrop" onClick={onCancel}></div>
+            <div className="modal-content max-w-2xl">
+                <div className="modal-header">
+                    <h2 className="modal-title">
+                        {exerciseToEdit ? 'Edit Exercise' : 'Add New Exercise'}
+                    </h2>
+                    <button className="modal-close" onClick={onCancel}>
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+
+                <div className="space-y-6 max-h-[60vh] overflow-y-auto">
+                    <div className="grid-2 gap-4">
                         {inputFields.map(field => (
-                            <div key={field.key} className='BadgeInputGroup'>
-                                <label className='BadgeInputLabel'>{field.label}</label>
+                            <div key={field.key} className="form-field">
+                                <label className="form-label">{field.label}</label>
                                 {field.type === 'select' ? (
                                     <select
-                                        className='Input'
+                                        className="form-input"
                                         value={formData[field.key]}
                                         onChange={(e) => handleInputChange(field.key, e.target.value)}
                                     >
@@ -282,16 +304,15 @@ function ExerciseForm({
                                     </select>
                                 ) : field.type === 'textarea' ? (
                                     <textarea
-                                        className='Input'
+                                        className="form-textarea"
                                         value={formData[field.key]}
                                         onChange={(e) => handleInputChange(field.key, e.target.value)}
                                         placeholder={field.placeholder}
                                         rows={4}
-                                        style={{ resize: 'vertical' }}
                                     />
                                 ) : (
                                     <input
-                                        className='Input'
+                                        className="form-input"
                                         type={field.type}
                                         value={formData[field.key]}
                                         onChange={(e) => handleInputChange(field.key, e.target.value)}
@@ -304,20 +325,18 @@ function ExerciseForm({
                         ))}
                     </div>
                 </div>
-                <div className='BadgeCreateFooter'>
-                    <div className='Line'></div>
-                    <div className='Buttonfield'>
-                        <button className='CancelButton' onClick={onCancel}>
-                            Cancel
-                        </button>
-                        <button
-                            className='ConfirmButton'
-                            onClick={handleSubmit}
-                            disabled={!isValid}
-                        >
-                            {submitText}
-                        </button>
-                    </div>
+
+                <div className="flex gap-3 justify-end pt-4">
+                    <button className="btn-secondary" onClick={onCancel}>
+                        Cancel
+                    </button>
+                    <button
+                        className="btn-primary"
+                        onClick={handleSubmit}
+                        disabled={!isValid}
+                    >
+                        {submitText}
+                    </button>
                 </div>
             </div>
         </div>
@@ -333,6 +352,39 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     workout = Workout.fromJSON(workout);
+
+    const formatDate = (ts) => {
+        if (!ts) return 'N/A';
+        try {
+            let date;
+            if (ts instanceof Date) {
+                date = ts;
+            } else if (typeof ts === 'number') {
+                date = new Date(ts);
+            } else if (ts.seconds) {
+                date = new Date(ts.seconds * 1000);
+            } else if (ts.toDate && typeof ts.toDate === 'function') {
+                date = ts.toDate();
+            } else {
+                date = new Date(ts);
+            }
+
+            if (isNaN(date.getTime())) {
+                return 'Invalid Date';
+            }
+
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        } catch (error) {
+            console.error('Error formatting date:', error);
+            return 'Invalid Date';
+        }
+    };
 
     useEffect(() => {
         if (showEditPopup || showAddExercisePopup || editingExercise) return;
@@ -419,89 +471,167 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations
     };
 
     return (
-        <div className='PopupBackground'>
-            <div className='LargePopupContainer'>
-                <h2 style={{ textAlign: 'center' }}>Workout Details</h2>
-                <div className='GroupDetailContainer'>
-                    <div className='BadgeDetailHeader'>
-                        <div className='BadgeInfoContainer'>
-                            <div className='BadgeDetailTitle' style={{ color: 'var(--main-color)' }}>
-                                {workout.name}
+        <div className="modal-overlay">
+            <div className="modal-backdrop" onClick={onClose}></div>
+            <div className="modal-content max-w-4xl">
+                <div className="modal-header gap-6">
+                    <h2 className="modal-title">Workout Details</h2>
+                    <button className="modal-close" onClick={onClose}>
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+
+                <div className="space-y-8">
+                    {/* Workout Overview */}
+                    <div className="card">
+                        <div className="flex items-start gap-4">
+                            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <Dumbbell className="w-6 h-6 text-white" />
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="text-xl font-bold text-gradient mb-2">
+                                    {workout.name}
+                                </h3>
+                                <p className="text-slate-300 mb-4">
+                                    {workout.description || 'No description available.'}
+                                </p>
+                                <div className="grid-2 gap-4 text-sm">
+                                    <div>
+                                        <span className="text-slate-400">Workout ID:</span>
+                                        <span className="text-slate-300 ml-2 font-mono">{workout.uid}</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-slate-400">Start Time:</span>
+                                        <span className="text-slate-300 ml-2">{formatDate(workout.startTime)}</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-slate-400">Active Time:</span>
+                                        <span className="text-slate-300 ml-2">{workout.formatDuration(workout.activeTime * 1000) || '0'}</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-slate-400">Idle Time:</span>
+                                        <span className="text-slate-300 ml-2">{workout.formatDuration(workout.idleTime * 1000) || '0'}</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div className='GroupDetailDescription' style={{ textAlign: 'left' }}>
-                        {workout.description || 'No description available.'}
-                    </div>
-                    <div className='GroupDetailInfo' style={{ textAlign: 'left' }}>
-                        <div>Workout ID: {workout.uid}</div>
-                        {workout.startTime && (() => { const bm = new BaseModel({ createdAt: workout.startTime }); return <div>Created: {bm.getCreateAt()}</div>; })()}
-                        <div>Active Time: {workout.formatDuration(workout.activeTime * 1000) || 0}</div>
-                        <div>Idle Time: {workout.formatDuration(workout.idleTime * 1000) || 0}</div>
+
+                    {/* Statistics */}
+                    <div className="grid-3 gap-4 mt-4">
+                        <div className="card text-center">
+                            <div className="text-2xl font-bold text-gradient">{workout.exercises?.length || 0}</div>
+                            <div className="text-sm text-slate-400">Exercises</div>
+                        </div>
+                        <div className="card text-center">
+                            <div className="text-2xl font-bold text-gradient">
+                                {workout.exercises?.reduce((sum, ex) => sum + (ex.points || 0), 0) || 0}
+                            </div>
+                            <div className="text-sm text-slate-400">Total Points</div>
+                        </div>
+                        <div className="card text-center">
+                            <div className="text-2xl font-bold text-gradient">
+                                {workout.exercises?.reduce((sum, ex) => sum + (ex.calories || 0), 0) || 0}
+                            </div>
+                            <div className="text-sm text-slate-400">Total Calories</div>
+                        </div>
                     </div>
 
-                    <div className="StationsSection" style={{ marginTop: '20px', textAlign: 'left' }}>
-                        <h3 style={{ color: 'var(--main-color)', marginBottom: '10px' }}>Exercises</h3>
-                        <div className="StationList" style={{ maxHeight: '200px', overflowY: 'auto', paddingRight: '10px' }}>
+                    {/* Exercises Section */}
+                    <div className="card mt-4">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-semibold text-gradient">Exercises</h3>
+                            <button
+                                className="btn-primary flex items-center gap-2"
+                                onClick={() => setShowAddExercisePopup(true)}
+                                disabled={isProcessing}
+                            >
+                                <Plus className="w-4 h-4" />
+                                Add Exercise
+                            </button>
+                        </div>
+
+                        <div className="space-y-3 max-h-[300px] overflow-y-auto">
                             {workout.exercises && workout.exercises.length > 0 ? (
                                 [...workout.exercises]
                                     .sort((a, b) => (b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0) - (a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0))
                                     .map(exercise => {
-
                                         const station = stations.find(s => s.uid === exercise.stationId);
                                         return (
-                                            <div key={exercise.uid} className="StationItem" style={{ border: '1px solid #444', borderRadius: '8px', padding: '10px', marginBottom: '10px', background: '#2C2C2C' }}>
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                    <strong style={{ color: '#E5E5E5' }}>{exercise.name}</strong>
-                                                    {/* Edit and Delete buttons for each exercise */}
-                                                    <div className='ActionButtons'>
-                                                        <button onClick={() => setEditingExercise(exercise)} style={{ marginRight: '10px' }}>Edit</button>
-                                                        <button onClick={() => handleDeleteExercise(exercise.uid)}>Delete</button>
+                                            <div key={exercise.uid} className="card p-4">
+                                                <div className="flex items-start justify-between">
+                                                    <div className="flex items-start gap-3 flex-1">
+                                                        <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                                                            <Activity className="w-5 h-5 text-white" />
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <h4 className="font-semibold text-white mb-1">{exercise.name}</h4>
+                                                            <p className="text-sm text-slate-400 mb-2">
+                                                                {exercise.description || 'No description.'}
+                                                            </p>
+                                                            <div className="flex items-center gap-4 text-xs text-slate-500">
+                                                                <span>Points: {exercise.points || 0}</span>
+                                                                <span>Calories: {exercise.calories || 0}</span>
+                                                                {station && <span>Station: {station.name}</span>}
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                                <p style={{ margin: '5px 0', color: '#A0A0A0' }}>{exercise.description || 'No description.'}</p>
-                                                <div style={{ fontSize: '12px', color: '#A0A0A0' }}>
-                                                    Points: {exercise.points || 0}
-                                                    {/* Display station name if available */}
-                                                    {station && ` | Station: ${station.name}`}
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            className="btn-icon btn-secondary"
+                                                            onClick={() => setEditingExercise(exercise)}
+                                                            title="Edit Exercise"
+                                                        >
+                                                            <Edit className="w-4 h-4" />
+                                                        </button>
+                                                        <button
+                                                            className="btn-icon btn-danger"
+                                                            onClick={() => handleDeleteExercise(exercise.uid)}
+                                                            title="Delete Exercise"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         );
                                     })
                             ) : (
-                                <p style={{ color: '#A0A0A0' }}>No exercises have been added to this workout yet.</p>
+                                <div className="text-center py-8 text-slate-400">
+                                    <Activity className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                                    <p>No exercises have been added to this workout yet.</p>
+                                </div>
                             )}
                         </div>
-                        <button
-                            className='AdminActionButton'
-                            style={{ marginTop: '10px' }}
-                            onClick={() => setShowAddExercisePopup(true)}
-                            disabled={isProcessing}
-                        >
-                            Add New Exercise
-                        </button>
                     </div>
 
-                    <div className="GroupActionButtons" style={{ marginTop: '40px' }}>
+                    {/* Action Buttons */}
+                    <div className="flex justify-end gap-3 pt-6 mt-4">
+
                         <button
-                            className='AdminActionButton'
-                            onClick={() => setShowEditPopup(true)}
-                            disabled={isProcessing}
+                            className="btn-secondary flex items-center gap-2"
+                            onClick={onClose}
                         >
-                            Edit Workout Info
+                            Cancel
                         </button>
                         <button
-                            className='GroupActionButton'
+                            className="btn-danger flex items-center gap-2"
                             onClick={handleDeleteWorkout}
                             disabled={isProcessing}
                         >
+                            <Trash2 className="w-4 h-4" />
                             {isProcessing ? 'Deleting...' : 'Delete Workout'}
                         </button>
+                        <button
+                            className="btn-primary flex items-center gap-2"
+                            onClick={() => setShowEditPopup(true)}
+                            disabled={isProcessing}
+                        >
+                            <Edit className="w-4 h-4" />
+                            Edit Workout
+                        </button>
                     </div>
-                </div>
-                <div className='Line'></div>
-                <div className='Buttonfield'>
-                    <button className='CancelButton' onClick={onClose}>Close</button>
+
                 </div>
 
                 {showEditPopup && (
@@ -536,11 +666,13 @@ function WorkoutManagerPage({ user }) {
     const [selectedWorkout, setSelectedWorkout] = useState(null);
     const [showCreatePopup, setShowCreatePopup] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
 
     const loadData = async () => {
         setIsLoading(true);
         try {
-            const workoutData = await WorkoutManager.loadWorkouts(user.uid);
+            // Load all workouts from all users for admin management
+            const workoutData = await WorkoutManager.loadAllWorkouts();
             setWorkouts(workoutData);
 
             const stationData = await StationManager.loadAll();
@@ -564,10 +696,8 @@ function WorkoutManagerPage({ user }) {
     };
 
     useEffect(() => {
-        if (user?.uid) {
-            loadData();
-        }
-    }, [user]);
+        loadData();
+    }, []);
 
     const handleWorkoutCreation = async (data) => {
         setIsCreating(true);
@@ -584,48 +714,69 @@ function WorkoutManagerPage({ user }) {
         }
     };
 
-    const renderList = () => {
-        if (isLoading) {
-            return <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>Loading Workouts...</div>;
-        }
+    const filteredWorkouts = workouts.filter(workout =>
+        workout.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        workout.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        workout.userDisplayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        workout.userEmail?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
-        if (workouts.length === 0) {
-            return <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>No Workouts Found. Create one to get started!</div>;
-        }
+    const stats = [
+        { value: workouts.length, label: 'Total Workouts' },
+        { value: new Set(workouts.map(w => w.userId)).size, label: 'Active Users' },
+        { value: workouts.reduce((sum, workout) => sum + (workout.exercises?.length || 0), 0), label: 'Total Exercises' }
+    ];
 
-        return workouts.map(workout => (
-            <div
+    const renderWorkoutCards = () => {
+        return filteredWorkouts.map(workout => (
+            <AdminCard
                 key={workout.uid}
-                className="CardContainer"
                 onClick={() => setSelectedWorkout(workout)}
             >
-                <div className="CardHeader" style={{ color: 'var(--main-color)' }}>
-                    {workout.name}
+                <div className="flex items-start gap-3">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <Dumbbell className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gradient truncate mb-1">
+                            {workout.name}
+                        </h3>
+                        <p className="text-sm text-slate-300 mb-2 line-clamp-2">
+                            {workout.description || 'No description available.'}
+                        </p>
+                        <div className="text-xs text-slate-400 mb-2">
+                            <span className="font-medium">Owner:</span> {workout.userDisplayName || 'Unknown User'} ({workout.userEmail})
+                        </div>
+                        <div className="flex items-center justify-start text-xs text-slate-400">
+                            <span className="flex items-center gap-1">
+                                <Activity className="w-3 h-3" />
+                                {workout.exercises?.length || 0} exercises
+                            </span>
+                        </div>
+                    </div>
                 </div>
-                <div className="CardContents">
-                    {workout.description || 'No description available.'}
-                </div>
-                <div className="CardContents">
-                    Exercises: {workout.exercises?.length || 0}
-                </div>
-            </div>
+            </AdminCard>
         ));
     };
 
     return (
-        <div className="AppContents">
-            <h2 style={{ color: '#E5E5E5', margin: '0 0 20px 0' }}>Workout Manager</h2>
-            <div className="AdminGroupContainer">
-                <div className="GuideText">All Workouts</div>
-                {renderList()}
-                <button
-                    className="AdminActionButton"
-                    onClick={() => setShowCreatePopup(true)}
-                >
-                    Create New Workout
-                </button>
-            </div>
+        <>
+            <AdminPageLayout
+                title="Workout Manager"
+                stats={stats}
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                searchPlaceholder="Search workouts by name, description, or user..."
+                onCreateClick={() => setShowCreatePopup(true)}
+                createButtonText="Create Workout"
+                isLoading={isLoading}
+                emptyMessage="No workouts found in the system."
+                contentGridClass="grid-2 gap-6"
+            >
+                {renderWorkoutCards()}
+            </AdminPageLayout>
 
+            {/* Modals */}
             {showCreatePopup && (
                 <EditWorkoutForm
                     onSubmit={handleWorkoutCreation}
@@ -644,7 +795,7 @@ function WorkoutManagerPage({ user }) {
                     stations={stations}
                 />
             )}
-        </div>
+        </>
     );
 }
 

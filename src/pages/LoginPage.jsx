@@ -2,11 +2,8 @@ import React, { useState, lazy, Suspense } from "react";
 import { Mail, Lock, User, Eye, EyeOff, LogIn, UserPlus } from "lucide-react";
 import '../components/styles/sphere-styles.css';
 
-//const AdminPage = lazy(() => import('./admin/AdminPage.jsx').then(module => ({ default: module.default.AdminPageMain })));
-//const MainLayout = lazy(() => import('../layouts/MainLayout.jsx').then(module => ({ default: module.default.AppLayout })));
-
-const AdminPage = lazy(() => import('./admin/AdminPage.jsx'));
-const MainLayout = lazy(() => import('../layouts/MainLayout.jsx'));
+const AdminPage = lazy(() => import('./admin/AdminPage.jsx').then(module => ({ default: module.default.AdminPageMain })));
+const MainLayout = lazy(() => import('../layouts/MainLayout.jsx').then(module => ({ default: module.default.AppLayout })));
 
 
 import UserManagement from '../services/UserManagementSystem.jsx';

@@ -77,12 +77,12 @@ const ProfileImageUploader = ({ userId, onUploadComplete }) => {
   );
 };
 
-const ProfileImageDisplay = ({ userId, imageclass }) => {
+const ProfileImageDisplay = ({ userId, imageclass, refreshTrigger }) => {
   
   const [imageLoading, setImageLoading] = useState(true);
   const [existingImage, setExistingImage] = useState('');
 
-  // Load existing image when the component mounts
+  // Load existing image when the component mounts or refreshTrigger changes
   useEffect(() => {
     const loadExistingImage = async () => {
       if (!userId) {
@@ -103,10 +103,14 @@ const ProfileImageDisplay = ({ userId, imageclass }) => {
     };
 
     loadExistingImage();
-  }, [userId]); // Runs whenever userId changes
+  }, [userId, refreshTrigger]); // Runs whenever userId or refreshTrigger changes
 
   if (imageLoading) {
     return <div className={imageclass}>Loading...</div>;
+  }
+
+  if (!existingImage) {
+    return null; // Don't render anything if no image exists
   }
 
   return (

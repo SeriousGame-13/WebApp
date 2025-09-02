@@ -317,7 +317,7 @@ function BadgeDetailModal({ badgeId, open, onClose, allBadges, userBadgesMap }) 
 }
 
 // ---------- Settings Modal ----------
-function SettingsModal({ open, onClose, user, onUserUpdated }) {
+function SettingsModal({ open, onClose, user, onUserUpdated, onImageUpdated }) {
   const [isEditingName, setIsEditingName] = useState(false);
   const [newName, setNewName] = useState('');
   const [isSavingName, setIsSavingName] = useState(false);
@@ -327,6 +327,14 @@ function SettingsModal({ open, onClose, user, onUserUpdated }) {
       setNewName(user.displayName || user.name || '');
     }
   }, [open, user]);
+
+  const handleImageUploadComplete = (result) => {
+    console.log('Profile image uploaded successfully:', result);
+    // Notify parent component that image was updated
+    if (onImageUpdated) {
+      onImageUpdated();
+    }
+  };
 
   const handleNameSave = async () => {
     if (!newName.trim() || !user?.uid) return;
@@ -370,7 +378,12 @@ function SettingsModal({ open, onClose, user, onUserUpdated }) {
           <div className="card p-4">
             <div className="flex items-start gap-4">
               <div className="flex-shrink-0">
-                {user?.uid && <ProfileImageElements.ProfileImageUploader userId={user.uid} />}
+                {user?.uid && (
+                  <ProfileImageElements.ProfileImageUploader 
+                    userId={user.uid} 
+                    onUploadComplete={handleImageUploadComplete}
+                  />
+                )}
               </div>
               <div className="flex-1 space-y-3">
                 {/* Name Edit */}
@@ -449,6 +462,7 @@ function Page({ data, onOpenBadge, onOpenSettings, onUserUpdated }) {
   const [isLoadingBadges, setIsLoadingBadges] = useState(true);
   const [selectedBadgeId, setSelectedBadgeId] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [imageRefreshTrigger, setImageRefreshTrigger] = useState(0);
 
   console.log('UserPage executing with data:', data);
 
@@ -564,6 +578,11 @@ function Page({ data, onOpenBadge, onOpenSettings, onUserUpdated }) {
     }
   };
 
+  const handleImageUpdated = () => {
+    // Trigger refresh of profile image display by incrementing the refresh trigger
+    setImageRefreshTrigger(prev => prev + 1);
+  };
+
   const header = (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-3">
@@ -572,6 +591,7 @@ function Page({ data, onOpenBadge, onOpenSettings, onUserUpdated }) {
             userId={userData.uid} 
             imageclass="w-full h-full rounded-full object-cover"
             style={{ width: 48, height: 48 }}
+            refreshTrigger={imageRefreshTrigger}
           />
           {!userData.uid && (
             <Avatar name={userData.name || userData.displayName} size={48} seed={userData.id || 'default'} />
@@ -644,6 +664,7 @@ function Page({ data, onOpenBadge, onOpenSettings, onUserUpdated }) {
         onClose={() => setShowSettings(false)}
         user={userData}
         onUserUpdated={onUserUpdated}
+        onImageUpdated={handleImageUpdated}
       />
     </>
   );

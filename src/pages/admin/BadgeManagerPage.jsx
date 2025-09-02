@@ -15,9 +15,10 @@ function BadgeForm({ badge = null, onSubmit, onCancel, isProcessing, submitText 
         description: badge?.description || '',
         rarity: badge?.rarity || BADGE_RARITY.COMMON,
         rewardPoints: badge?.rewardPoints || 0,
-        structure: badge?.structure || dummyBadge.structure,
-        mapping: badge?.mapping || dummyBadge.mapping,
-        query: badge?.query || dummyBadge.query,
+        collection: badge?.collection || dummyBadge.collection,
+        aggregate: badge?.aggregate || dummyBadge.aggregate,
+        field: badge?.field || dummyBadge.field,
+        valueToReach: badge?.valueToReach || dummyBadge.valueToReach,
         conditions: badge?.conditions || dummyBadge.conditions,
         imageData: null
     });
@@ -58,10 +59,11 @@ function BadgeForm({ badge = null, onSubmit, onCancel, isProcessing, submitText 
         { key: 'name', label: 'Badge Name', type: 'text', maxLength: 50, placeholder: 'Enter badge name' },
         { key: 'description', label: 'Description', type: 'text', maxLength: 200, placeholder: 'Enter badge description' },
         { key: 'rewardPoints', label: 'Reward Points', type: 'number', min: 0, placeholder: 'Points awarded when earned' },
-        { key: 'structure', label: 'Firebase Structure', type: 'textarea', rows: 4, placeholder: 'Enter Firebase Structure' },
-        { key: 'mapping', label: 'Firebase Mapping', type: 'textarea', rows: 4, placeholder: 'Enter Firebase Mapping' },
-        { key: 'query', label: 'Query', type: 'textarea', rows: 4, placeholder: 'Enter Query' },
-        { key: 'conditions', label: 'Conditions', type: 'textarea', rows: 4, placeholder: 'Enter Conditions' }
+        { key: 'collection', label: 'Collection', type: 'text', placeholder: 'e.g., exercises' },
+        { key: 'aggregate', label: 'Aggregate', type: 'text', placeholder: 'e.g., sum, count' },
+        { key: 'field', label: 'Field to Aggregate', type: 'text', placeholder: 'e.g., points' },
+        { key: 'valueToReach', label: 'Value to Reach', type: 'text', placeholder: 'e.g., 1000' },
+        { key: 'conditions', label: 'Conditions', type: 'textarea', rows: 4, placeholder: 'field:userId,operator:==,value:{user.uid}' }
     ];
 
     return (
@@ -196,9 +198,10 @@ function AdminBadgeDetailPopup({ badge, onClose, onBadgeUpdated }) {
                 description: badgeData.description,
                 rarity: badgeData.rarity,
                 rewardPoints: badgeData.rewardPoints,
-                structure: badgeData.structure,
-                mapping: badgeData.mapping,
-                query: badgeData.query,
+                collection: badgeData.collection,
+                aggregate: badgeData.aggregate,
+                field: badgeData.field,
+                valueToReach: badgeData.valueToReach,
                 conditions: badgeData.conditions
             });
 

@@ -75,11 +75,18 @@ function AdminHeader({ user, onPageSelect, currentPage }) {
                         >
                             Workout Manager
                         </div>
-                                                <div
+                        <div
                             className='AdminDropdownItem'
                             onClick={() => handlePageSelect('Station Manager')}
                         >
                             Station Manager
+                        </div>
+
+                        <div
+                            className='AdminDropdownItem'
+                            onClick={() => handlePageSelect('Station Game Manager')}
+                        >
+                            Station Game Manager
                         </div>
                     </div>
                 )}

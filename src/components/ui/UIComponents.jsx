@@ -10,10 +10,16 @@ const GRADIENTS = [
   "avatar-gradient-5",
 ];
 
-function initials(name = "?") {
+export function initials(name = "?") {
   const parts = name.split(new RegExp("\\s+")).filter(Boolean);
   const letters = parts.slice(0, 2).map(p => p[0]?.toUpperCase() || "?");
   return letters.join("");
+}
+
+export function badgeLevelColor(level) {
+  if (level === 3) return "badge-level-3";
+  if (level === 2) return "badge-level-2";
+  return "badge-level-1";
 }
 
 export function Avatar({  name, image, size = 48, seed }) {

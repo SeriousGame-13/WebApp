@@ -1,60 +1,57 @@
 import { useEffect, useRef, useState } from 'react';
-import '../components/styles/LoginPage.css';
-import BadgeManagement from '../services/firebase/BadgeManagement';
+import { resizeImage } from '../../utils/ImageUtils.jsx';
 
-const resizeImage = (file, width = 100, height = 100, quality = 0.8) => {
-  return new Promise((resolve, reject) => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    const img = new Image();
-    
-    img.onload = () => {
-      canvas.width = width;
-      canvas.height = height;
-      ctx.drawImage(img, 0, 0, width, height);
-      
-      const base64String = canvas.toDataURL('image/jpeg', quality);
-      resolve(base64String);
-    };
-    
-    img.onerror = () => reject(new Error('Image loading failed'));
-    img.src = URL.createObjectURL(file);
-  });
-};
 
-const BadgeImageSelector = ({ badgeId, onImageProcessed, onError, disabled }) => {
+export const ImageSelector = ({ 
+  id, 
+  onImageProcessed, 
+  onError, 
+  disabled = false,
+  loadExistingImage,
+  altText = "Image Preview",
+  buttonClassName = 'ButtonSmall',
+  buttonText = {
+    processing: 'Processing...',
+    loading: 'Loading...',
+    disabled: 'Disabled',
+    noImage: 'Select Image',
+    hasImage: 'Change Image'
+  }
+}) => {
   const [processing, setProcessing] = useState(false);
   const [previewUrl, setPreviewUrl] = useState('');
   const [existingImage, setExistingImage] = useState('');
   const [imageLoading, setImageLoading] = useState(false);
   const fileInputRef = useRef(null);
 
+  // Load existing image when the component mounts
   useEffect(() => {
-    const loadExistingImage = async () => {
-      if (!badgeId) {
+    const loadImage = async () => {
+      if (!id || !loadExistingImage) {
         setImageLoading(false);
         return;
       }
       
       setImageLoading(true);
       try {
-        const existingImageBase64 = await BadgeManagement.getBadgeImage(badgeId);
+        const existingImageBase64 = await loadExistingImage(id);
         setExistingImage(existingImageBase64 || '');
       } catch (error) {
-        console.error('Failed to load existing badge image:', error);
+        console.error('Failed to load existing image:', error);
         setExistingImage('');
       } finally {
         setImageLoading(false);
       }
     };
 
-    loadExistingImage();
-  }, [badgeId]);
+    loadImage();
+  }, [id, loadExistingImage]);
 
   const handleFileSelect = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
+    // Validate file
     if (!file.type.startsWith('image/')) {
       onError && onError('Please select an image file only.');
       return;
@@ -68,10 +65,16 @@ const BadgeImageSelector = ({ badgeId, onImageProcessed, onError, disabled }) =>
     setProcessing(true);
 
     try {
+      // Resize image + convert to Base64
       const resizedBase64 = await resizeImage(file, 100, 100, 0.8);
       
+      // Set preview
       setPreviewUrl(resizedBase64);
 
+      // Update existing image after processing
+      setExistingImage(resizedBase64);
+
+      // Call result callback
       onImageProcessed && onImageProcessed({
         originalFile: file,
         base64Data: resizedBase64,
@@ -94,8 +97,16 @@ const BadgeImageSelector = ({ badgeId, onImageProcessed, onError, disabled }) =>
 
   const displayImage = previewUrl || existingImage;
 
+  const getButtonText = () => {
+    if (processing) return buttonText.processing;
+    if (imageLoading) return buttonText.loading;
+    if (disabled) return buttonText.disabled;
+    return displayImage ? buttonText.hasImage : buttonText.noImage;
+  };
+
   return (
     <div>
+      {/* Preview */}
       <div className='EditImageContainer'>
         {imageLoading ? (
           <div className='ProfileImageAlt'>
@@ -104,7 +115,7 @@ const BadgeImageSelector = ({ badgeId, onImageProcessed, onError, disabled }) =>
         ) : displayImage ? (
           <img className='ProfileImage'
             src={displayImage} 
-            alt="Badge Preview" 
+            alt={altText} 
           />
         ) : (
           <div className='ProfileImageAlt'>
@@ -113,6 +124,7 @@ const BadgeImageSelector = ({ badgeId, onImageProcessed, onError, disabled }) =>
         )}
       </div>
 
+      {/* File selection input */}
       <input
         ref={fileInputRef}
         type="file"
@@ -121,14 +133,12 @@ const BadgeImageSelector = ({ badgeId, onImageProcessed, onError, disabled }) =>
         style={{ display: 'none' }}
       />
 
-      <button className='UploadButton'
+      {/* Selection button */}
+      <button className={buttonClassName}
         onClick={handleButtonClick}
         disabled={processing || disabled || imageLoading}
       >
-        {processing ? 'Processing...' : 
-         imageLoading ? 'Loading...' : 
-         disabled ? 'Creating badge first...' :
-         existingImage || previewUrl ? 'Change Image' : 'Select Badge Image'}
+        {getButtonText()}
       </button>
 
       {processing && (
@@ -136,54 +146,10 @@ const BadgeImageSelector = ({ badgeId, onImageProcessed, onError, disabled }) =>
             <div className='PopupContainer'>
                 <h2>...Resizing Image...</h2>
                 <h2>...Converting to Base64...</h2>
+                <h2>...Saving...</h2>
             </div>
         </div>
       )}
     </div>
   );
 };
-
-const BadgeImageUploader = ({ badgeId, onUploadComplete, disabled }) => {
-  const [result, setResult] = useState(null);
-  const [error, setError] = useState('');
-
-  const handleImageProcessed = (processResult) => {
-    setResult(processResult);
-    setError('');
-    
-    onUploadComplete && onUploadComplete({
-      base64Data: processResult.base64Data,
-      badgeId: badgeId
-    });
-  };
-
-  const handleError = (errorMessage) => {
-    console.error('Error:', errorMessage);
-    setError(errorMessage);
-    setResult(null);
-  };
-
-  return (
-    <div>
-      <BadgeImageSelector 
-        badgeId={badgeId}
-        onImageProcessed={handleImageProcessed}
-        onError={handleError}
-        disabled={disabled}
-      />
-      {error && (
-        <div style={{ color: '#FF4757', fontSize: '12px', marginTop: '8px' }}>
-          {error}
-        </div>
-      )}
-    </div>
-  );
-};
-
-const BadgeImageElements = { 
-    resizeImage, 
-    BadgeImageSelector,
-    BadgeImageUploader
-};
-
-export default BadgeImageElements;

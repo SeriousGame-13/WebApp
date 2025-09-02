@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import BadgeManagement from '../../services/BadgeManagement.jsx';
 import { BADGE_RARITY } from '../../services/interfaces/Constants.jsx';
-import BadgeImageElements from '../../services/firebase/BadgeImageUploader.jsx';
+import BadgeImageElements from '../../components/ui/BadgeImageManager.jsx';
 import '../../components/styles/LayoutElements.css';
 import { Badge } from '../../services/interfaces/Badge.jsx';
 import RewardSystem from '../../services/RewardSystem.jsx';

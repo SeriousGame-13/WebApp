@@ -1,17 +1,54 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import LoginPage from '../pages/LoginPage.jsx';
-import DatamanagerElements from '../services/firebase/DataManager.jsx';
 import ChallengePageElements from '../pages/ChallengePage.jsx';
 import GroupPageElements from '../pages/GroupPage.jsx';
 import HomePageElements from '../pages/HomePage.jsx';
 import RankingPage from '../pages/RankingPage.jsx';
 import UserPageElements from '../pages/UserPage.jsx';
+import UserManagement from '../services/UserManagementSystem.jsx';
+import FirebaseAuthenticationManager from '../services/firebase/FirebaseAuthenticationManager.jsx';
 import '../components/styles/LayoutElements.css'
 import MainFooter from './MainFooter.jsx';
 
+const useAuth = () => {
+    const [currentUser, setCurrentUser] = useState(null);
+    const [userData, setUserData] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const unsubscribe = FirebaseAuthenticationManager.subscribeToAuthChanges(async (user) => {
+            if (user) {
+                setCurrentUser(user);
+                
+                // Use UserManagement system to fetch detailed user information
+                try {
+                    const userDataFromManagement = await UserManagement.getUser(user.uid);
+                    if (userDataFromManagement) {
+                        setUserData(userDataFromManagement);
+                    } else {
+                        console.warn('User data not found in UserManagement system');
+                        setUserData(null);
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch user data from UserManagement:', error);
+                    setUserData(null);
+                }
+            } else {
+                setCurrentUser(null);
+                setUserData(null);
+            }
+            setLoading(false);
+        });
+        
+        return () => unsubscribe(); // Prevent memory leaks
+    }, []);
+
+    return { currentUser, userData, loading };
+};
+
 function AppLayout() {
-    const { currentUser, userData, loading } = DatamanagerElements.useAuth();
+    const { currentUser, userData, loading } = useAuth();
 
     const [currentPage, setCurrentPage] = useState('home');
 
@@ -22,7 +59,7 @@ function AppLayout() {
     const renderCurrentPage = () => {
         switch (currentPage) {
             case 'home':
-                console.log('Rendering GroupPage with data:', userData);
+                console.log('Rendering HomePage with data:', userData);
                 return (
                 <div className='app-container'>
                     <HomePageElements.Page userData={userData} />

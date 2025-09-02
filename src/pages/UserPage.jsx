@@ -6,10 +6,10 @@ import BadgeManagement from '../services/BadgeManagement.jsx';
 import FireAuthManager from '../services/firebase/FirebaseAuthenticationManager.jsx';
 import FirestoreManager from '../services/firebase/FirestoreManager.jsx';
 import { USERS_COLLECTION } from '../services/firebase/Collections.jsx';
-import DatamanagerElements from '../services/firebase/DataManager.jsx';
-import ProfileImageElements from '../services/firebase/ProfileImageManager.jsx';
+import ProfileImageElements from '../components/ui/ProfileImageManager.jsx';
 
 
+//TODO Refactor!!!!!!!!!!!!!!!!!!!!!!!
 function HeartIcon() {
   return (
     <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
@@ -18,6 +18,7 @@ function HeartIcon() {
   );
 }
 
+//TODO Refactor
 function Legend({ userBadgesMap, allBadges }) {
   // Count badges by rarity that the user has unlocked
   const rarityCount = {
@@ -567,7 +568,7 @@ function Page({ data, onOpenBadge, onOpenSettings, onUserUpdated }) {
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-3">
         <div className="relative" style={{ width: 48, height: 48 }}>
-          <DatamanagerElements.ProfileImageDisplay 
+          <ProfileImageElements.ProfileImageDisplay 
             userId={userData.uid} 
             imageclass="w-full h-full rounded-full object-cover"
             style={{ width: 48, height: 48 }}
@@ -626,7 +627,6 @@ function Page({ data, onOpenBadge, onOpenSettings, onUserUpdated }) {
             })}
           </div>
         )}
-        <p className="text-slate-400 text-xs mt-3">Tippe auf ein Badge für Details.</p>
       </Screen>
 
       {/* Badge Detail Modal */}

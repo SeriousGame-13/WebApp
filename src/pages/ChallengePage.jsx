@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import ExpElements from '../components/ui/ExpBar';
+import { LinearExpContainerSimple} from '../components/ui/ExpBarComponents.jsx';
 import ChallengeManagement from '../services/ChallengeManagement.jsx';
 import GroupManagement from '../services/GroupManagementSystem.jsx';
 import UserManagement from '../services/UserManagementSystem.jsx';
@@ -149,7 +149,7 @@ function ChallengeDetailModal({ challengeId, open, onClose, allChallenges, group
                         {userProgress} / {challenge.targetValue || 0}
                         </span>
                     </div>
-                    <ExpElements.NewLinearExpContainerSimple 
+                    <LinearExpContainerSimple 
                         expnow={userProgress} 
                         expmax={challenge.targetValue || 100} 
                     />
@@ -330,7 +330,7 @@ function ClickableChallengeCard({ challenge, groupNames, onClick, userData }) {
             Reward: {challenge.rewardPoints} pts
         </div>
         <div className='mt-3'>
-            <ExpElements.NewLinearExpContainerSimple
+            <LinearExpContainerSimple
             expnow={userProgress}
             expmax={challenge.targetValue || 100}
             />
@@ -439,10 +439,6 @@ function Page({ data }) {
                                 ))}
                             </div>
                         )}
-                        
-                        <p className="text-slate-400 text-xs mt-4">
-                            Tippe auf ein Challenge für Details
-                        </p>
                     </div>
                 </div>
             </div>

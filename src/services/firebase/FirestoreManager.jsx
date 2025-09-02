@@ -23,12 +23,12 @@ import {
     getFirestore,
     limit,
     query,
-    serverTimestamp,
     setDoc,
     where,
 } from 'firebase/firestore';
 
 import { firebaseApp } from './FirebaseAppConfiguration';
+import { serverTimestamp } from './FirebaseHelper';
 
 const db = getFirestore(firebaseApp);
 
@@ -282,6 +282,58 @@ const queryDocuments = async (collectionName, conditions = []) => {
     }
 };
 
+const saveUserImage = async (base64Data, userId) => {
+  try {
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+
+    console.log('Saving image to profileimages collection...');
+    
+    // Use setDoc to create a document if it doesn't exist, or overwrite if it does
+    await setDoc(doc(db, 'profileimages', userId), {
+      uid: userId,
+      imageBase64: base64Data,
+      updatedAt: serverTimestamp(),
+      createdAt: serverTimestamp(), // Set only when first created
+      imageSize: Math.round(base64Data.length * 0.75), // Estimate Base64 size
+      format: 'jpeg',
+      dimensions: '100x100'
+    }, { merge: true }); // Preserve existing data with merge: true
+
+    console.log('Saved to profileimages collection');
+    
+    return {
+      uid: userId,
+      base64: base64Data,
+      size: Math.round(base64Data.length * 0.75),
+      updatedAt: serverTimestamp()
+    };
+
+  } catch (error) {
+    console.error('Error saving to profileimages:', error);
+    throw error;
+  }
+};
+
+const getUserImage = async (userId) => {
+  try {
+    if (!userId) return null;
+    
+    const docRef = doc(db, 'profileimages', userId);
+    const docSnap = await getDoc(docRef);
+    
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      return data.imageBase64;
+    } else {
+      return null;
+    }
+  } catch (error) {
+    console.error('Get-image Error:', error);
+    return null;
+  }
+}
 
 /**
  * Firestore Manager
@@ -311,7 +363,11 @@ const FirestoreManager = {
     getAllDocuments,
     getServerTimestamp,
     findDocumentByField,
-    queryDocuments
+    queryDocuments,
+
+    //Images
+    saveUserImage,
+    getUserImage
 };
 
 export default FirestoreManager;

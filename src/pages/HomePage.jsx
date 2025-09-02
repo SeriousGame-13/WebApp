@@ -15,7 +15,8 @@
 import { ExerciseList, ExerciseSectionHeader } from '../components/ui/ExerciseComponents.jsx';
 import { ExerciseDetailModal, ExerciseModal, WorkoutModal } from '../components/ui/ModalComponents.jsx';
 import { Screen } from '../components/ui/UIComponents.jsx';
-import { LevelProgressBar, UserHeader } from '../components/ui/UserComponents.jsx';
+import { UserHeader } from '../components/ui/UserComponents.jsx';
+import { LevelProgressBar } from '../components/ui/ExpBarComponents.jsx';
 import { WorkoutActions, WorkoutSelector, WorkoutStats } from '../components/ui/WorkoutComponents.jsx';
 import { useHomePage } from '../hooks/useHomePage.jsx';
 

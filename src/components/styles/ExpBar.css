@@ -13,7 +13,7 @@
 }
 .LinearExpFill {
     height: 100%;
-    background: #96E36C;
+    background: #f0abfc;
     width: 0%;
     transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
@@ -34,7 +34,7 @@
 }
 .LinearExpFillSimple {
     height: 100%;
-    background: var(--main-color);
+    background: #f0abfc;
     width: 0%;
     transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;

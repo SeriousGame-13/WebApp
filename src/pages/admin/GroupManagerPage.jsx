@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import BaseModel from '../../services/interfaces/Base.jsx';
 import UserManagement from '../../services/UserManagementSystem.jsx';
 import GroupManagement from '../../services/GroupManagementSystem.jsx';
-import GroupPageElements from '../GroupPage.jsx';
 import { AdminPageLayout, AdminCard } from '../../components/ui/AdminComponents.jsx';
 import '../../components/styles/sphere-styles.css';
 import ChallengeManagement from '../../services/ChallengeManagement.jsx';
@@ -106,7 +105,7 @@ function AdminGroupDetailPopup({ group, onClose, onGroupUpdated }) {
         <div className="modal-overlay">
             <div className="modal-backdrop" onClick={onClose}></div>
             <div className="modal-content max-w-lg">
-                <div className="modal-header">
+                <div className="modal-header gap-6">
                     <h2 className="modal-title">
                         {group.name}
                         {group.isPrivate && <span className="text-sm text-slate-400 ml-2">(Private)</span>}
@@ -116,7 +115,7 @@ function AdminGroupDetailPopup({ group, onClose, onGroupUpdated }) {
                     </button>
                 </div>
 
-                <div className="space-y-6">
+                <div className="space-y-8 mb-4">
                     {/* Group Info Card */}
                     <div className="card p-4">
                         <div className="flex items-center gap-3 mb-3">
@@ -134,11 +133,7 @@ function AdminGroupDetailPopup({ group, onClose, onGroupUpdated }) {
                             {group.description || 'No description available.'}
                         </p>
                         
-                        <div className="grid-2 gap-3 text-sm">
-                            <div>
-                                <span className="text-slate-400">Group ID:</span>
-                                <p className="font-mono text-xs">{group.groupId}</p>
-                            </div>
+                        <div className="grid-1 gap-3 text-sm">
                             <div>
                                 <span className="text-slate-400">Created by:</span>
                                 <p>{creatorName}</p>
@@ -147,7 +142,7 @@ function AdminGroupDetailPopup({ group, onClose, onGroupUpdated }) {
                     </div>
 
                     {/* Members Section */}
-                    <div className="card p-4">
+                    <div className="card p-4 mt-4">
                         <div className="flex items-center justify-between mb-4">
                             <h4 className="font-semibold">
                                 Members ({group.getActiveMemberCount()}/{group.maxMembers})
@@ -180,11 +175,10 @@ function AdminGroupDetailPopup({ group, onClose, onGroupUpdated }) {
                             ))}
                         </div>
                     </div>
-
                     {/* Action Buttons */}
-                    <div className="flex gap-3">
+                    <div className="flex justify-end gap-3 pt-6 mt-4">
                         <button
-                            className="btn-primary flex items-center gap-2 flex-1"
+                            className="btn-primary flex items-center gap-2"
                             onClick={() => setShowEditPopup(true)}
                             disabled={isProcessing}
                         >
@@ -201,10 +195,9 @@ function AdminGroupDetailPopup({ group, onClose, onGroupUpdated }) {
                         </button>
                     </div>
                 </div>
-
                 {/* Edit Group Modal */}
                 {showEditPopup && (
-                    <GroupPageElements.CreateGroupPopup
+                    <CreateGroupPopup
                         existingGroup={group}
                         onCreateGroup={handleUpdateGroup}
                         onCancel={() => setShowEditPopup(false)}
@@ -661,6 +654,119 @@ function EditGroupPopup({ group, onUpdateGroup, onCancel, isUpdating }) {
     );
 }
 
+function CreateGroupPopup({ onCreateGroup, onCancel, isCreating, existingGroup, isEditing = false }) {
+    const [groupName, setGroupName] = useState(existingGroup?.name || '');
+    const [groupDescription, setGroupDescription] = useState(existingGroup?.description || '');
+    const [isPrivate, setIsPrivate] = useState(existingGroup?.isPrivate || false);
+
+    const handleConfirm = () => {
+        if (groupName.trim()) {
+            onCreateGroup({
+                name: groupName.trim(),
+                description: groupDescription.trim(),
+                isPrivate: isPrivate
+            });
+        }
+    };
+
+    if (isCreating) {
+        return (
+            <div className="modal-overlay">
+                <div className="modal-backdrop"></div>
+                <div className="modal-content">
+                    <div className="text-center py-8">
+                        <div className="login-spinner mx-auto mb-4"></div>
+                        <h2>{isEditing ? 'Updating Group...' : 'Creating Group...'}</h2>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="modal-overlay">
+            <div className="modal-backdrop" onClick={onCancel}></div>
+            <div className="modal-content max-w-md">
+                <div className="modal-header">
+                    <h2 className="modal-title">{isEditing ? 'Edit Group' : 'Create Group'}</h2>
+                    <button className="modal-close" onClick={onCancel}>
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+
+                <div className="space-y-4">
+                    <div>
+                        <label className="form-label">
+                            Group Name
+                            <input
+                                type="text"
+                                value={groupName}
+                                onChange={(e) => setGroupName(e.target.value)}
+                                className="form-input mt-1"
+                                placeholder="Enter group name"
+                                maxLength={50}
+                            />
+                        </label>
+                    </div>
+
+                    <div>
+                        <label className="form-label">
+                            Description (Optional)
+                            <textarea
+                                value={groupDescription}
+                                onChange={(e) => setGroupDescription(e.target.value)}
+                                className="form-textarea mt-1"
+                                placeholder="Enter group description"
+                                maxLength={200}
+                                rows={3}
+                            />
+                        </label>
+                    </div>
+
+                    <div>
+                        <label className="form-label">Privacy</label>
+                        <div className="space-y-2 mt-2">
+                            <label className="flex items-center gap-2">
+                                <input
+                                    type="radio"
+                                    name="privacy"
+                                    checked={!isPrivate}
+                                    onChange={() => setIsPrivate(false)}
+                                    className="form-radio"
+                                />
+                                <span>Public Group</span>
+                            </label>
+                            <label className="flex items-center gap-2">
+                                <input
+                                    type="radio"
+                                    name="privacy"
+                                    checked={isPrivate}
+                                    onChange={() => setIsPrivate(true)}
+                                    className="form-radio"
+                                />
+                                <span>Private Group</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex gap-3 justify-end pt-6 border-t border-white/10 mt-6">
+                    <button className="btn-secondary" onClick={onCancel}>
+                        Cancel
+                    </button>
+                    <button
+                        className="btn-primary"
+                        onClick={handleConfirm}
+                        disabled={!groupName.trim()}
+                    >
+                        {isEditing ? 'Update' : 'Create'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 function GroupManagerPage() {
     const [allGroups, setAllGroups] = useState([]);
     const [isLoadingGroups, setIsLoadingGroups] = useState(true);
@@ -761,9 +867,6 @@ function GroupManagerPage() {
                             <span>{group.getActiveMemberCount()}/{group.maxMembers} members</span>
                             <span>by {creatorNames[group.createdBy] || 'Loading...'}</span>
                         </div>
-                        <div className="text-xs text-slate-500 mt-1">
-                            #{group.groupId.slice(-8)}
-                        </div>
                     </div>
                 </div>
             </AdminCard>
@@ -789,7 +892,7 @@ function GroupManagerPage() {
 
             {/* Modals */}
             {showCreateGroupPopup && (
-                <GroupPageElements.CreateGroupPopup
+                <CreateGroupPopup
                     onCreateGroup={handleGroupCreation}
                     onCancel={() => setShowCreateGroupPopup(false)}
                     isCreating={isCreatingGroup}

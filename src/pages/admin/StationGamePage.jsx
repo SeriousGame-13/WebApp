@@ -90,9 +90,9 @@ function EditForm({ object = null, onSubmit, onCancel, isProcessing, submitText,
                     <h3 className="text-xl font-bold text-gradient">
                         {object ? 'Edit Station Game' : 'Create New Station Game'}
                     </h3>
-                    <button 
+                    <button
                         onClick={onCancel}
-                        className="modal-close-btn"
+                        className="modal-close"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -138,9 +138,9 @@ function EditForm({ object = null, onSubmit, onCancel, isProcessing, submitText,
                     ))}
                 </div>
 
-                <div className="modal-footer">
-                    <button 
-                        className="btn-secondary" 
+                <div className="modal-footer mt-4 flex justify-end">
+                    <button
+                        className="btn-secondary"
                         onClick={onCancel}
                     >
                         Cancel
@@ -186,7 +186,7 @@ function DetailPopup({ object, onClose, onUpdated, stations }) {
         try {
             await StationGameManager.update({
                 ...updates,
-                uid:object.uid
+                uid: object.uid
             });
             setShowEditPopup(false);
             onUpdated();
@@ -202,20 +202,19 @@ function DetailPopup({ object, onClose, onUpdated, stations }) {
         <div className="modal-overlay">
             <div className="modal-backdrop" onClick={onClose}></div>
             <div className="modal-content max-w-lg">
-                <div className="modal-header">
+                <div className="modal-header gap-6">
                     <div>
                         <h3 className="text-xl font-bold text-gradient">{object.name}</h3>
-                        <p className="text-sm text-slate-400">Station Game Details</p>
                     </div>
-                    <button 
+                    <button
                         onClick={onClose}
-                        className="modal-close-btn"
+                        className="modal-close"
                     >
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
-                <div className="modal-body space-y-6">
+                <div className="modal-body space-y-8">
                     {/* Game Overview */}
                     <div className="card">
                         <div className="flex items-start gap-4">
@@ -223,7 +222,6 @@ function DetailPopup({ object, onClose, onUpdated, stations }) {
                                 <Gamepad2 className="w-6 h-6 text-white" />
                             </div>
                             <div className="flex-1">
-                                <h4 className="text-lg font-semibold text-gradient mb-2">{object.name}</h4>
                                 <div className="text-sm text-slate-300">
                                     <div className="mb-2">
                                         <span className="text-slate-400">Game ID:</span>
@@ -241,35 +239,33 @@ function DetailPopup({ object, onClose, onUpdated, stations }) {
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex gap-3">
-                        <button 
-                            className="btn-secondary flex items-center gap-2 flex-1"
-                            onClick={() => setShowEditPopup(true)} 
-                            disabled={isProcessing}
+                    <div className="flex justify-end gap-3 pt-6 mt-4">
+                        <button
+                            className="btn-secondary "
+                            onClick={onClose}
                         >
-                            <Edit className="w-4 h-4" />
-                            Edit Info
+                            Cancel
                         </button>
-                        <button 
+                        <button
                             className="btn-danger flex items-center gap-2"
-                            onClick={handleDelete} 
+                            onClick={handleDelete}
                             disabled={isProcessing}
                         >
                             <Trash2 className="w-4 h-4" />
                             {isProcessing ? 'Deleting...' : 'Delete'}
                         </button>
+                        <button
+                            className="btn-primary flex items-center gap-2"
+                            onClick={() => setShowEditPopup(true)}
+                            disabled={isProcessing}
+                        >
+                            <Edit className="w-4 h-4" />
+                            Edit Info
+                        </button>
                     </div>
                 </div>
 
-                <div className="modal-footer">
-                    <button 
-                        className="btn-secondary" 
-                        onClick={onClose}
-                    >
-                        Close
-                    </button>
-                </div>
-
+                
                 {showEditPopup && (
                     <EditForm
                         object={object}
@@ -367,9 +363,6 @@ function StationGamePage({ user }) {
                         <p className="text-sm text-slate-300 mb-3">
                             Station: {obj.stationId ? getStationName(obj.stationId) : 'No station assigned'}
                         </p>
-                        <div className="text-xs text-slate-500">
-                            #{obj.uid.slice(-8)}
-                        </div>
                     </div>
                 </div>
             </AdminCard>

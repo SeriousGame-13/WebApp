@@ -326,7 +326,7 @@ function ExerciseForm({
                     </div>
                 </div>
 
-                <div className="flex gap-3 justify-end pt-4 border-t border-white/10">
+                <div className="flex gap-3 justify-end pt-4">
                     <button className="btn-secondary" onClick={onCancel}>
                         Cancel
                     </button>
@@ -368,11 +368,11 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations
             } else {
                 date = new Date(ts);
             }
-            
+
             if (isNaN(date.getTime())) {
                 return 'Invalid Date';
             }
-            
+
             return date.toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'short',
@@ -474,14 +474,14 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations
         <div className="modal-overlay">
             <div className="modal-backdrop" onClick={onClose}></div>
             <div className="modal-content max-w-4xl">
-                <div className="modal-header">
+                <div className="modal-header gap-6">
                     <h2 className="modal-title">Workout Details</h2>
                     <button className="modal-close" onClick={onClose}>
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
-                <div className="space-y-6">
+                <div className="space-y-8">
                     {/* Workout Overview */}
                     <div className="card">
                         <div className="flex items-start gap-4">
@@ -518,7 +518,7 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations
                     </div>
 
                     {/* Statistics */}
-                    <div className="grid-3 gap-4">
+                    <div className="grid-3 gap-4 mt-4">
                         <div className="card text-center">
                             <div className="text-2xl font-bold text-gradient">{workout.exercises?.length || 0}</div>
                             <div className="text-sm text-slate-400">Exercises</div>
@@ -538,7 +538,7 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations
                     </div>
 
                     {/* Exercises Section */}
-                    <div className="card">
+                    <div className="card mt-4">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-lg font-semibold text-gradient">Exercises</h3>
                             <button
@@ -578,7 +578,7 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations
                                                     </div>
                                                     <div className="flex gap-2">
                                                         <button
-                                                            className="btn-icon"
+                                                            className="btn-icon btn-secondary"
                                                             onClick={() => setEditingExercise(exercise)}
                                                             title="Edit Exercise"
                                                         >
@@ -606,14 +606,13 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex gap-3 justify-end">
+                    <div className="flex justify-end gap-3 pt-6 mt-4">
+
                         <button
-                            className="btn-primary flex items-center gap-2"
-                            onClick={() => setShowEditPopup(true)}
-                            disabled={isProcessing}
+                            className="btn-secondary flex items-center gap-2"
+                            onClick={onClose}
                         >
-                            <Edit className="w-4 h-4" />
-                            Edit Workout
+                            Cancel
                         </button>
                         <button
                             className="btn-danger flex items-center gap-2"
@@ -623,7 +622,16 @@ function WorkoutDetailPopup({ workout, onClose, onWorkoutUpdated, user, stations
                             <Trash2 className="w-4 h-4" />
                             {isProcessing ? 'Deleting...' : 'Delete Workout'}
                         </button>
+                        <button
+                            className="btn-primary flex items-center gap-2"
+                            onClick={() => setShowEditPopup(true)}
+                            disabled={isProcessing}
+                        >
+                            <Edit className="w-4 h-4" />
+                            Edit Workout
+                        </button>
                     </div>
+
                 </div>
 
                 {showEditPopup && (
@@ -739,12 +747,11 @@ function WorkoutManagerPage({ user }) {
                         <div className="text-xs text-slate-400 mb-2">
                             <span className="font-medium">Owner:</span> {workout.userDisplayName || 'Unknown User'} ({workout.userEmail})
                         </div>
-                        <div className="flex items-center justify-between text-xs text-slate-400">
+                        <div className="flex items-center justify-start text-xs text-slate-400">
                             <span className="flex items-center gap-1">
                                 <Activity className="w-3 h-3" />
                                 {workout.exercises?.length || 0} exercises
                             </span>
-                            <span>#{workout.uid.slice(-8)}</span>
                         </div>
                     </div>
                 </div>

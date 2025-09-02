@@ -87,51 +87,125 @@ function BadgeForm({ badge = null, onSubmit, onCancel, isProcessing, submitText 
                 </div>
 
                 <div className="space-y-6">
+                    {/* Basic Info */}
                     <div className="grid-2 gap-4">
-                        <div className="space-y-4">
-                            {inputFields.map(field => (
-                                <div key={field.key} className="form-field">
-                                    <label className="form-label">{field.label}</label>
-                                    {field.type === 'textarea' ? (
-                                        <textarea
-                                            className="form-textarea"
-                                            value={formData[field.key]}
-                                            onChange={(e) => handleInputChange(field.key, e.target.value)}
-                                            placeholder={field.placeholder}
-                                            rows={field.rows}
-                                        />
-                                    ) : (
-                                        <input
-                                            className="form-input"
-                                            type={field.type}
-                                            value={formData[field.key]}
-                                            onChange={(e) => handleInputChange(field.key, e.target.value)}
-                                            placeholder={field.placeholder}
-                                            maxLength={field.maxLength}
-                                            min={field.min}
-                                        />
-                                    )}
-                                </div>
-                            ))}
-
-                            <div className="form-field">
-                                <label className="form-label">Rarity Level</label>
-                                <select
-                                    className="form-input"
-                                    value={formData.rarity}
-                                    onChange={(e) => handleInputChange('rarity', e.target.value)}
-                                >
-                                    <option value={BADGE_RARITY.COMMON}>Common</option>
-                                    <option value={BADGE_RARITY.UNCOMMON}>Uncommon</option>
-                                    <option value={BADGE_RARITY.RARE}>Rare</option>
-                                    <option value={BADGE_RARITY.EPIC}>Epic</option>
-                                    <option value={BADGE_RARITY.LEGENDARY}>Legendary</option>
-                                </select>
-                            </div>
+                        <div className="form-field">
+                            <label className="form-label">Badge Name</label>
+                            <input
+                                className="form-input"
+                                type="text"
+                                value={formData.name}
+                                onChange={(e) => handleInputChange('name', e.target.value)}
+                                placeholder="Enter badge name"
+                                maxLength={50}
+                            />
                         </div>
 
-                        <div className="text-center">
-                            <label className="form-label block mb-3">Badge Image</label>
+                        <div className="form-field">
+                            <label className="form-label">Reward Points</label>
+                            <input
+                                className="form-input"
+                                type="number"
+                                value={formData.rewardPoints}
+                                onChange={(e) => handleInputChange('rewardPoints', e.target.value)}
+                                placeholder="Points awarded when earned"
+                                min={0}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="form-field">
+                        <label className="form-label">Description</label>
+                        <textarea
+                            className="form-textarea"
+                            value={formData.description}
+                            onChange={(e) => handleInputChange('description', e.target.value)}
+                            placeholder="Enter badge description"
+                            maxLength={200}
+                            rows={3}
+                        />
+                    </div>
+
+                    {/* Badge Settings */}
+                    <div className="form-field">
+                        <label className="form-label">Rarity Level</label>
+                        <select
+                            className="form-input"
+                            value={formData.rarity}
+                            onChange={(e) => handleInputChange('rarity', e.target.value)}
+                        >
+                            <option value={BADGE_RARITY.COMMON}>Common</option>
+                            <option value={BADGE_RARITY.UNCOMMON}>Uncommon</option>
+                            <option value={BADGE_RARITY.RARE}>Rare</option>
+                            <option value={BADGE_RARITY.EPIC}>Epic</option>
+                            <option value={BADGE_RARITY.LEGENDARY}>Legendary</option>
+                        </select>
+                    </div>
+
+                    {/* Collection Settings */}
+                    <div className="grid-2 gap-4">
+                        <div className="form-field">
+                            <label className="form-label">Collection</label>
+                            <input
+                                className="form-input"
+                                type="text"
+                                value={formData.collection}
+                                onChange={(e) => handleInputChange('collection', e.target.value)}
+                                placeholder="e.g., exercises"
+                            />
+                        </div>
+
+                        <div className="form-field">
+                            <label className="form-label">Aggregate</label>
+                            <input
+                                className="form-input"
+                                type="text"
+                                value={formData.aggregate}
+                                onChange={(e) => handleInputChange('aggregate', e.target.value)}
+                                placeholder="e.g., sum, count"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="grid-2 gap-4">
+                        <div className="form-field">
+                            <label className="form-label">Field to Aggregate</label>
+                            <input
+                                className="form-input"
+                                type="text"
+                                value={formData.field}
+                                onChange={(e) => handleInputChange('field', e.target.value)}
+                                placeholder="e.g., points"
+                            />
+                        </div>
+
+                        <div className="form-field">
+                            <label className="form-label">Value to Reach</label>
+                            <input
+                                className="form-input"
+                                type="text"
+                                value={formData.valueToReach}
+                                onChange={(e) => handleInputChange('valueToReach', e.target.value)}
+                                placeholder="e.g., 1000"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="form-field">
+                        <label className="form-label">Conditions</label>
+                        <textarea
+                            className="form-textarea"
+                            value={formData.conditions}
+                            onChange={(e) => handleInputChange('conditions', e.target.value)}
+                            placeholder="field:userId,operator:==,value:{user.uid}"
+                            rows={4}
+                        />
+                    </div>
+
+                    {/* Badge Image */}
+                    <div className="form-field">
+                        <label className="form-label">Badge Image</label>
+                        <div className="flex items-center justify-center">
                             <BadgeImageElements.BadgeImageUploader
                                 badgeId={badge?.badgeId || null}
                                 onUploadComplete={handleImageUpload}
@@ -140,7 +214,7 @@ function BadgeForm({ badge = null, onSubmit, onCancel, isProcessing, submitText 
                         </div>
                     </div>
 
-                    <div className="flex gap-3 justify-end pt-4 border-t border-white/10">
+                    <div className="flex gap-3 justify-end pt-4">
                         <button className="btn-secondary" onClick={onCancel}>
                             Cancel
                         </button>
@@ -376,9 +450,9 @@ function BadgeAssignmentManager({ badge, onClose, onAssignmentsUpdated }) {
                     </div>
                 </div>
 
-                <div className="modal-footer">
+                <div className="modal-footer mt-4 flex justify-end-footer">
                     <button className="btn-secondary" onClick={onClose}>
-                        Close
+                        Cancel
                     </button>
                 </div>
             </div>
@@ -511,9 +585,9 @@ function AdminBadgeDetailPopup({ badge, onClose, onBadgeUpdated }) {
                     </button>
                 </div>
 
-                <div className="space-y-6">
+                <div className="space-y-8">
                     {/* Badge Header */}
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-6">
                         <div className="w-20 h-20 rounded-2xl bg-white/5 flex items-center justify-center overflow-hidden">
                             {imageLoading ? (
                                 <div className="login-spinner"></div>
@@ -528,7 +602,7 @@ function AdminBadgeDetailPopup({ badge, onClose, onBadgeUpdated }) {
                             )}
                         </div>
                         <div className="flex-1">
-                            <h3 className="text-xl font-semibold text-gradient">
+                            <h3 className="text-xl font-semibold text-gradient mb-2">
                                 {badge.name}
                             </h3>
                             <p className="text-sm" style={{ color: getRarityColor(badge.rarity) }}>
@@ -538,15 +612,15 @@ function AdminBadgeDetailPopup({ badge, onClose, onBadgeUpdated }) {
                     </div>
 
                     {/* Badge Description */}
-                    <div className="card p-4">
-                        <h4 className="font-semibold mb-2">Description</h4>
+                    <div className="card p-4 mt-4">
+                        <h4 className="font-semibold mb-3">Description</h4>
                         <p className="text-slate-300">
                             {badge.description || 'No description available.'}
                         </p>
                     </div>
 
                     {/* Badge Stats */}
-                    <div className="grid-2 gap-3">
+                    <div className="grid-2 gap-4 mt-4">
                         <div className="card p-3 text-center">
                             <div className="text-xs text-slate-400 mb-1">Reward Points</div>
                             <div className="text-lg font-semibold">{badge.rewardPoints}</div>
@@ -558,13 +632,14 @@ function AdminBadgeDetailPopup({ badge, onClose, onBadgeUpdated }) {
                     </div>
 
                     {/* Technical Details */}
-                    <div className="card p-4">
-                        <h4 className="font-semibold mb-3">Technical Details</h4>
-                        <div className="space-y-2 text-sm">
+                    <div className="card p-4 mt-4">
+                        <h4 className="font-semibold mb-4">Technical Details</h4>
+                        <div className="space-y-3 text-sm">
                             <div className="flex justify-between">
                                 <span className="text-slate-400">Badge ID:</span>
                                 <span className="font-mono">{badge.badgeId}</span>
                             </div>
+
                             <div className="flex justify-between">
                                 <span className="text-slate-400">Collection:</span>
                                 <span>{String(badge.collection || 'N/A')}</span>
@@ -583,44 +658,32 @@ function AdminBadgeDetailPopup({ badge, onClose, onBadgeUpdated }) {
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    {/* Badge Assignment Management */}
-                    <div className="card p-4">
-                        <div className="flex items-center justify-between mb-3">
-                            <h4 className="font-semibold">Badge Assignments</h4>
-                            <button
-                                className="btn-secondary flex items-center gap-2"
-                                onClick={() => setShowAssignmentManager(true)}
-                                disabled={isProcessing}
-                            >
-                                <Users className="w-4 h-4" />
-                                Manage Users
-                            </button>
-                        </div>
-                        <p className="text-sm text-slate-400">
-                            Assign or remove this badge from specific users. Click "Manage Users" to view all users and their badge status.
-                        </p>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex gap-3">
-                        <button
-                            className="btn-primary flex items-center gap-2 flex-1"
-                            onClick={() => setShowEditPopup(true)}
-                            disabled={isProcessing}
-                        >
-                            <Edit className="w-4 h-4" />
-                            Edit Badge
-                        </button>
-                        <button
-                            className="btn-danger flex items-center gap-2"
-                            onClick={handleDeleteBadge}
-                            disabled={isProcessing}
-                        >
-                            <Trash2 className="w-4 h-4" />
-                            {isProcessing ? 'Deleting...' : 'Delete'}
-                        </button>
-                    </div>
+                {/* Action Buttons - Right aligned, no border */}
+                <div className="flex justify-end gap-3 pt-6 mt-4">
+                    <button
+                        className="btn-secondary"
+                        onClick={onClose}
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        className="btn-danger flex items-center gap-2"
+                        onClick={handleDeleteBadge}
+                        disabled={isProcessing}
+                    >
+                        <Trash2 className="w-4 h-4" />
+                        {isProcessing ? 'Deleting...' : 'Delete'}
+                    </button>
+                    <button
+                        className="btn-primary flex items-center gap-2"
+                        onClick={() => setShowEditPopup(true)}
+                        disabled={isProcessing}
+                    >
+                        <Edit className="w-4 h-4" />
+                        Edit Badge
+                    </button>
                 </div>
 
                 {showEditPopup && (
@@ -676,7 +739,7 @@ function BadgeCardImage({ badge }) {
     }, [badge?.badgeId]);
 
     return (
-        <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center flex-shrink-0 overflow-hidden">
+        <div className="w-16 h-16 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
             {imageLoading ? (
                 <div className="w-4 h-4 border-2 border-white/20 border-t-white/60 rounded-full animate-spin"></div>
             ) : badgeImage ? (
@@ -686,7 +749,9 @@ function BadgeCardImage({ badge }) {
                     alt="Badge" 
                 />
             ) : (
-                <span className="text-slate-400 text-xs">No Image</span>
+                <div className="w-full h-full bg-white/5 rounded-xl flex items-center justify-center">
+                    <span className="text-slate-400 text-xs">No Image</span>
+                </div>
             )}
         </div>
     );
@@ -864,9 +929,9 @@ function UserSelectionPopup({ onClose, onUsersSelected }) {
                     </div>
                 </div>
 
-                <div className="modal-footer">
+                <div className="modal-footer mt-4 flex justify-end">
                     <button className="btn-secondary" onClick={onClose}>
-                        Close
+                        Cancel
                     </button>
                 </div>
             </div>
@@ -963,15 +1028,16 @@ function BadgeManagerPage({ user }) {
                         <h3 className="font-semibold text-gradient truncate">
                             {badge.name}
                         </h3>
-                        <p className="text-xs mb-2" style={{ color: getRarityColor(badge.rarity) }}>
-                            {badge.rarity.toUpperCase()}
-                        </p>
+                        <div className="flex items-center gap-2 mb-2">
+                            <p className="text-sm" style={{ color: getRarityColor(badge.rarity) }}>
+                                {badge.rarity.toUpperCase()}
+                            </p>
+                            <span className="text-sm text-slate-400">•</span>
+                            <span className="text-sm text-slate-300">{badge.rewardPoints} points</span>
+                        </div>
                         <p className="text-sm text-slate-300 line-clamp-2">
                             {badge.description || 'No description available.'}
                         </p>
-                        <div className="flex items-center justify-start mt-3 text-xs text-slate-400">
-                            <span>{badge.rewardPoints} points</span>
-                        </div>
                     </div>
                 </div>
             </AdminCard>

@@ -51,7 +51,7 @@ function EditUserForm({ user = null, onSubmit, onCancel, isProcessing, submitTex
         <div className="modal-overlay">
             <div className="modal-backdrop" onClick={onCancel}></div>
             <div className="modal-content max-w-lg">
-                <div className="modal-header">
+                <div className="modal-header gap-6">
                     <h2 className="modal-title">Edit User</h2>
                     <button className="modal-close" onClick={onCancel}>
                         <X className="w-5 h-5" />
@@ -111,40 +111,9 @@ function EditUserForm({ user = null, onSubmit, onCancel, isProcessing, submitTex
                         </div>
                     </div>
 
-                    <div className="form-field">
-                        <label className="flex items-center gap-3 cursor-pointer">
-                            <input
-                                type="checkbox"
-                                checked={formData.isActive}
-                                onChange={(e) => handleInputChange('isActive', e.target.checked)}
-                                className="w-4 h-4 text-blue-600 bg-slate-800 border-slate-600 rounded focus:ring-blue-500 focus:ring-2"
-                            />
-                            <div className="flex items-center gap-2">
-                                <UserCheck className="w-4 h-4 text-green-500" />
-                                <span className="form-label mb-0">Active User</span>
-                            </div>
-                        </label>
-                        <p className="text-xs text-slate-500 mt-1">Deactivated users cannot access the system</p>
-                    </div>
-
-                    <div className="form-field">
-                        <label className="flex items-center gap-3 cursor-pointer">
-                            <input
-                                type="checkbox"
-                                checked={formData.isAdmin}
-                                onChange={(e) => handleInputChange('isAdmin', e.target.checked)}
-                                className="w-4 h-4 text-blue-600 bg-slate-800 border-slate-600 rounded focus:ring-blue-500 focus:ring-2"
-                            />
-                            <div className="flex items-center gap-2">
-                                <Crown className="w-4 h-4 text-yellow-500" />
-                                <span className="form-label mb-0">Administrator Privileges</span>
-                            </div>
-                        </label>
-                        <p className="text-xs text-slate-500 mt-1">Grant admin access to this user</p>
-                    </div>
                 </div>
 
-                <div className="flex gap-3 justify-end pt-4 border-t border-white/10">
+                <div className="flex gap-3 justify-end pt-4">
                     <button className="btn-secondary" onClick={onCancel}>
                         Cancel
                     </button>
@@ -253,7 +222,7 @@ function UserDetailPopup({ user, onClose, onUserUpdated }) {
 
         setIsProcessing(true);
         try {
-            await UserManagementSystem.updateUser(user.uid, { isActive: !user.isActive });
+            await UserManagementSystem.deleteUser(user.uid);
             onUserUpdated();
         } catch (error) {
             console.error('Failed to update active status:', error);
@@ -267,17 +236,17 @@ function UserDetailPopup({ user, onClose, onUserUpdated }) {
         <div className="modal-overlay">
             <div className="modal-backdrop" onClick={onClose}></div>
             <div className="modal-content max-w-2xl">
-                <div className="modal-header">
+                <div className="modal-header gap-6">
                     <h2 className="modal-title">User Details</h2>
                     <button className="modal-close" onClick={onClose}>
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
-                <div className="space-y-6">
+                <div className="space-y-8">
                     {/* User Overview */}
                     <div className="card">
-                        <div className="flex items-start gap-4">
+                        <div className="flex items-start gap-6">
                             <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center flex-shrink-0">
                                 {user.isAdmin ? (
                                     <Crown className="w-8 h-8 text-yellow-300" />
@@ -302,16 +271,8 @@ function UserDetailPopup({ user, onClose, onUserUpdated }) {
                                 </div>
                                 <div className="grid-2 gap-4 text-sm">
                                     <div>
-                                        <span className="text-slate-400">User ID:</span>
+                                        <span className="text-slate-400">ID:</span>
                                         <span className="text-slate-300 ml-2 font-mono">{user.uid}</span>
-                                    </div>
-                                    <div>
-                                        <span className="text-slate-400">Level:</span>
-                                        <span className="text-slate-300 ml-2">{user.level || 1}</span>
-                                    </div>
-                                    <div>
-                                        <span className="text-slate-400">Points:</span>
-                                        <span className="text-slate-300 ml-2">{user.points || 0}</span>
                                     </div>
                                     <div>
                                         <span className="text-slate-400">Status:</span>
@@ -333,7 +294,7 @@ function UserDetailPopup({ user, onClose, onUserUpdated }) {
                     </div>
 
                     {/* User Statistics */}
-                    <div className="grid-3 gap-4">
+                    <div className="grid-3 gap-4  mt-4">
                         <div className="card text-center">
                             <div className="text-2xl font-bold text-gradient">
                                 {user.level || 1}
@@ -346,16 +307,10 @@ function UserDetailPopup({ user, onClose, onUserUpdated }) {
                             </div>
                             <div className="text-sm text-slate-400">Points</div>
                         </div>
-                        <div className="card text-center">
-                            <div className="text-2xl font-bold text-gradient">
-                                {user.workouts?.length || 0}
-                            </div>
-                            <div className="text-sm text-slate-400">Workouts</div>
-                        </div>
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex gap-3 justify-between">
+                    <div className="flex flex-col gap-4  mt-4">
                         <div className="flex gap-3">
                             <button
                                 className={`btn-${user.isAdmin ? 'secondary' : 'primary'} flex items-center gap-2`}
@@ -376,7 +331,14 @@ function UserDetailPopup({ user, onClose, onUserUpdated }) {
                             </button>
                         </div>
                         
-                        <div className="flex gap-3">
+                        <div className="flex justify-end gap-3 pt-6">
+
+                            <button 
+                        className="btn-secondary" 
+                        onClick={onClose}
+                    >
+                        Cancel
+                    </button>
                             <button
                                 className="btn-primary flex items-center gap-2"
                                 onClick={() => setShowEditPopup(true)}
@@ -489,9 +451,6 @@ function UserManagerPage({ user: currentUser }) {
                             <span>Level {user.level || 1}</span>
                             <span>{user.points || 0} points</span>
                             <span>{user.workouts?.length || 0} workouts</span>
-                        </div>
-                        <div className="text-xs text-slate-500">
-                            #{user.uid.slice(-8)}
                         </div>
                     </div>
                 </div>

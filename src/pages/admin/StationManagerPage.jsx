@@ -76,9 +76,9 @@ function EditStationForm({ station = null, onSubmit, onCancel, isProcessing, sub
                     <h3 className="text-xl font-bold text-gradient">
                         {station ? 'Edit Station' : 'Create New Station'}
                     </h3>
-                    <button 
+                    <button
                         onClick={onCancel}
-                        className="modal-close-btn"
+                        className="modal-close"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -100,9 +100,9 @@ function EditStationForm({ station = null, onSubmit, onCancel, isProcessing, sub
                     ))}
                 </div>
 
-                <div className="modal-footer">
-                    <button 
-                        className="btn-secondary" 
+                <div className="modal-footer mt-4 flex justify-end">
+                    <button
+                        className="btn-secondary"
                         onClick={onCancel}
                     >
                         Cancel
@@ -181,45 +181,34 @@ function StationDetailPopup({ station, onClose, onStationUpdated }) {
         <div className="modal-overlay">
             <div className="modal-backdrop" onClick={onClose}></div>
             <div className="modal-content max-w-2xl">
-                <div className="modal-header">
+                <div className="modal-header gap-6">
                     <div>
                         <h3 className="text-xl font-bold text-gradient">{station.name}</h3>
-                        <p className="text-sm text-slate-400">Station Details & Performance</p>
                     </div>
-                    <button 
+                    <button
                         onClick={onClose}
-                        className="modal-close-btn"
+                        className="modal-close"
                     >
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
-                <div className="modal-body space-y-6">
-                    {/* Station Overview */}
-                    <div className="card">
-                        <div className="flex items-start gap-4">
-                            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl flex items-center justify-center flex-shrink-0">
-                                <Dumbbell className="w-6 h-6 text-white" />
-                            </div>
-                            <div className="flex-1">
-                                <h4 className="text-lg font-semibold text-gradient mb-2">{station.name}</h4>
-                                <div className="text-sm text-slate-300">
-                                    <div className="mb-2">
-                                        <span className="text-slate-400">Station ID:</span>
-                                        <span className="text-slate-300 ml-2 font-mono text-xs">{station.uid}</span>
-                                    </div>
+                <div className="modal-body space-y-8">
+                    {/* Highscores Section */}
+                    <div className="card mt-4">
+                        <div className="flex-1">
+                            <div className="text-sm text-slate-300">
+                                <div className="mb-2">
+                                    <span className="text-slate-400">Station ID:</span>
+                                    <span className="text-slate-300 ml-2 font-mono text-xs">{station.uid}</span>
                                 </div>
                             </div>
                         </div>
-                    </div>
-
-                    {/* Highscores Section */}
-                    <div className="card">
                         <div className="flex items-center gap-2 mb-4">
                             <Trophy className="w-5 h-5 text-yellow-400" />
                             <h4 className="text-lg font-semibold text-gradient">Station Records</h4>
                         </div>
-                        
+
                         {highscores.length > 0 ? (
                             <div className="space-y-3">
                                 {highscores.map(score => (
@@ -250,33 +239,33 @@ function StationDetailPopup({ station, onClose, onStationUpdated }) {
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex gap-3">
-                        <button 
-                            className="btn-secondary flex items-center gap-2 flex-1"
-                            onClick={() => setShowEditPopup(true)} 
-                            disabled={isProcessing}
+                    <div className="flex justify-end gap-3 pt-6 mt-4">
+                        <button
+                            className="btn-secondary"
+                            onClick={onClose}
                         >
-                            <Edit className="w-4 h-4" />
-                            Edit Station Info
+                            Cancel
                         </button>
-                        <button 
+                        <button
                             className="btn-danger flex items-center gap-2"
-                            onClick={handleDeleteStation} 
+                            onClick={handleDeleteStation}
                             disabled={isProcessing}
                         >
                             <Trash2 className="w-4 h-4" />
                             {isProcessing ? 'Deleting...' : 'Delete Station'}
                         </button>
+                        <button
+                            className="btn-primary flex items-center gap-2"
+                            onClick={() => setShowEditPopup(true)}
+                            disabled={isProcessing}
+                        >
+                            <Edit className="w-4 h-4" />
+                            Edit Station Info
+                        </button>
                     </div>
                 </div>
 
-                <div className="modal-footer">
-                    <button 
-                        className="btn-secondary" 
-                        onClick={onClose}
-                    >
-                        Close
-                    </button>
+                <div className="modal-footer mt-4 flex justify-end">
                 </div>
 
                 {showEditPopup && (
@@ -365,9 +354,6 @@ function StationManagerPage({ user }) {
                         <p className="text-sm text-slate-300 mb-3">
                             Fitness station for equipment-based exercises
                         </p>
-                        <div className="text-xs text-slate-500">
-                            #{station.uid.slice(-8)}
-                        </div>
                     </div>
                 </div>
             </AdminCard>

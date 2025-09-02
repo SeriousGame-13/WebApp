@@ -95,9 +95,9 @@ function CreateChallengePopup({ onCreateChallenge, onCancel, isCreating }) {
             <div className="modal-content max-w-2xl">
                 <div className="modal-header">
                     <h3 className="text-xl font-bold text-gradient">Create New Challenge</h3>
-                    <button 
+                    <button
                         onClick={onCancel}
-                        className="modal-close-btn"
+                        className="modal-close"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -233,7 +233,7 @@ function CreateChallengePopup({ onCreateChallenge, onCancel, isCreating }) {
                     )}
                 </div>
 
-                <div className="modal-footer">
+                <div className="modal-footer mt-4 flex justify-end-footer">
                     <button
                         onClick={onCancel}
                         className="btn-secondary"
@@ -291,12 +291,12 @@ function AdminChallengeDetailPopup({ challenge, onClose, onChallengeUpdated }) {
             } else {
                 date = new Date(ts);
             }
-            
+
             // Ensure we have a valid date
             if (isNaN(date.getTime())) {
                 return 'Invalid Date';
             }
-            
+
             return date.toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'short',
@@ -338,11 +338,10 @@ function AdminChallengeDetailPopup({ challenge, onClose, onChallengeUpdated }) {
                 <div className="modal-header">
                     <div>
                         <h3 className="text-xl font-bold text-gradient">{challenge.name}</h3>
-                        <p className="text-sm text-slate-400">Challenge Management</p>
                     </div>
-                    <button 
+                    <button
                         onClick={onClose}
-                        className="modal-close-btn"
+                        className="modal-close"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -357,18 +356,18 @@ function AdminChallengeDetailPopup({ challenge, onClose, onChallengeUpdated }) {
                             </div>
                             <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-2">
-                                    <span 
+                                    <span
                                         className="text-xs px-2 py-1 rounded-full"
-                                        style={{ 
+                                        style={{
                                             backgroundColor: `${getStatusColor()}20`,
                                             color: getStatusColor()
                                         }}
                                     >
                                         {getStatusText()}
                                     </span>
-                                    <span 
+                                    <span
                                         className="text-xs px-2 py-1 rounded-full"
-                                        style={{ 
+                                        style={{
                                             backgroundColor: `${getVisibilityColor(challenge.visibility)}20`,
                                             color: getVisibilityColor(challenge.visibility)
                                         }}
@@ -412,7 +411,7 @@ function AdminChallengeDetailPopup({ challenge, onClose, onChallengeUpdated }) {
                     </div>
 
                     {/* Statistics */}
-                    <div className="grid-3 gap-4">
+                    <div className="grid-3 gap-4 mt-4">
                         <div className="card text-center">
                             <div className="text-2xl font-bold text-gradient">{challenge.getParticipantCount()}</div>
                             <div className="text-sm text-slate-400">Participants</div>
@@ -431,7 +430,7 @@ function AdminChallengeDetailPopup({ challenge, onClose, onChallengeUpdated }) {
 
                     {/* Participants List */}
                     {challenge.participants.length > 0 && (
-                        <div className="card">
+                        <div className="card mt-4">
                             <h4 className="text-lg font-semibold text-gradient mb-4">Participants</h4>
                             <div className="space-y-3 max-h-60 overflow-y-auto">
                                 {challenge.participants.slice(0, 10).map(participant => (
@@ -470,31 +469,21 @@ function AdminChallengeDetailPopup({ challenge, onClose, onChallengeUpdated }) {
                             </div>
                         </div>
                     )}
-
-                    {/* Danger Zone */}
-                    <div className="card border border-red-500/20">
-                        <h4 className="text-lg font-semibold text-red-400 mb-2">Danger Zone</h4>
-                        <p className="text-sm text-slate-400 mb-4">
-                            Once you delete a challenge, there is no going back. Please be certain.
-                        </p>
+                    <div className="flex justify-end gap-3 pt-6 mt-4">
+                        <button
+                            onClick={onClose}
+                            className="btn-secondary"
+                        >
+                            Close
+                        </button>
                         <button
                             onClick={handleDeleteChallenge}
                             disabled={isProcessing}
                             className="btn-danger flex items-center gap-2"
                         >
-                            <Trash2 className="w-4 h-4" />
-                            {isProcessing ? 'Deleting...' : 'Delete Challenge'}
+                        {isProcessing ? 'Deleting...' : 'Delete Challenge'}
                         </button>
                     </div>
-                </div>
-
-                <div className="modal-footer">
-                    <button
-                        onClick={onClose}
-                        className="btn-secondary"
-                    >
-                        Close
-                    </button>
                 </div>
             </div>
         </div>
@@ -588,9 +577,9 @@ function ChallengeManagerPage() {
                             <h3 className="font-semibold text-gradient truncate">
                                 {challenge.name}
                             </h3>
-                            <span 
+                            <span
                                 className="text-xs px-2 py-1 rounded-full"
-                                style={{ 
+                                style={{
                                     backgroundColor: `${getStatusColor(challenge)}20`,
                                     color: getStatusColor(challenge)
                                 }}
@@ -616,7 +605,7 @@ function ChallengeManagerPage() {
                             </div>
                             <div>
                                 <span className="block">Visibility</span>
-                                <span 
+                                <span
                                     className="text-xs"
                                     style={{ color: getVisibilityColor(challenge.visibility) }}
                                 >

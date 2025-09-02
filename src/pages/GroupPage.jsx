@@ -10,9 +10,6 @@ import ProfileAvatar from '../components/ui/ProfileAvatar.jsx';
 import { CHALLENGE_TYPE, CHALLENGE_VISIBILITY } from '../services/interfaces/Constants.jsx';
 import { ImageSelector } from '../components/ui/ImageComponents.jsx';
 
-import '../components/styles/GroupPage.css';
-import '../components/styles/LayoutElements.css';
-
 function GroupPage({ groups, setGroups, joinedIds, setJoinedIds }) {
     const [search, setSearch] = useState("");
     const [opened, setOpened] = useState(null);

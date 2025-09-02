@@ -3,23 +3,53 @@ import BaseModel from '../../services/interfaces/Base.jsx';
 import UserManagement from '../../services/UserManagementSystem.jsx';
 import GroupManagement from '../../services/GroupManagementSystem.jsx';
 import GroupPageElements from '../GroupPage.jsx';
-import '../../components/styles/LayoutElements.css';
+import '../../components/styles/sphere-styles.css';
 import ChallengeManagement from '../../services/ChallengeManagement.jsx';
+import { Users, Edit, Trash2, Plus, UserPlus, X, Search } from 'lucide-react';
 
 function AdminGroupDetailPopup({ group, onClose, onGroupUpdated }) {
     const [isProcessing, setIsProcessing] = useState(false);
     const [showEditPopup, setShowEditPopup] = useState(false);
     const [isUpdatingGroup, setIsUpdatingGroup] = useState(false);
     const [creatorName, setCreatorName] = useState('Loading...');
+    const [showAddMembersPopup, setShowAddMembersPopup] = useState(false);
 
     useEffect(() => {
         loadCreatorName();
     }, [group.createdBy]);
 
     const formatJoinDate = (timestamp) => {
-        // Use BaseModel's UI helper consistently for timestamp -> date formatting
-        const bm = new BaseModel({ createdAt: timestamp });
-        return bm.getCreateAt();
+        try {
+            // Handle different timestamp formats
+            if (!timestamp) return 'Unknown';
+            
+            // If it's already a Date object, format it directly
+            if (timestamp instanceof Date) {
+                return timestamp.toLocaleDateString();
+            }
+            
+            // If it's a Firestore Timestamp or similar object with toDate method
+            if (timestamp && typeof timestamp.toDate === 'function') {
+                return timestamp.toDate().toLocaleDateString();
+            }
+            
+            // If it's a number (Unix timestamp)
+            if (typeof timestamp === 'number') {
+                return new Date(timestamp).toLocaleDateString();
+            }
+            
+            // If it's a string
+            if (typeof timestamp === 'string') {
+                return new Date(timestamp).toLocaleDateString();
+            }
+            
+            // Fallback - try using BaseModel   
+            const bm = new BaseModel({ createdAt: timestamp });
+            return bm.getCreateAt();
+        } catch (error) {
+            console.error('Error formatting date:', error, timestamp);
+            return 'Invalid Date';
+        }
     };
 
     const loadCreatorName = async () => {
@@ -72,98 +102,132 @@ function AdminGroupDetailPopup({ group, onClose, onGroupUpdated }) {
     const activeMembers = group.members.filter(member => member.isActive());
 
     return (
-        <div className='PopupBackground'>
-            <div className='LargePopupContainer'>
-                <h2 style={{ textAlign: 'center' }}>Admin Group Management</h2>
-
-                <div className='GroupDetailContainer'>
-                    <div className='GroupDetailHeader' style={{ textAlign: 'left' }}>
-                        {group.name} {group.isPrivate && <span style={{ fontSize: '16px', color: '#A0A0A0' }}>(Private)</span>}
-                    </div>
-                    <div className='GroupDetailDescription' style={{ textAlign: 'left' }}>
-                        {group.description || 'No description available.'}
-                    </div>
-                    <div className='GroupDetailInfo' style={{ textAlign: 'left' }}>
-                        <div>Group ID: {group.groupId}</div>
-                        <div>Members: {group.getActiveMemberCount()}/{group.maxMembers}</div>
-                        <div>Created by: {creatorName}</div>
-                        <div>Type: {group.isPrivate ? 'Private' : 'Public'}</div>
-                    </div>
-
-                    <div style={{ marginTop: '20px' }}>
-                        <div className="MemberListContainer">
-                            <div className="GuideText" style={{ textAlign: 'center' }}>Members</div>
-                            {activeMembers.map(member => (
-                                <div key={member.membershipId} className="GroupJoinItem">
-                                    <div style={{
-                                        color: 'var(--main-color)',
-                                        margin: '16px 0px 12px 16px',
-                                        lineHeight: '1.4',
-                                        fontSize: '15px'
-                                    }}>
-                                        {member.user?.displayName || 'Unknown User'}
-                                        {member.isAdmin() && <span style={{ fontSize: '12px', color: '#A0A0A0' }}> (Admin)</span>}
-                                    </div>
-                                    <div style={{
-                                        color: 'var(--light-color)',
-                                        margin: '0 16px 12px 16px',
-                                        lineHeight: '1.4',
-                                        fontSize: '13px'
-                                    }}>
-                                        Joined: {formatJoinDate(member.joinedAt)}
-                                    </div>
-                                    <div style={{
-                                        color: 'var(--light-color)',
-                                        margin: '0 16px 16px 16px',
-                                        fontSize: '12px'
-                                    }}>
-                                        Role: {member.role} | User ID: {member.userId}
-                                    </div>
-                                </div>
-                            ))}
-
-                            <div className="GroupActionButtons">
-                                <button
-                                    className='AdminActionButton'
-                                    onClick={() => setShowEditPopup(true)}
-                                    disabled={isProcessing}
-                                >
-                                    Edit Group
-                                </button>
-                                <button
-                                    className='AdminActionButton'
-                                    onClick={handleDeleteGroup}
-                                    disabled={isProcessing}
-                                    style={{ background: 'var(--background-red)', color: 'var(--light-color)' }}
-                                >
-                                    {isProcessing ? 'Deleting...' : 'Delete Group'}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className='Line'></div>
-                <div className='Buttonfield'>
-                    <button className='CancelButton' onClick={onClose}>
-                        Close
+        <div className="modal-overlay">
+            <div className="modal-backdrop" onClick={onClose}></div>
+            <div className="modal-content max-w-lg">
+                <div className="modal-header">
+                    <h2 className="modal-title">
+                        {group.name}
+                        {group.isPrivate && <span className="text-sm text-slate-400 ml-2">(Private)</span>}
+                    </h2>
+                    <button className="modal-close" onClick={onClose}>
+                        <X className="w-5 h-5" />
                     </button>
                 </div>
 
+                <div className="space-y-6">
+                    {/* Group Info Card */}
+                    <div className="card p-4">
+                        <div className="flex items-center gap-3 mb-3">
+                            <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+                                <Users className="w-6 h-6 text-white" />
+                            </div>
+                            <div>
+                                <h3 className="font-semibold text-lg">{group.name}</h3>
+                                <p className="text-slate-400 text-sm">
+                                    {group.isPrivate ? 'Private Group' : 'Public Group'}
+                                </p>
+                            </div>
+                        </div>
+                        <p className="text-slate-300 mb-4">
+                            {group.description || 'No description available.'}
+                        </p>
+                        
+                        <div className="grid-2 gap-3 text-sm">
+                            <div>
+                                <span className="text-slate-400">Group ID:</span>
+                                <p className="font-mono text-xs">{group.groupId}</p>
+                            </div>
+                            <div>
+                                <span className="text-slate-400">Created by:</span>
+                                <p>{creatorName}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Members Section */}
+                    <div className="card p-4">
+                        <div className="flex items-center justify-between mb-4">
+                            <h4 className="font-semibold">
+                                Members ({group.getActiveMemberCount()}/{group.maxMembers})
+                            </h4>
+                            <button
+                                className="btn-secondary text-xs px-3 py-1 flex items-center gap-1"
+                                onClick={() => setShowAddMembersPopup(true)}
+                            >
+                                <UserPlus className="w-3 h-3" />
+                                Add
+                            </button>
+                        </div>
+                        
+                        <div className="space-y-2 max-h-40 overflow-y-auto">
+                            {activeMembers.map(member => (
+                                <div 
+                                    key={member.membershipId} 
+                                    className="flex items-center justify-between p-2 bg-white/5 rounded-lg"
+                                >
+                                    <div>
+                                        <p className="font-medium text-sm">{member.displayName}</p>
+                                        <p className="text-xs text-slate-400">
+                                            Joined {formatJoinDate(member.joinedAt)}
+                                        </p>
+                                    </div>
+                                    <div className="text-xs text-slate-400">
+                                        #{member.userId.slice(-6)}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-3">
+                        <button
+                            className="btn-primary flex items-center gap-2 flex-1"
+                            onClick={() => setShowEditPopup(true)}
+                            disabled={isProcessing}
+                        >
+                            <Edit className="w-4 h-4" />
+                            Edit Group
+                        </button>
+                        <button
+                            className="btn-danger flex items-center gap-2"
+                            onClick={handleDeleteGroup}
+                            disabled={isProcessing}
+                        >
+                            <Trash2 className="w-4 h-4" />
+                            {isProcessing ? 'Deleting...' : 'Delete'}
+                        </button>
+                    </div>
+                </div>
+
+                {/* Edit Group Modal */}
                 {showEditPopup && (
-                    <EditGroupPopup
-                        group={group}
-                        onUpdateGroup={handleUpdateGroup}
+                    <GroupPageElements.CreateGroupPopup
+                        existingGroup={group}
+                        onCreateGroup={handleUpdateGroup}
                         onCancel={() => setShowEditPopup(false)}
-                        isUpdating={isUpdatingGroup}
+                        isCreating={isUpdatingGroup}
+                        isEditing={true}
+                    />
+                )}
+
+                {/* Add Members Modal */}
+                {showAddMembersPopup && (
+                    <AddMembersPopup
+                        group={group}
+                        onClose={() => setShowAddMembersPopup(false)}
+                        onMemberAdded={() => {
+                            setShowAddMembersPopup(false);
+                            onGroupUpdated();
+                        }}
                     />
                 )}
             </div>
         </div>
     );
 }
-
-function AddMemberPopup({ group, onClose, onMemberAdded }) {
+function AddMembersPopup({ group, onClose, onMemberAdded }) {
     const [allUsers, setAllUsers] = useState([]);
     const [filteredUsers, setFilteredUsers] = useState([]);
     const [selectedUsers, setSelectedUsers] = useState([]);
@@ -237,61 +301,89 @@ function AddMemberPopup({ group, onClose, onMemberAdded }) {
     };
 
     return (
-        <div className='PopupBackground'>
-            <div className='LargePopupContainer'>
-                <h2>Add Members</h2>
-
-                <div style={{ padding: '20px', paddingBottom: '10px' }}>
-                    <input
-                        className='Input'
-                        type="text"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        placeholder="Search users by name or email..."
-                    />
+        <div className="modal-overlay">
+            <div className="modal-backdrop" onClick={onClose}></div>
+            <div className="modal-content max-w-lg">
+                <div className="modal-header">
+                    <h2 className="modal-title">Add Members</h2>
+                    <button className="modal-close" onClick={onClose}>
+                        <X className="w-5 h-5" />
+                    </button>
                 </div>
 
-                <div className='UserListContainer'>
-                    {isLoading ? (
-                        <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>
-                            Loading users...
-                        </div>
-                    ) : filteredUsers.length === 0 ? (
-                        <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>
-                            {searchTerm ? 'No users found matching search' : 'No available users'}
-                        </div>
-                    ) : (
-                        filteredUsers.map(user => (
-                            <div
-                                key={user.uid}
-                                className={`UserSelectItem ${selectedUsers.includes(user.uid) ? 'selected' : ''}`}
-                                onClick={() => handleUserSelect(user)}
-                            >
-                                <div className="UserSelectName">{user.displayName}</div>
-                                <div className="UserSelectInfo">
-                                    {user.email} | UID: {user.uid}
-                                </div>
+                <div className="space-y-4">
+                    {/* Search */}
+                    <div className="search-container">
+                        <Search className="search-icon" />
+                        <input
+                            className="search-input"
+                            type="text"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            placeholder="Search users by name or email..."
+                        />
+                    </div>
+
+                    {/* User List */}
+                    <div className="max-h-64 overflow-y-auto space-y-2">
+                        {isLoading ? (
+                            <div className="text-center py-8">
+                                <div className="login-spinner mx-auto mb-2"></div>
+                                <p className="text-slate-400">Loading users...</p>
                             </div>
-                        ))
-                    )}
-                </div>
-                <div className='Line'></div>
-                <div className='Buttonfield'>
-                    <button className='CancelButton' onClick={onClose}>
-                        Cancel
-                    </button>
-                    <button
-                        className='ConfirmButton'
-                        onClick={handleAddMembers}
-                        disabled={selectedUsers.length === 0 || isAdding}
-                    >
-                        {isAdding ? 'Adding...' : `Add ${selectedUsers.length} Member(s)`}
-                    </button>
+                        ) : filteredUsers.length === 0 ? (
+                            <div className="text-center py-8 text-slate-400">
+                                No available users found.
+                            </div>
+                        ) : (
+                            filteredUsers.map(user => (
+                                <div
+                                    key={user.uid}
+                                    className={`card p-3 cursor-pointer transition-colors ${
+                                        selectedUsers.includes(user.uid) ? 'bg-white/10' : ''
+                                    }`}
+                                    onClick={() => handleUserSelect(user)}
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="font-medium">{user.displayName}</p>
+                                            <p className="text-sm text-slate-400">{user.email}</p>
+                                        </div>
+                                        <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                                            selectedUsers.includes(user.uid) 
+                                                ? 'bg-purple-500 border-purple-500' 
+                                                : 'border-slate-400'
+                                        }`}>
+                                            {selectedUsers.includes(user.uid) && (
+                                                <span className="text-white text-xs">✓</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex gap-3 justify-end pt-4 border-t border-white/10">
+                        <button className="btn-secondary" onClick={onClose}>
+                            Cancel
+                        </button>
+                        <button
+                            className="btn-primary flex items-center gap-2"
+                            onClick={handleAddMembers}
+                            disabled={selectedUsers.length === 0 || isAdding}
+                        >
+                            <UserPlus className="w-4 h-4" />
+                            {isAdding ? 'Adding...' : `Add ${selectedUsers.length} Member${selectedUsers.length === 1 ? '' : 's'}`}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     );
 }
+
 
 function RemoveMemberPopup({ group, onClose, onMemberRemoved }) {
     const [selectedMembers, setSelectedMembers] = useState([]);
@@ -575,6 +667,7 @@ function GroupManagerPage() {
     const [showCreateGroupPopup, setShowCreateGroupPopup] = useState(false);
     const [isCreatingGroup, setIsCreatingGroup] = useState(false);
     const [creatorNames, setCreatorNames] = useState({});
+    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
         loadAllGroups();
@@ -627,49 +720,134 @@ function GroupManagerPage() {
         }
     };
 
-    return (
-        <div className="AppContents">
-            <h2 style={{ color: '#E5E5E5', margin: '0 0 20px 0' }}>Group Manager</h2>
+    const filteredGroups = allGroups.filter(group =>
+        group.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        group.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        creatorNames[group.createdBy]?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
-            <div className="AdminGroupContainer">
-                <div className="GuideText">All Groups</div>
+    const renderGroupList = () => {
+        if (isLoadingGroups) {
+            return (
+                <div className="text-center py-12">
+                    <div className="login-spinner mx-auto mb-4"></div>
+                    <p className="text-slate-400">Loading groups...</p>
+                </div>
+            );
+        }
 
-                {isLoadingGroups ? (
-                    <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>
-                        Loading...
+        if (filteredGroups.length === 0) {
+            return (
+                <div className="text-center py-12">
+                    <div className="text-slate-400 mb-4">
+                        {searchTerm ? 'No groups match your search.' : 'No groups found.'}
                     </div>
-                ) : allGroups.length === 0 ? (
-                    <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>
-                        No Groups Found
-                    </div>
-                ) : (
-                    allGroups.map(group => (
-                        <div
-                            key={group.groupId}
-                            className="CardContainer"
-                            onClick={() => setSelectedGroup(group)}
-                        >
-                            <div className="CardHeader">
-                                {group.name} {group.isPrivate && <span style={{ fontSize: '12px', color: '#A0A0A0' }}>(Private)</span>}
+                    <button
+                        className="btn-primary"
+                        onClick={() => setShowCreateGroupPopup(true)}
+                    >
+                        Create First Group
+                    </button>
+                </div>
+            );
+        }
+
+        return (
+            <div className="grid-2 gap-6">
+                {filteredGroups.map(group => (
+                    <div
+                        key={group.groupId}
+                        className="card cursor-pointer"
+                        onClick={() => setSelectedGroup(group)}
+                    >
+                        <div className="flex items-start gap-3">
+                            <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <Users className="w-6 h-6 text-white" />
                             </div>
-                            <div className="CardContents">
-                                {group.description || 'No description available.'}
-                            </div>
-                            <div className="CardContents">
-                                Group ID: {group.groupId} | Members: {group.getActiveMemberCount()}/{group.maxMembers} | Created by: {creatorNames[group.createdBy] || 'Loading...'}
+                            <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <h3 className="font-semibold text-gradient truncate">
+                                        {group.name}
+                                    </h3>
+                                    {group.isPrivate && (
+                                        <span className="text-xs bg-yellow-500/20 text-yellow-300 px-2 py-1 rounded-full">
+                                            Private
+                                        </span>
+                                    )}
+                                </div>
+                                <p className="text-sm text-slate-300 line-clamp-2 mb-3">
+                                    {group.description || 'No description available.'}
+                                </p>
+                                <div className="flex items-center justify-between text-xs text-slate-400">
+                                    <span>{group.getActiveMemberCount()}/{group.maxMembers} members</span>
+                                    <span>by {creatorNames[group.createdBy] || 'Loading...'}</span>
+                                </div>
+                                <div className="text-xs text-slate-500 mt-1">
+                                    #{group.groupId.slice(-8)}
+                                </div>
                             </div>
                         </div>
-                    ))
-                )}
+                    </div>
+                ))}
+            </div>
+        );
+    };
 
+    return (
+        <div className="space-y-8">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+                <div>
+                    <h2 className="text-2xl font-bold text-gradient">Group Manager</h2>
+                    <p className="text-slate-400">Manage and oversee all groups in the application</p>
+                </div>
                 <button
-                    className="AdminActionButton"
+                    className="btn-primary flex items-center gap-2"
                     onClick={() => setShowCreateGroupPopup(true)}
                 >
-                    Create New Group
+                    <Plus className="w-4 h-4" />
+                    Create Group
                 </button>
             </div>
 
+            {/* Search Bar */}
+            <div className="search-container">
+                <Search className="search-icon" />
+                <input
+                    type="text"
+                    placeholder="Search groups by name, description, or creator..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="search-input"
+                />
+            </div>
+
+            {/* Stats Cards */}
+            <div className="grid-3 gap-6 mt-4">
+                <div className="card text-center">
+                    <div className="text-2xl font-bold text-gradient">{allGroups.length}</div>
+                    <div className="text-sm text-slate-400">Total Groups</div>
+                </div>
+                <div className="card text-center">
+                    <div className="text-2xl font-bold text-gradient">
+                        {allGroups.filter(g => g.isPrivate).length}
+                    </div>
+                    <div className="text-sm text-slate-400">Private Groups</div>
+                </div>
+                <div className="card text-center">
+                    <div className="text-2xl font-bold text-gradient">
+                        {allGroups.reduce((sum, group) => sum + group.getActiveMemberCount(), 0)}
+                    </div>
+                    <div className="text-sm text-slate-400">Total Members</div>
+                </div>
+            </div>
+
+            {/* Group List */}
+            <div className="mt-4">
+                {renderGroupList()}
+            </div>
+
+            {/* Modals */}
             {showCreateGroupPopup && (
                 <GroupPageElements.CreateGroupPopup
                     onCreateGroup={handleGroupCreation}

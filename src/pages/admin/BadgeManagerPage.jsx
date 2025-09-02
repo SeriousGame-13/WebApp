@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import BadgeManagement from '../../services/BadgeManagement.jsx';
 import { BADGE_RARITY } from '../../services/interfaces/Constants.jsx';
 import BadgeImageElements from '../../components/ui/BadgeImageManager.jsx';
-import '../../components/styles/LayoutElements.css';
+import '../../components/styles/sphere-styles.css';
 import { Badge } from '../../services/interfaces/Badge.jsx';
 import RewardSystem from '../../services/RewardSystem.jsx';
 import BaseModel from '../../services/interfaces/Base.jsx';
+import { Plus, Edit, Trash2, Award, X } from 'lucide-react';
 
 // Shared Badge Form Component
 function BadgeForm({ badge = null, onSubmit, onCancel, isProcessing, submitText }) {
@@ -47,9 +48,13 @@ function BadgeForm({ badge = null, onSubmit, onCancel, isProcessing, submitText 
 
     if (isProcessing) {
         return (
-            <div className='PopupBackground'>
-                <div className='PopupContainer'>
-                    <h2>{badge ? 'Updating' : 'Creating'} Badge...</h2>
+            <div className="modal-overlay">
+                <div className="modal-backdrop"></div>
+                <div className="modal-content max-w-sm">
+                    <div className="text-center py-8">
+                        <div className="login-spinner mx-auto mb-4"></div>
+                        <h2 className="text-lg font-semibold">{badge ? 'Updating' : 'Creating'} Badge...</h2>
+                    </div>
                 </div>
             </div>
         );
@@ -67,76 +72,78 @@ function BadgeForm({ badge = null, onSubmit, onCancel, isProcessing, submitText 
     ];
 
     return (
-        <div className='PopupBackground'>
-            <div className='LargePopupContainer'>
-                <h2 style={{ margin: '20px 0', textAlign: 'center' }}>
-                    {badge ? 'Edit' : 'Create New'} Badge
-                </h2>
-
-                <div className='BadgeCreateContent'>
-                    <div className='BadgeInputSection'>
-                        {inputFields.map(field => (
-                            <div key={field.key} className='BadgeInputGroup'>
-                                <label className='BadgeInputLabel'>{field.label}</label>
-                                {field.type === 'textarea' ? (
-                                    <textarea
-                                        className='Input'
-                                        value={formData[field.key]}
-                                        onChange={(e) => handleInputChange(field.key, e.target.value)}
-                                        placeholder={field.placeholder}
-                                        rows={field.rows}
-                                        style={{ resize: 'vertical' }}
-                                    />
-                                ) : (
-                                    <input
-                                        className='Input'
-                                        type={field.type}
-                                        value={formData[field.key]}
-                                        onChange={(e) => handleInputChange(field.key, e.target.value)}
-                                        placeholder={field.placeholder}
-                                        maxLength={field.maxLength}
-                                        min={field.min}
-                                    />
-                                )}
-                            </div>
-                        ))}
-
-                        <div className='BadgeInputGroup'>
-                            <label className='BadgeInputLabel'>Rarity Level</label>
-                            <select
-                                className='Input'
-                                value={formData.rarity}
-                                onChange={(e) => handleInputChange('rarity', e.target.value)}
-                            >
-                                <option value={BADGE_RARITY.COMMON}>Common</option>
-                                <option value={BADGE_RARITY.UNCOMMON}>Uncommon</option>
-                                <option value={BADGE_RARITY.RARE}>Rare</option>
-                                <option value={BADGE_RARITY.EPIC}>Epic</option>
-                                <option value={BADGE_RARITY.LEGENDARY}>Legendary</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className='BadgeImageSection'>
-                        <div className="GuideText" style={{ textAlign: 'center', marginBottom: '16px' }}>
-                            Badge Image
-                        </div>
-                        <BadgeImageElements.BadgeImageUploader
-                            badgeId={badge?.badgeId || null}
-                            onUploadComplete={handleImageUpload}
-                            disabled={false}
-                        />
-                    </div>
+        <div className="modal-overlay">
+            <div className="modal-backdrop" onClick={onCancel}></div>
+            <div className="modal-content max-w-lg">
+                <div className="modal-header">
+                    <h2 className="modal-title">
+                        {badge ? 'Edit' : 'Create New'} Badge
+                    </h2>
+                    <button className="modal-close" onClick={onCancel}>
+                        <X className="w-5 h-5" />
+                    </button>
                 </div>
 
-                <div className='BadgeCreateFooter'>
-                    <div className='Line'></div>
-                    <div className='Buttonfield'>
-                        <button className='CancelButton' onClick={onCancel}>
+                <div className="space-y-6">
+                    <div className="grid-2 gap-4">
+                        <div className="space-y-4">
+                            {inputFields.map(field => (
+                                <div key={field.key} className="form-field">
+                                    <label className="form-label">{field.label}</label>
+                                    {field.type === 'textarea' ? (
+                                        <textarea
+                                            className="form-textarea"
+                                            value={formData[field.key]}
+                                            onChange={(e) => handleInputChange(field.key, e.target.value)}
+                                            placeholder={field.placeholder}
+                                            rows={field.rows}
+                                        />
+                                    ) : (
+                                        <input
+                                            className="form-input"
+                                            type={field.type}
+                                            value={formData[field.key]}
+                                            onChange={(e) => handleInputChange(field.key, e.target.value)}
+                                            placeholder={field.placeholder}
+                                            maxLength={field.maxLength}
+                                            min={field.min}
+                                        />
+                                    )}
+                                </div>
+                            ))}
+
+                            <div className="form-field">
+                                <label className="form-label">Rarity Level</label>
+                                <select
+                                    className="form-input"
+                                    value={formData.rarity}
+                                    onChange={(e) => handleInputChange('rarity', e.target.value)}
+                                >
+                                    <option value={BADGE_RARITY.COMMON}>Common</option>
+                                    <option value={BADGE_RARITY.UNCOMMON}>Uncommon</option>
+                                    <option value={BADGE_RARITY.RARE}>Rare</option>
+                                    <option value={BADGE_RARITY.EPIC}>Epic</option>
+                                    <option value={BADGE_RARITY.LEGENDARY}>Legendary</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="text-center">
+                            <label className="form-label block mb-3">Badge Image</label>
+                            <BadgeImageElements.BadgeImageUploader
+                                badgeId={badge?.badgeId || null}
+                                onUploadComplete={handleImageUpload}
+                                disabled={false}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex gap-3 justify-end pt-4 border-t border-white/10">
+                        <button className="btn-secondary" onClick={onCancel}>
                             Cancel
                         </button>
                         <button
-                            className='ConfirmButton'
+                            className="btn-primary"
                             onClick={handleSubmit}
                             disabled={!isValid}
                         >
@@ -220,69 +227,151 @@ function AdminBadgeDetailPopup({ badge, onClose, onBadgeUpdated }) {
     };
 
     const formatDate = (ts) => {
-        if (!ts) return '';
-        const bm = new BaseModel({ createdAt: ts });
-        return bm.getCreateAt();
+        if (!ts) return 'N/A';
+        try {
+            // Handle both Date objects and timestamps
+            let date;
+            if (ts instanceof Date) {
+                date = ts;
+            } else if (typeof ts === 'number') {
+                date = new Date(ts);
+            } else if (ts.seconds) {
+                // Firestore timestamp
+                date = new Date(ts.seconds * 1000);
+            } else {
+                date = new Date(ts);
+            }
+            
+            // Ensure we have a valid date
+            if (isNaN(date.getTime())) {
+                return 'Invalid Date';
+            }
+            
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        } catch (error) {
+            console.error('Error formatting date:', error);
+            return 'Invalid Date';
+        }
+    };
+
+    const getRarityColor = (rarity) => {
+        switch (rarity) {
+            case BADGE_RARITY.COMMON: return '#9CA3AF';
+            case BADGE_RARITY.UNCOMMON: return '#10B981';
+            case BADGE_RARITY.RARE: return '#3B82F6';
+            case BADGE_RARITY.EPIC: return '#8B5CF6';
+            case BADGE_RARITY.LEGENDARY: return '#F59E0B';
+            default: return '#9CA3AF';
+        }
     };
 
     return (
-        <div className='PopupBackground'>
-            <div className='LargePopupContainer'>
-                <h2 style={{ textAlign: 'center' }}>Badge Management</h2>
+        <div className="modal-overlay">
+            <div className="modal-backdrop" onClick={onClose}></div>
+            <div className="modal-content max-w-lg">
+                <div className="modal-header">
+                    <h2 className="modal-title">Badge Details</h2>
+                    <button className="modal-close" onClick={onClose}>
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
 
-                <div className='GroupDetailContainer'>
-                    <div className='BadgeDetailHeader'>
-                        <div className='BadgeImageContainer'>
+                <div className="space-y-6">
+                    {/* Badge Header */}
+                    <div className="flex items-center gap-4">
+                        <div className="w-20 h-20 rounded-2xl bg-white/5 flex items-center justify-center overflow-hidden">
                             {imageLoading ? (
-                                <div className='ProfileImageAlt'>Loading...</div>
+                                <div className="login-spinner"></div>
                             ) : badgeImage ? (
-                                <img className='BadgeDetailImage' src={badgeImage} alt="Badge" />
+                                <img 
+                                    className="w-full h-full object-cover" 
+                                    src={badgeImage} 
+                                    alt="Badge" 
+                                />
                             ) : (
-                                <div className='ProfileImageAlt'>No Image</div>
+                                <span className="text-slate-400 text-xs">No Image</span>
                             )}
                         </div>
-                        <div className='BadgeInfoContainer'>
-                            <div className='BadgeDetailTitle' style={{ color: 'var(--main-color)' }}>
+                        <div className="flex-1">
+                            <h3 className="text-xl font-semibold text-gradient">
                                 {badge.name}
+                            </h3>
+                            <p className="text-sm" style={{ color: getRarityColor(badge.rarity) }}>
+                                {badge.rarity.toUpperCase()} BADGE
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Badge Description */}
+                    <div className="card p-4">
+                        <h4 className="font-semibold mb-2">Description</h4>
+                        <p className="text-slate-300">
+                            {badge.description || 'No description available.'}
+                        </p>
+                    </div>
+
+                    {/* Badge Stats */}
+                    <div className="grid-2 gap-3">
+                        <div className="card p-3 text-center">
+                            <div className="text-xs text-slate-400 mb-1">Reward Points</div>
+                            <div className="text-lg font-semibold">{badge.rewardPoints}</div>
+                        </div>
+                        <div className="card p-3 text-center">
+                            <div className="text-xs text-slate-400 mb-1">Created</div>
+                            <div className="text-sm font-medium">{formatDate(badge.createdAt)}</div>
+                        </div>
+                    </div>
+
+                    {/* Technical Details */}
+                    <div className="card p-4">
+                        <h4 className="font-semibold mb-3">Technical Details</h4>
+                        <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                                <span className="text-slate-400">Badge ID:</span>
+                                <span className="font-mono">{badge.badgeId}</span>
                             </div>
-                            <div className='BadgeDetailRarity' style={{ color: badge.getRarityColor() }}>
-                                {badge.rarity.toUpperCase()}
+                            <div className="flex justify-between">
+                                <span className="text-slate-400">Collection:</span>
+                                <span>{String(badge.collection || 'N/A')}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-slate-400">Aggregate:</span>
+                                <span>{String(badge.aggregate || 'N/A')}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-slate-400">Field:</span>
+                                <span>{String(badge.field || 'N/A')}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-slate-400">Value to Reach:</span>
+                                <span>{String(badge.valueToReach || 'N/A')}</span>
                             </div>
                         </div>
                     </div>
 
-                    <div className='GroupDetailDescription' style={{ textAlign: 'left' }}>
-                        {badge.description || 'No description available.'}
-                    </div>
-
-                    <div className='GroupDetailInfo' style={{ textAlign: 'left' }}>
-                        <div>Badge ID: {badge.badgeId}</div>
-                        <div>Reward Points: {badge.rewardPoints}</div>
-                        <div>Rarity: {badge.rarity}</div>
-                        <div>Created: {formatDate(badge.createdAt)}</div>
-                    </div>
-
-                    <div className="GroupActionButtons" style={{ marginTop: '40px' }}>
+                    {/* Action Buttons */}
+                    <div className="flex gap-3">
                         <button
-                            className='AdminActionButton'
+                            className="btn-primary flex items-center gap-2 flex-1"
                             onClick={() => setShowEditPopup(true)}
                             disabled={isProcessing}
                         >
+                            <Edit className="w-4 h-4" />
                             Edit Badge
                         </button>
                         <button
-                            className='GroupActionButton'
+                            className="btn-danger flex items-center gap-2"
                             onClick={handleDeleteBadge}
                             disabled={isProcessing}
                         >
-                            {isProcessing ? 'Deleting...' : 'Delete Badge'}
+                            <Trash2 className="w-4 h-4" />
+                            {isProcessing ? 'Deleting...' : 'Delete'}
                         </button>
                     </div>
-                </div>
-
-                <div className='Line'></div>
-                <div className='Buttonfield'>
-                    <button className='CancelButton' onClick={onClose}>Close</button>
                 </div>
 
                 {showEditPopup && (
@@ -305,6 +394,7 @@ function BadgeManagerPage({ user }) {
     const [selectedBadge, setSelectedBadge] = useState(null);
     const [showCreateBadgePopup, setShowCreateBadgePopup] = useState(false);
     const [isCreatingBadge, setIsCreatingBadge] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
         loadAllBadges();
@@ -346,58 +436,146 @@ function BadgeManagerPage({ user }) {
         RewardSystem.awardBadges(userId);
     };
 
+    const getRarityColor = (rarity) => {
+        switch (rarity) {
+            case BADGE_RARITY.COMMON: return '#9CA3AF';
+            case BADGE_RARITY.UNCOMMON: return '#10B981';
+            case BADGE_RARITY.RARE: return '#3B82F6';
+            case BADGE_RARITY.EPIC: return '#8B5CF6';
+            case BADGE_RARITY.LEGENDARY: return '#F59E0B';
+            default: return '#9CA3AF';
+        }
+    };
+
+    const filteredBadges = allBadges.filter(badge =>
+        badge.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        badge.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        badge.rarity.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     const renderBadgeList = () => {
         if (isLoadingBadges) {
-            return <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>Loading...</div>;
+            return (
+                <div className="text-center py-12">
+                    <div className="login-spinner mx-auto mb-4"></div>
+                    <p className="text-slate-400">Loading badges...</p>
+                </div>
+            );
         }
 
-        if (allBadges.length === 0) {
-            return <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>No Badges Found</div>;
+        if (filteredBadges.length === 0) {
+            return (
+                <div className="text-center py-12">
+                    <div className="text-slate-400 mb-4">
+                        {searchTerm ? 'No badges match your search.' : 'No badges found.'}
+                    </div>
+                    <button
+                        className="btn-primary"
+                        onClick={() => setShowCreateBadgePopup(true)}
+                    >
+                        Create First Badge
+                    </button>
+                </div>
+            );
         }
 
-        return allBadges.map(badge => (
-            <div
-                key={badge.badgeId || `badge-${Math.random()}`}
-                className="CardContainer"
-                onClick={() => setSelectedBadge(badge)}
-            >
-                <div className="CardHeader" style={{ color: 'var(--main-color)' }}>
-                    {badge.name} <span style={{ fontSize: '12px', color: badge.getRarityColor() }}>({badge.rarity})</span>
-                </div>
-                <div className="CardContents">
-                    {badge.description || 'No description available.'}
-                </div>
-                <div className="CardContents">
-                    Badge ID: {badge.badgeId} | Reward Points: {badge.rewardPoints}
-                </div>
+        return (
+            <div className="grid-2 gap-4">
+                {filteredBadges.map(badge => (
+                    <div
+                        key={badge.badgeId || `badge-${Math.random()}`}
+                        className="card cursor-pointer"
+                        onClick={() => setSelectedBadge(badge)}
+                    >
+                        <div className="flex items-start gap-3">
+                            <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center flex-shrink-0">
+                                <span className="text-xl">🏆</span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <h3 className="font-semibold text-gradient truncate">
+                                    {badge.name}
+                                </h3>
+                                <p className="text-xs mb-2" style={{ color: getRarityColor(badge.rarity) }}>
+                                    {badge.rarity.toUpperCase()}
+                                </p>
+                                <p className="text-sm text-slate-300 line-clamp-2">
+                                    {badge.description || 'No description available.'}
+                                </p>
+                                <div className="flex items-center justify-between mt-3 text-xs text-slate-400">
+                                    <span>{badge.rewardPoints} points</span>
+                                    <span>#{badge.badgeId.slice(-6)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                ))}
             </div>
-        ));
+        );
     };
 
     return (
-        <div className="AppContents">
-            <h2 style={{ color: '#E5E5E5', margin: '0 0 20px 0' }}>Badge Manager</h2>
-
-            <div className="AdminGroupContainer">
-                <div className="GuideText">All Badges</div>
-
-                {renderBadgeList()}
-
-                <button
-                    className="AdminActionButton"
-                    onClick={() => setShowCreateBadgePopup(true)}
-                >
-                    Create New Badge
-                </button>
-
-                <button
-                    className="AdminActionButton"
-                    onClick={() => awardBadges(user.uid)}
-                >
-                    Award Badges
-                </button>
+        <div className="space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+                <div>
+                    <h2 className="text-2xl font-bold text-gradient">Badge Manager</h2>
+                    <p className="text-slate-400">Manage achievement badges for the application</p>
+                </div>
+                <div className="flex gap-3">
+                    <button
+                        className="btn-secondary flex items-center gap-2"
+                        onClick={() => awardBadges(user.uid)}
+                    >
+                        <Award className="w-4 h-4" />
+                        Award Badges
+                    </button>
+                    <button
+                        className="btn-primary flex items-center gap-2"
+                        onClick={() => setShowCreateBadgePopup(true)}
+                    >
+                        <Plus className="w-4 h-4" />
+                        Create Badge
+                    </button>
+                </div>
             </div>
 
+            {/* Search Bar */}
+            <div className="search-container">
+                <input
+                    type="text"
+                    placeholder="Search badges by name, description, or rarity..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="search-input"
+                />
+            </div>
+
+            {/* Stats Cards */}
+            <div className="grid-3 gap-4 mt-4">
+                <div className="card text-center">
+                    <div className="text-2xl font-bold text-gradient">{allBadges.length}</div>
+                    <div className="text-sm text-slate-400">Total Badges</div>
+                </div>
+                <div className="card text-center">
+                    <div className="text-2xl font-bold text-gradient">
+                        {allBadges.filter(b => b.rarity === BADGE_RARITY.LEGENDARY).length}
+                    </div>
+                    <div className="text-sm text-slate-400">Legendary</div>
+                </div>
+                <div className="card text-center">
+                    <div className="text-2xl font-bold text-gradient">
+                        {allBadges.reduce((sum, badge) => sum + (badge.rewardPoints || 0), 0)}
+                    </div>
+                    <div className="text-sm text-slate-400">Total Points</div>
+                </div>
+            </div>
+
+            {/* Badge List */}
+            <div className="mt-4">
+                {renderBadgeList()}
+            </div>
+
+            {/* Modals */}
             {showCreateBadgePopup && (
                 <BadgeForm
                     onSubmit={handleBadgeCreation}

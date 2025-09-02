@@ -6,6 +6,7 @@ import UserManagement from '../services/UserManagementSystem.jsx';
 import { Timestamp } from '../services/firebase/FirebaseHelper.jsx';
 import { Plus, Search, Trophy } from 'lucide-react';
 import { Avatar, Card, Modal, Screen } from '../components/ui/UIComponents';
+import ProfileAvatar from '../components/ui/ProfileAvatar.jsx';
 import { CHALLENGE_TYPE, CHALLENGE_VISIBILITY } from '../services/interfaces/Constants.jsx';
 import { ImageSelector } from '../components/ui/ImageComponents.jsx';
 
@@ -415,7 +416,7 @@ function Page({ groups, setGroups, joinedIds, setJoinedIds }) {
                             {members.map((member) => (
                                 <Card key={member.uid}>
                                     <div className="flex items-center gap-3">
-                                        <Avatar name={member.displayName} size={36} seed={member.uid} userId={member.uid} />
+                                        <ProfileAvatar name={member.displayName} size={36} seed={member.uid} userId={member.uid} />
                                         <span className="font-medium">{member.displayName}</span>
                                     </div>
                                 </Card>

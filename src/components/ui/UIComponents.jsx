@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Trophy, Users, Home as HomeIcon, User, CalendarDays, Flame, Star, Moon, Settings, Search, Plus, Check, X, Dumbbell, Bike, HeartPulse, Activity, Info, Medal } from "lucide-react";
-import FirestoreManager from '../../services/firebase/FirestoreManager.jsx';
 
 const GRADIENTS = [
   "avatar-gradient-0",
@@ -23,45 +22,14 @@ export function badgeLevelColor(level) {
   return "badge-level-1";
 }
 
-export function Avatar({ name, image, size = 48, seed, userId, refreshTrigger }) {
-  const [profileImage, setProfileImage] = useState('');
-  const [imageLoading, setImageLoading] = useState(false);
-
-  // Load profile image when userId is provided
-  useEffect(() => {
-    const loadProfileImage = async () => {
-      if (!userId) {
-        setImageLoading(false);
-        return;
-      }
-      
-      setImageLoading(true);
-      try {
-        const existingImageBase64 = await FirestoreManager.getUserImage(userId);
-        setProfileImage(existingImageBase64 || '');
-      } catch (error) {
-        console.error('Failed to load profile image for avatar:', error);
-        setProfileImage('');
-      } finally {
-        setImageLoading(false);
-      }
-    };
-
-    loadProfileImage();
-  }, [userId, refreshTrigger]); // Reload when userId or refreshTrigger changes
-
+export function Avatar({ name, image, size = 48, seed }) {
   const idx = Math.abs((seed ?? name ?? "0").split("").reduce((a, c) => a + c.charCodeAt(0), 0)) % GRADIENTS.length;
   const style = { width: size, height: size };
   
-  // Use profile image if available, otherwise use provided image, otherwise show initials
-  const displayImage = profileImage || image;
-  
   return (
     <div className={`avatar ${GRADIENTS[idx]}`} style={style}>
-      {imageLoading ? (
-        <span className="avatar-text">...</span>
-      ) : displayImage ? (
-        <img src={displayImage} alt={name} className="avatar-image w-full h-full rounded-full object-cover" />
+      {image ? (
+        <img src={image} alt={name} className="avatar-image w-full h-full rounded-full object-cover" />
       ) : (
         <span className="avatar-text">{initials(name)}</span>
       )}

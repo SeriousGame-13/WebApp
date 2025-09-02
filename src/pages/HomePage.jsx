@@ -19,6 +19,7 @@ import { UserHeader } from '../components/ui/UserComponents.jsx';
 import { LevelProgressBar } from '../components/ui/ExpBarComponents.jsx';
 import { WorkoutActions, WorkoutSelector, WorkoutStats } from '../components/ui/WorkoutComponents.jsx';
 import { useHomePage } from '../hooks/useHomePage.jsx';
+import ProfileAvatar from '../components/ui/ProfileAvatar.jsx';
 
 import '../components/styles/sphere-styles.css';
 

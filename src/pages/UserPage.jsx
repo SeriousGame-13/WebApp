@@ -2,6 +2,7 @@ import { Activity, Bike, CalendarDays, Check, Dumbbell, Flame, HeartPulse, Medal
 import { useEffect, useState } from 'react';
 import '../components/styles/sphere-styles.css';
 import { Avatar, Card, Modal, Screen } from '../components/ui/UIComponents';
+import ProfileAvatar from '../components/ui/ProfileAvatar.jsx';
 import BadgeManagement from '../services/BadgeManagement.jsx';
 import FireAuthManager from '../services/firebase/FirebaseAuthenticationManager.jsx';
 import FirestoreManager from '../services/firebase/FirestoreManager.jsx';
@@ -324,7 +325,7 @@ function SettingsModal({ open, onClose, user, onUserUpdated, onImageUpdated, onN
 
   useEffect(() => {
     if (open && user) {
-      setNewName(user.displayName || user.name || '');
+      setNewName(user.displayName || '');
     }
   }, [open, user]);
 
@@ -614,7 +615,7 @@ function Page({ data, onOpenBadge, onOpenSettings, onUserUpdated }) {
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-3">
         <div className="relative" style={{ width: 48, height: 48 }}>
-          <Avatar 
+          <ProfileAvatar 
             name={userData.name || userData.displayName} 
             size={48} 
             seed={userData.id || 'default'}

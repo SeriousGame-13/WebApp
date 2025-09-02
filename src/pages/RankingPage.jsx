@@ -150,7 +150,7 @@ function Page({ userData }) {
                     <div className="w-8 text-center font-bold flex items-center justify-center" >
                       {getRankIcon(idx + 1)}
                     </div>
-                    <Avatar name={row.name || row.displayName} size={40} seed={row.id || row.uid} />
+                    <Avatar name={row.name || row.displayName} size={40} seed={row.uid} />
                     <div className="flex-1 font-medium flex items-center">
                       {row.name || row.displayName}
                       {(row.id === userData.uid || row.uid === userData.uid) && (
@@ -172,9 +172,9 @@ function Page({ userData }) {
         {selectedUser && (
           <div className="space-y-3">
             <div className="flex items-center justify-left gap-3">
-              <Avatar name={selectedUser.name || selectedUser.displayName} size={48} seed={selectedUser.id || selectedUser.uid} />
+              <Avatar name={selectedUser.displayName} size={48} seed={selectedUser.uid} />
               <div>
-                <p className="flex justify-left text-lg font-semibold">{selectedUser.name || selectedUser.displayName}</p>
+                <p className="flex justify-left text-lg font-semibold">{selectedUser.displayName}</p>
                 <p className="flex justify-left text-slate-400 text-sm">Level {selectedUser.level || 1}</p>
               </div>
             </div>

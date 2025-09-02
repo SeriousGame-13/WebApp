@@ -4,7 +4,6 @@ import '../components/styles/sphere-styles.css';
 
 const AdminPage = lazy(() => import('./admin/AdminPage.jsx').then(module => ({ default: module.default.AdminPageMain })));
 const MainLayout = lazy(() => import('../layouts/MainLayout.jsx').then(module => ({ default: module.default.AppLayout })));
-const NewApp = lazy(() => import('../newpages/newApp.jsx'));
 
 import UserManagement from '../services/UserManagementSystem.jsx';
 import ChallengeManagement from '../services/ChallengeManagement.jsx';
@@ -67,61 +66,7 @@ function Field({ label, icon, type = "text", value, onChange, autoComplete, plac
   );
 }
 
-function AppSelectionPopup({ onSelect, onCancel }) {
-  return (
-    <div className="login-toast" style={{ 
-      position: 'fixed', 
-      top: '50%', 
-      left: '50%', 
-      transform: 'translate(-50%, -50%)',
-      zIndex: 1000,
-      background: 'rgba(0, 0, 0, 0.9)',
-      padding: '2rem',
-      borderRadius: '1rem',
-      border: '1px solid rgba(255, 255, 255, 0.1)',
-      minWidth: '300px'
-    }}>
-      <h2 style={{ marginBottom: '1rem', textAlign: 'center' }}>Choose Application</h2>
-      <p style={{ marginBottom: '1.5rem', fontSize: '0.9rem', opacity: 0.8, textAlign: 'center' }}>
-        Select which version of the app you'd like to use:
-      </p>
-      
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-        <button 
-          className="login-submit"
-          onClick={() => onSelect('main')}
-          style={{ marginBottom: '0.5rem' }}
-        >
-          Main Application
-        </button>
-        <button 
-          className="login-submit"
-          onClick={() => onSelect('new')}
-          style={{ color: '#f0abfc', background: 'rgba(255, 255, 255, 0.1)', marginBottom: '0.5rem' }}
-        >
-          New Application
-        </button>
-      </div>
-      
-      <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.1)', margin: '1rem 0' }}></div>
-      <div style={{ textAlign: 'right' }}>
-        <button 
-          onClick={onCancel}
-          style={{ 
-            background: 'transparent', 
-            border: '1px solid rgba(255, 255, 255, 0.3)', 
-            color: 'white', 
-            padding: '0.5rem 1rem', 
-            borderRadius: '0.5rem',
-            cursor: 'pointer'
-          }}
-        >
-          Cancel
-        </button>
-      </div>
-    </div>
-  );
-}
+// (Removed AppSelectionPopup; always route to Main Application for non-admin users)
 
 export default function LoginPage() {
   const [mode, setMode] = useState("login");
@@ -135,8 +80,7 @@ export default function LoginPage() {
   // App state management
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUserData] = useState(null);
-  const [showAppSelectionPopup, setShowAppSelectionPopup] = useState(false);
-  const [selectedApp, setSelectedApp] = useState(null);
+  // Removed app selection state; defaulting to Main Application
 
   // Handle login functionality
   const handleLogin = async (email, password) => {
@@ -200,8 +144,8 @@ export default function LoginPage() {
     }
   };
 
-  // Admin check after log-in and app selection
-  if (isLoggedIn && user && !showAppSelectionPopup && !selectedApp) {
+  // After login: admin -> AdminPage, else -> Main Application
+  if (isLoggedIn && user) {
     console.log('Login check - user:', user);
     console.log('Login check - user.isAdmin:', user.isAdmin);
     console.log('Login check - typeof user.isAdmin:', typeof user.isAdmin);
@@ -213,29 +157,14 @@ export default function LoginPage() {
           <AdminPage user={user} />
         </Suspense>
       );
-    } else {
-      console.log('Showing app selection popup');
-      setShowAppSelectionPopup(true);
     }
-  }
 
-  // Handle app selection
-  if (isLoggedIn && user && selectedApp) {
-    if (selectedApp === "main") {
-      console.log('Redirecting to regular HomePage');
-      return (
-        <Suspense fallback={<div>Loading Main App...</div>}>
-          <MainLayout />
-        </Suspense>
-      );
-    } else if (selectedApp === "new") {
-      console.log('Redirecting to new App');
-      return (
-        <Suspense fallback={<div>Loading New App...</div>}>
-          <NewApp />
-        </Suspense>
-      );
-    }
+    console.log('Redirecting to Main Application');
+    return (
+      <Suspense fallback={<div>Loading Main App...</div>}>
+        <MainLayout />
+      </Suspense>
+    );
   }
 
   return (
@@ -248,19 +177,7 @@ export default function LoginPage() {
         </div>
       )}
 
-      {showAppSelectionPopup && (
-        <AppSelectionPopup
-          onSelect={(app) => {
-            setSelectedApp(app);
-            setShowAppSelectionPopup(false);
-          }}
-          onCancel={() => {
-            // Default to main app if user cancels
-            setSelectedApp("main");
-            setShowAppSelectionPopup(false);
-          }}
-        />
-      )}
+  {/* App selection removed; users go straight to Main Application unless admin */}
 
       <div className="relative z-10 w-full" style={{ maxWidth: '28rem', margin: '0 1rem' }}>
         <Brand />

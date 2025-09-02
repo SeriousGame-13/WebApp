@@ -5,7 +5,7 @@ import FirestoreManager from '../../services/firebase/FirestoreManager.jsx'
 
 //TODO: Decompose into COMPONENT PART and MANAGER PART
 
-const ProfileImageSelector = ({ userId, onImageProcessed, onError }) => {
+const ProfileImageSelector = ({ userId, onImageProcessed }) => {
   const handleImageProcessed = async (result) => {
     try {
       // Save to Firestore
@@ -18,7 +18,6 @@ const ProfileImageSelector = ({ userId, onImageProcessed, onError }) => {
       });
     } catch (error) {
       console.error('Failed to save image:', error);
-      onError && onError(`Save failed: ${error.message}`);
     }
   };
 
@@ -26,7 +25,6 @@ const ProfileImageSelector = ({ userId, onImageProcessed, onError }) => {
     <ImageSelector
       id={userId}
       onImageProcessed={handleImageProcessed}
-      onError={onError}
       disabled={!userId}
       loadExistingImage={FirestoreManager.getUserImage}
       altText="Profile Preview"
@@ -43,12 +41,8 @@ const ProfileImageSelector = ({ userId, onImageProcessed, onError }) => {
 
 // Main component
 const ProfileImageUploader = ({ userId, onUploadComplete }) => {
-  const [error, setError] = useState('');
 
-  const handleImageProcessed = (processResult) => {
-    setError('');
-    
-    // Pass result to parent component
+  const handleImageProcessed = (processResult) => {    
     onUploadComplete && onUploadComplete({
       base64Data: processResult.base64Data,
       size: processResult.saveResult?.size || 0,
@@ -56,23 +50,12 @@ const ProfileImageUploader = ({ userId, onUploadComplete }) => {
     });
   };
 
-  const handleError = (errorMessage) => {
-    console.error('Error:', errorMessage);
-    setError(errorMessage);
-  };
-
   return (
     <div>
       <ProfileImageSelector 
         userId={userId}
         onImageProcessed={handleImageProcessed}
-        onError={handleError}
       />
-      {error && (
-        <div style={{ color: '#FF4757', fontSize: '12px', marginTop: '8px' }}>
-          {error}
-        </div>
-      )}
     </div>
   );
 };

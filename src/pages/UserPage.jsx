@@ -463,8 +463,7 @@ function SettingsModal({ open, onClose, user, onUserUpdated, onImageUpdated, onN
   );
 }
 
-// ---------- Main Page Component ----------
-function Page({ data, onOpenBadge, onOpenSettings, onUserUpdated }) {
+function UserPage({ data, onOpenBadge, onOpenSettings, onUserUpdated }) {
   const [allBadges, setAllBadges] = useState([]);
   const [isLoadingBadges, setIsLoadingBadges] = useState(true);
   const [selectedBadgeId, setSelectedBadgeId] = useState(null);
@@ -697,8 +696,4 @@ function Page({ data, onOpenBadge, onOpenSettings, onUserUpdated }) {
   );
 }
 
-const UserPageElements = {
-  Page,
-};
-
-export default UserPageElements;
+export default UserPage;

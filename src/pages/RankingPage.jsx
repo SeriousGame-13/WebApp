@@ -5,7 +5,7 @@ import StationManager from '../services/StationManagement.jsx';
 
 import '../components/styles/sphere-styles.css';
 
-function Page({ userData }) {
+function RankingPage({ userData }) {
   const [tab, setTab] = useState("points");
   const [rankings, setRankings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -204,9 +204,5 @@ function Page({ userData }) {
     </Screen>
   );
 }
-
-const RankingPage = {
-    Page
-};
 
 export default RankingPage;

@@ -5,7 +5,7 @@ const TABS = [
   { key: "home", label: "Home", icon: <HomeIcon className="w-6 h-6" /> },
   { key: "groups", label: "Groups", icon: <Users className="w-6 h-6" /> },
   { key: "rankings", label: "Ranking", icon: <Trophy className="w-6 h-6" /> },
-  { key: "challenges", label: "Challenges", icon: <CalendarDays className="w-6 h-6" /> },
+  { key: "progress", label: "Progress", icon: <CalendarDays className="w-6 h-6" /> },
   { key: "user", label: "Profile", icon: <User className="w-6 h-6" /> },
 ];
 

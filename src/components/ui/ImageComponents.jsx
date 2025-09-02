@@ -135,7 +135,7 @@ export const ImageSelector = ({
       />
 
       {/* Selection button */}
-      <button className='btn-primary flex items-center gap-2 px-3 py-2'
+      <button className='btn-primary flex items-center gap-2 px-3 py-2 mt-2'
         onClick={handleButtonClick}
         disabled={processing || disabled || imageLoading}
       >

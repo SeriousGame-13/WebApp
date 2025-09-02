@@ -1,15 +1,15 @@
 import '../styles/ExpBar.css';
-import { Card } from './UIComponents';
+import { Card } from './UIComponents.jsx';
 
 
-export function LinearExpContainerSimple({ expnow, expmax }) {
-    const progress = Math.min((expnow / expmax) * 100, 100);
-    
+export function ProgressBar({ current, max }) {
+    const progress = Math.min((current / max) * 100, 100);
+
     return (
-        <div className="LinearExpContainerSimple">
-            <div className="LinearExpBarSimple">
+        <div className="progress-bar">
+            <div className="progress-bar">
                 <div 
-                    className="LinearExpFillSimple" 
+                    className="progress-fill" 
                     style={{ width: `${progress}%` }}
                 ></div>
             </div>

@@ -31,7 +31,7 @@ import '../components/styles/sphere-styles.css';
  * @param {Object} props.userData - Current user's data and profile information
  * @returns {JSX.Element} Complete homepage with all features
  */
-function Page({ userData }) {
+function HomePage({ userData }) {
   const {
     // State
     modalState,
@@ -137,8 +137,4 @@ function Page({ userData }) {
   );
 }
 
-const HomePageElements = {
-  Page
-};
-
-export default HomePageElements;
+export default HomePage;

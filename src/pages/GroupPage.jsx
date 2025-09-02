@@ -13,7 +13,7 @@ import { ImageSelector } from '../components/ui/ImageComponents.jsx';
 import '../components/styles/GroupPage.css';
 import '../components/styles/LayoutElements.css';
 
-function Page({ groups, setGroups, joinedIds, setJoinedIds }) {
+function GroupPage({ groups, setGroups, joinedIds, setJoinedIds }) {
     const [search, setSearch] = useState("");
     const [opened, setOpened] = useState(null);
     const [createOpen, setCreateOpen] = useState(false);
@@ -634,8 +634,4 @@ function CreateGroupChallengePopup({ group, onClose, onCreate }) {
     );
 }
 
-const GroupPageElements = {
-    Page,
-};
-
-export default GroupPageElements;
+export default GroupPage;

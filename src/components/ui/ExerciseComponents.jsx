@@ -1,5 +1,5 @@
 import { Card } from './UIComponents';
-
+import { Plus } from 'lucide-react';
 /**
  * Displays a grid of exercise cards with interaction capability.
  * 
@@ -101,8 +101,10 @@ export function ExerciseSectionHeader({ onAddExercise }) {
       <h3 className="text-lg font-semibold text-gradient">Latest Exercises</h3>
       <button 
         onClick={onAddExercise}
-        className="btn-primary text-sm px-3 py-1 rounded-full"
+        className="btn-primary text-sm px-3 rounded-full"
       >
+        <Plus className="w-4 h-3" />
+
         Add Exercise
       </button>
     </div>

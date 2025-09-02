@@ -1,14 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
+import '../components/styles/LayoutElements.css';
+import GroupPage from '../pages/GroupPage.jsx';
+import HomePage from '../pages/HomePage.jsx';
 import LoginPage from '../pages/LoginPage.jsx';
-import ChallengePageElements from '../pages/ChallengePage.jsx';
-import GroupPageElements from '../pages/GroupPage.jsx';
-import HomePageElements from '../pages/HomePage.jsx';
+import ProgressPage from '../pages/ProgressPage.jsx';
 import RankingPage from '../pages/RankingPage.jsx';
-import UserPageElements from '../pages/UserPage.jsx';
+import UserPage from '../pages/UserPage.jsx';
 import UserManagement from '../services/UserManagementSystem.jsx';
 import FirebaseAuthenticationManager from '../services/firebase/FirebaseAuthenticationManager.jsx';
-import '../components/styles/LayoutElements.css'
 import MainFooter from './MainFooter.jsx';
 
 const useAuth = () => {
@@ -62,28 +62,28 @@ function AppLayout() {
                 console.log('Rendering HomePage with data:', userData);
                 return (
                 <div className='app-container'>
-                    <HomePageElements.Page userData={userData} />
+                    <HomePage userData={userData} />
                     <div className='border-t border-white/10' />
                     <MainFooter.Footer tab={currentPage} setTab={setCurrentPage} />
                 </div>)
             case 'rankings':
                 return (
                 <div className='app-container'>
-                    <RankingPage.Page userData={userData} />
+                    <RankingPage userData={userData} />
                     <div className='border-t border-white/10' />
                     <MainFooter.Footer tab={currentPage} setTab={setCurrentPage} />
                 </div>)
-            case 'challenges':
+            case 'progress':
                 return (
                     <div className='app-container'>
-                        <ChallengePageElements.Page data={userData} />
+                        <ProgressPage data={userData} />
                         <div className='border-t border-white/10' />
                         <MainFooter.Footer tab={currentPage} setTab={setCurrentPage} />
                     </div>)
             case 'groups':
                 return (
                     <div className='app-container'>
-                        <GroupPageElements.Page groups={groups} setGroups={setGroups} joinedIds={joinedIds} setJoinedIds={setJoinedIds} />
+                        <GroupPage groups={groups} setGroups={setGroups} joinedIds={joinedIds} setJoinedIds={setJoinedIds} />
                         <div className='border-t border-white/10' />
                         <MainFooter.Footer tab={currentPage} setTab={setCurrentPage} />
                     </div>)
@@ -91,14 +91,14 @@ function AppLayout() {
                 return (
                 <div className='app-container'>
                     <div className='border-t border-white/10' />
-                    <UserPageElements.Page data={userData} />
+                    <UserPage data={userData} />
                     <div className='border-t border-white/10' />
                     <MainFooter.Footer tab={currentPage} setTab={setCurrentPage} />
                 </div>)
             default:
                 return (
                     <div className='app-container'>
-                        <HomePageElements.Page data={userData} />
+                        <HomePage data={userData} />
                         <div className='border-t border-white/10' />
                         <MainFooter.Footer tab={currentPage} setTab={setCurrentPage} />
                     </div>)

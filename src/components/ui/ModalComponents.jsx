@@ -1,4 +1,5 @@
 import { Modal } from './UIComponents';
+import { toGermanDateLongFormat } from '../../utils/DateUtils';
 
 /**
  * Modal for creating or editing a workout.
@@ -239,13 +240,13 @@ export function ExerciseDetailModal({
           <div>
             <div className="text-sm text-slate-300 mb-1">Start Time</div>
             <div className="form-input w-full bg-slate-700 text-slate-200">
-              {exercise.startTime ? new Date(getDateFromTimestamp(exercise.startTime)).toLocaleString() : '--'}
+              {exercise.startTime ? toGermanDateLongFormat(exercise.startTime) : '--'}
             </div>
           </div>
           <div>
             <div className="text-sm text-slate-300 mb-1">End Time</div>
             <div className="form-input w-full bg-slate-700 text-slate-200">
-              {exercise.endTime ? new Date(getDateFromTimestamp(exercise.endTime)).toLocaleString() : '--'}
+              {exercise.endTime ? toGermanDateLongFormat(exercise.endTime) : '--'}
             </div>
           </div>
         </div>

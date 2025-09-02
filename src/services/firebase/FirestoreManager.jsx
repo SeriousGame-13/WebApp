@@ -335,6 +335,30 @@ const getUserImage = async (userId) => {
   }
 }
 
+const deleteAllData = async () => {
+    const collections = [
+        'badgeimages',
+        'badges',
+        'challenges',
+        'goals',
+        'groupimages',
+        'profileimages',
+        'station_highscores',
+        'user_group_members',
+        'user_groups',
+        'users'
+    ];
+
+    for (const collection of collections) {
+        const snapshot = await getAllDocuments(collection);
+        if (snapshot) {
+            for (const doc of snapshot.docs) {
+                await deleteDocument(collection, doc.id);
+            }
+        }
+    }
+}
+
 /**
  * Firestore Manager
  * 
@@ -364,6 +388,7 @@ const FirestoreManager = {
     getServerTimestamp,
     findDocumentByField,
     queryDocuments,
+    deleteAllData,
 
     //Images
     saveUserImage,

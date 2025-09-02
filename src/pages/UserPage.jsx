@@ -7,7 +7,7 @@ import BadgeManagement from '../services/BadgeManagement.jsx';
 import FireAuthManager from '../services/firebase/FirebaseAuthenticationManager.jsx';
 import FirestoreManager from '../services/firebase/FirestoreManager.jsx';
 import { USERS_COLLECTION } from '../services/firebase/Collections.jsx';
-import ProfileImageElements from '../components/ui/ProfileImageManager.jsx';
+import ProfileImageElements from "../components/ui/ProfileImageManager.jsx";
 
 
 //TODO Refactor!!!!!!!!!!!!!!!!!!!!!!!
@@ -31,10 +31,10 @@ function Legend({ userBadgesMap, allBadges }) {
   };
 
   allBadges.forEach(badge => {
-    const badgeId = badge.id || badge.badgeId;
+    const badgeId = badge.id || badge.uid;
     if (userBadgesMap && userBadgesMap.has(badgeId)) {
       const rarity = badge.rarity?.toLowerCase() || 'common';
-      if (rarityCount.hasOwnProperty(rarity)) {
+      if (Object.prototype.hasOwnProperty.call(rarityCount, rarity)) {
         rarityCount[rarity]++;
       }
     }
@@ -97,14 +97,14 @@ function BadgeItem({ badge, userBadgeLevel, onClick }) {
 
   useEffect(() => {
     const loadBadgeImage = async () => {
-      if (!badge?.badgeId) {
+      if (!badge?.uid) {
         setImageLoading(false);
         return;
       }
 
       setImageLoading(true);
       try {
-        const imageBase64 = await BadgeManagement.getBadgeImage(badge.badgeId);
+        const imageBase64 = await BadgeManagement.getBadgeImage(badge.uid);
         setBadgeImage(imageBase64);
       } catch (error) {
         console.error('Failed to load badge image:', error);
@@ -115,9 +115,9 @@ function BadgeItem({ badge, userBadgeLevel, onClick }) {
     };
 
     loadBadgeImage();
-  }, [badge?.badgeId]);
+  }, [badge?.uid]);
 
-  const badgeId = badge.id || badge.badgeId;
+  const badgeId = badge.id || badge.uid;
   const unlocked = !!userBadgeLevel;
 
   // Fallback to static icon if no image
@@ -199,13 +199,13 @@ function BadgeDetailModal({ badgeId, open, onClose, allBadges, userBadgesMap }) 
       setLoading(true);
       try {
         // Find badge from allBadges array
-        const foundBadge = allBadges.find(b => (b.id || b.badgeId) === badgeId);
+        const foundBadge = allBadges.find(b => (b.id || b.uid) === badgeId);
         setBadge(foundBadge || null);
 
         // Load badge image if it's a Firebase badge
-        if (foundBadge?.badgeId) {
+        if (foundBadge?.uid) {
           try {
-            const imageBase64 = await BadgeManagement.getBadgeImage(foundBadge.badgeId);
+            const imageBase64 = await BadgeManagement.getBadgeImage(foundBadge.uid);
             setBadgeImage(imageBase64);
           } catch (error) {
             console.error('Failed to load badge image:', error);
@@ -373,6 +373,12 @@ function SettingsModal({ open, onClose, user, onUserUpdated, onImageUpdated, onN
     }
   };
 
+  const handleDeleteAccount = async () => {
+    if (window.confirm('Bist du sicher, dass du dein Konto löschen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.')) {
+        // await FirestoreManager.deleteAllData();
+    }
+  };
+
   if (!open) return null;
 
   return (
@@ -458,6 +464,27 @@ function SettingsModal({ open, onClose, user, onUserUpdated, onImageUpdated, onN
             </p>
           </div>
         </div>
+
+        {/* Danger Zone */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-red-500">Danger Zone</h3>
+          <div className="card p-4 bg-red-900/20">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-semibold text-red-400">Konto löschen</p>
+                <p className="text-sm text-slate-400">
+                  Diese Aktion kann nicht rückgängig gemacht werden. Alle deine Daten werden dauerhaft entfernt.
+                </p>
+              </div>
+              <button
+                onClick={handleDeleteAccount}
+                className="btn-danger text-sm"
+              >
+                Löschen
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </Modal>
   );
@@ -514,7 +541,7 @@ function UserPage({ data, onOpenBadge, onOpenSettings, onUserUpdated }) {
         snapshot.forEach(doc => {
             const badgeData = doc.data();
             console.log('Badge data:', badgeData);
-            if (badgeData.badgeId) {
+            if (badgeData.uid) {
             badgesMap.set(badgeData.badgeId, badgeData.level || 1);
             }
         });
@@ -543,8 +570,8 @@ function UserPage({ data, onOpenBadge, onOpenSettings, onUserUpdated }) {
           // Use Firebase badges
           const sortedBadges = firebaseBadges.sort((a, b) => {
             // Put owned badges first
-            const badgeIdA = a.id || a.badgeId;
-            const badgeIdB = b.id || b.badgeId;
+            const badgeIdA = a.id || a.uid;
+            const badgeIdB = b.id || b.uid;
             const aOwned = userBadgesMap.has(badgeIdA);
             const bOwned = userBadgesMap.has(badgeIdB);
             if (aOwned && !bOwned) return -1;
@@ -582,7 +609,7 @@ function UserPage({ data, onOpenBadge, onOpenSettings, onUserUpdated }) {
     };
 
     loadAllBadges();
-  }, [userData.badges]);
+  }, [userData.badges, userBadgesMap]);
 
   const total = allBadges.length;
 
@@ -658,7 +685,7 @@ function UserPage({ data, onOpenBadge, onOpenSettings, onUserUpdated }) {
         ) : (
           <div className="grid-3">
             {allBadges.map((badge) => {
-              const badgeId = badge.id || badge.badgeId;
+              const badgeId = badge.id || badge.uid;
               const userBadgeLevel = userBadgesMap.get(badgeId);
               
               return (

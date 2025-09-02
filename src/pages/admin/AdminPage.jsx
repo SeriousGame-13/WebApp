@@ -5,7 +5,8 @@ import BadgeManagerPage from './BadgeManagerPage';
 import ChallengeManagerPage from './ChallengeManagerPage';
 import '../../components/styles/LayoutElements.css';
 import WorkoutManagerPage from './WorkoutManagerPage';
-import StationManagerPage  from './StationManagerPage';
+import StationManagerPage from './StationManagerPage';
+import StationGamePage from './StationGamePage';
 import GoalManagerPage  from './GoalManagerPage';
 
 function AdminPageMain({ user }) {
@@ -25,6 +26,8 @@ function AdminPageMain({ user }) {
                 return <GoalManagerPage user={user} />;
             case 'Station Manager':
                 return <StationManagerPage user={user} />;
+            case 'Station Game Manager':
+                return <StationGamePage user={user} />;
             default:
                 return <GroupManagerPage />;
         }

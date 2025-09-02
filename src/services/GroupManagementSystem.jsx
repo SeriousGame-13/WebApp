@@ -18,7 +18,7 @@ import FireAuthManager from './firebase/FirebaseAuthenticationManager.jsx';
 import { Group, GroupMember } from './interfaces/Group.jsx';
 import { GROUP_ROLE } from './interfaces/Constants.jsx';
 import { GROUPS_COLLECTION, GROUP_MEMBERS_COLLECTION, USERS_COLLECTION } from './firebase/Collections.jsx'
-import { serverTimestamp } from '../services/firebase/FirebaseHelper.jsx';
+import { serverTimestamp } from './firebase/FirebaseHelper.jsx';
 
 const GROUP_IMAGES_COLLECTION = 'groupimages';
 

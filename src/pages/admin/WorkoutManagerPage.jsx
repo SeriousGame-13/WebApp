@@ -770,36 +770,14 @@ function WorkoutManagerPage({ user }) {
     };
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
-                <div>
-                    <h2 className="text-2xl font-bold text-gradient">Workout Manager</h2>
-                    <p className="text-slate-400">Manage all user workouts and exercise routines</p>
-                </div>
-                <button
-                    className="btn-primary flex items-center gap-2"
-                    onClick={() => setShowCreatePopup(true)}
-                >
-                    <Plus className="w-4 h-4" />
-                    Create Workout
-                </button>
-            </div>
-
-            {/* Search Bar */}
-            <div className="search-container">
-                <Search className="search-icon" />
-                <input
-                    type="text"
-                    placeholder="Search workouts by name, description, or user..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="search-input"
-                />
+                <h2 className="text-2xl font-bold text-gradient">Workout Manager</h2>
             </div>
 
             {/* Stats Cards */}
-            <div className="grid-3 gap-6 mt-4">
+            <div className="grid-3 gap-6">
                 <div className="card text-center">
                     <div className="text-2xl font-bold text-gradient">{workouts.length}</div>
                     <div className="text-sm text-slate-400">Total Workouts</div>
@@ -816,6 +794,27 @@ function WorkoutManagerPage({ user }) {
                     </div>
                     <div className="text-sm text-slate-400">Total Exercises</div>
                 </div>
+            </div>
+
+            {/* Search and Create */}
+            <div className="flex items-center gap-4 mt-4">
+                <div className="search-container flex-1">
+                    <Search className="search-icon" />
+                    <input
+                        type="text"
+                        placeholder="Search workouts by name, description, or user..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="search-input"
+                    />
+                </div>
+                <button
+                    className="btn-primary flex items-center gap-2"
+                    onClick={() => setShowCreatePopup(true)}
+                >
+                    <Plus className="w-4 h-4" />
+                    Create Workout
+                </button>
             </div>
 
             {/* Workout List */}

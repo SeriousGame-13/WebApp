@@ -794,36 +794,14 @@ function GroupManagerPage() {
     };
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
-                <div>
-                    <h2 className="text-2xl font-bold text-gradient">Group Manager</h2>
-                    <p className="text-slate-400">Manage and oversee all groups in the application</p>
-                </div>
-                <button
-                    className="btn-primary flex items-center gap-2"
-                    onClick={() => setShowCreateGroupPopup(true)}
-                >
-                    <Plus className="w-4 h-4" />
-                    Create Group
-                </button>
-            </div>
-
-            {/* Search Bar */}
-            <div className="search-container">
-                <Search className="search-icon" />
-                <input
-                    type="text"
-                    placeholder="Search groups by name, description, or creator..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="search-input"
-                />
+                <h2 className="text-2xl font-bold text-gradient">Group Manager</h2>
             </div>
 
             {/* Stats Cards */}
-            <div className="grid-3 gap-6 mt-4">
+            <div className="grid-3 gap-6">
                 <div className="card text-center">
                     <div className="text-2xl font-bold text-gradient">{allGroups.length}</div>
                     <div className="text-sm text-slate-400">Total Groups</div>
@@ -840,6 +818,27 @@ function GroupManagerPage() {
                     </div>
                     <div className="text-sm text-slate-400">Total Members</div>
                 </div>
+            </div>
+
+            {/* Search and Create */}
+            <div className="flex items-center gap-4 mt-4">
+                <div className="search-container flex-1">
+                    <Search className="search-icon" />
+                    <input
+                        type="text"
+                        placeholder="Search groups by name, description, or creator..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="search-input"
+                    />
+                </div>
+                <button
+                    className="btn-primary flex items-center gap-2"
+                    onClick={() => setShowCreateGroupPopup(true)}
+                >
+                    <Plus className="w-4 h-4" />
+                    Create Group
+                </button>
             </div>
 
             {/* Group List */}

@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import '../../components/styles/LayoutElements.css';
 import TournamentManagement from '../../services/TournamentManagement.jsx';
 import UserManagement from '../../services/UserManagementSystem.jsx';
 import { CHALLENGE_VISIBILITY } from '../../services/interfaces/Constants.jsx';
 import BaseModel from '../../services/interfaces/Base.jsx';
 import { localDateTimeStringToTimestamp, localTime } from '../../utils/DateUtils.jsx';
+import { Plus } from 'lucide-react';
+import '../../components/styles/sphere-styles.css';
 
 
 function FormBase({
@@ -539,17 +540,53 @@ function TournamentManagerPage({ user }) {
     };
 
     return (
-        <div className="AppContents">
-            <h2 style={{ color: '#E5E5E5', margin: '0 0 20px 0' }}>Tournament Manager</h2>
-            <div className="AdminGroupContainer">
-                <div className="GuideText">All Tournaments</div>
-                {renderList()}
+        <div className="space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-gradient">Tournament Manager</h2>
+            </div>
+
+            {/* Stats Cards */}
+            <div className="grid-3 gap-6">
+                <div className="card text-center">
+                    <div className="text-2xl font-bold text-gradient">{allTournaments.length}</div>
+                    <div className="text-sm text-slate-400">Total Tournaments</div>
+                </div>
+                <div className="card text-center">
+                    <div className="text-2xl font-bold text-gradient">
+                        {allTournaments.filter(t => t.isActive && t.isActive()).length}
+                    </div>
+                    <div className="text-sm text-slate-400">Active Now</div>
+                </div>
+                <div className="card text-center">
+                    <div className="text-2xl font-bold text-gradient">
+                        {allTournaments.reduce((sum, tournament) => sum + (tournament.participants?.length || 0), 0)}
+                    </div>
+                    <div className="text-sm text-slate-400">Total Participants</div>
+                </div>
+            </div>
+
+            {/* Search and Create */}
+            <div className="flex items-center gap-4 mt-4">
+                <div className="search-container flex-1">
+                    <input
+                        type="text"
+                        placeholder="Search tournaments by name..."
+                        className="search-input"
+                    />
+                </div>
                 <button
-                    className="AdminActionButton"
+                    className="btn-primary flex items-center gap-2"
                     onClick={() => setShowCreatePopup(true)}
                 >
-                    Create New Tournament
+                    <Plus className="w-4 h-4" />
+                    Create Tournament
                 </button>
+            </div>
+
+            {/* Tournament List */}
+            <div className="mt-4">
+                {renderList()}
             </div>
 
             {showCreatePopup && (

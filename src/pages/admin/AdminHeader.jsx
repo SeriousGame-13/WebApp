@@ -27,12 +27,11 @@ function AdminHeader({ user, onPageSelect, currentPage }) {
     };
 
     const adminPages = [
+        { key: 'User Manager', label: 'User Manager', icon: '👤' },
         { key: 'Group Manager', label: 'Group Manager', icon: '👥' },
         { key: 'Challenge Manager', label: 'Challenge Manager', icon: '🎯' },
-        { key: 'Badge Manager', label: 'Badge Manager', icon: '🏆' },
-        { key: 'User Manager', label: 'User Manager', icon: '👤' },
         { key: 'Workout Manager', label: 'Workout Manager', icon: '💪' },
-        { key: 'Goal Manager', label: 'Goal Manager', icon: '🎯' },
+        { key: 'Badge Manager', label: 'Badge Manager', icon: '🏆' },
         { key: 'Station Manager', label: 'Station Manager', icon: '🏋️' },
         { key: 'Station Game Manager', label: 'Station Game Manager', icon: '🎮' }
     ];
@@ -56,7 +55,6 @@ function AdminHeader({ user, onPageSelect, currentPage }) {
                 <div className="flex items-center gap-3">
                     {/* Page Selection Dropdown */}
                     <div className="flex flex-col gap-1">
-                        <label className="form-label">Admin Section</label>
                         <select 
                             className="form-input"
                             value={currentPage}

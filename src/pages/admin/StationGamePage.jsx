@@ -400,36 +400,14 @@ function StationGamePage({ user }) {
     };
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
-                <div>
-                    <h2 className="text-2xl font-bold text-gradient">Station Game Manager</h2>
-                    <p className="text-slate-400">Create and manage station games for fitness equipment</p>
-                </div>
-                <button
-                    className="btn-primary flex items-center gap-2"
-                    onClick={() => setShowCreatePopup(true)}
-                >
-                    <Plus className="w-4 h-4" />
-                    Create Game
-                </button>
-            </div>
-
-            {/* Search Bar */}
-            <div className="search-container">
-                <Search className="search-icon" />
-                <input
-                    type="text"
-                    placeholder="Search station games by name..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="search-input"
-                />
+                <h2 className="text-2xl font-bold text-gradient">Station Game Manager</h2>
             </div>
 
             {/* Stats Cards */}
-            <div className="grid-3 gap-6 mt-8">
+            <div className="grid-3 gap-6">
                 <div className="card text-center">
                     <div className="text-2xl font-bold text-gradient">{objects.length}</div>
                     <div className="text-sm text-slate-400">Total Games</div>
@@ -444,6 +422,27 @@ function StationGamePage({ user }) {
                     </div>
                     <div className="text-sm text-slate-400">Assigned Games</div>
                 </div>
+            </div>
+
+            {/* Search and Create */}
+            <div className="flex items-center gap-4 mt-4">
+                <div className="search-container flex-1">
+                    <Search className="search-icon" />
+                    <input
+                        type="text"
+                        placeholder="Search station games by name..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="search-input"
+                    />
+                </div>
+                <button
+                    className="btn-primary flex items-center gap-2"
+                    onClick={() => setShowCreatePopup(true)}
+                >
+                    <Plus className="w-4 h-4" />
+                    Create Game
+                </button>
             </div>
 
             {/* Game List */}

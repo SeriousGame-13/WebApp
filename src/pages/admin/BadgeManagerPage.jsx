@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import BadgeManagement from '../../services/BadgeManagement.jsx';
+import UserManagement from '../../services/UserManagementSystem.jsx';
 import { BADGE_RARITY } from '../../services/interfaces/Constants.jsx';
 import BadgeImageElements from '../../components/ui/BadgeImageManager.jsx';
 import '../../components/styles/sphere-styles.css';
 import { Badge } from '../../services/interfaces/Badge.jsx';
 import RewardSystem from '../../services/RewardSystem.jsx';
 import BaseModel from '../../services/interfaces/Base.jsx';
-import { Plus, Edit, Trash2, Award, X } from 'lucide-react';
+import { Plus, Edit, Trash2, Award, X, Users, Check } from 'lucide-react';
 
 // Shared Badge Form Component
 function BadgeForm({ badge = null, onSubmit, onCancel, isProcessing, submitText }) {
@@ -156,9 +157,238 @@ function BadgeForm({ badge = null, onSubmit, onCancel, isProcessing, submitText 
     );
 }
 
+// Badge Assignment Manager Component
+function BadgeAssignmentManager({ badge, onClose, onAssignmentsUpdated }) {
+    const [allUsers, setAllUsers] = useState([]);
+    const [userBadges, setUserBadges] = useState(new Map());
+    const [isLoading, setIsLoading] = useState(true);
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedUsers, setSelectedUsers] = useState(new Set());
+
+    useEffect(() => {
+        loadUsersAndBadges();
+    }, [badge.badgeId]);
+
+    const loadUsersAndBadges = async () => {
+        try {
+            setIsLoading(true);
+            
+            // Load all users
+            const users = await UserManagement.getAllActiveUsers();
+            setAllUsers(users);
+
+            // Load badge assignments for each user
+            const badgeMap = new Map();
+            for (const user of users) {
+                try {
+                    const userBadgeList = await UserManagement.getBadges(user.uid);
+                    const hasBadge = userBadgeList.some(b => b.badgeId === badge.badgeId);
+                    badgeMap.set(user.uid, hasBadge);
+                } catch (error) {
+                    console.error(`Failed to load badges for user ${user.uid}:`, error);
+                    badgeMap.set(user.uid, false);
+                }
+            }
+            setUserBadges(badgeMap);
+        } catch (error) {
+            console.error('Failed to load users and badges:', error);
+            setAllUsers([]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleUserToggle = (userId) => {
+        setSelectedUsers(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(userId)) {
+                newSet.delete(userId);
+            } else {
+                newSet.add(userId);
+            }
+            return newSet;
+        });
+    };
+
+    const handleBulkAssign = async () => {
+        if (selectedUsers.size === 0) {
+            alert('Please select at least one user');
+            return;
+        }
+
+        setIsProcessing(true);
+        try {
+            const promises = Array.from(selectedUsers).map(userId => {
+                const currentlyHasBadge = userBadges.get(userId);
+                if (currentlyHasBadge) {
+                    // Remove badge
+                    return UserManagement.removeBadge(userId, badge.badgeId);
+                } else {
+                    // Award badge
+                    return UserManagement.awardBadge(userId, badge.badgeId);
+                }
+            });
+
+            await Promise.all(promises);
+            
+            // Reload badge assignments
+            await loadUsersAndBadges();
+            setSelectedUsers(new Set());
+            onAssignmentsUpdated();
+            
+            alert(`Badge assignments updated for ${selectedUsers.size} user(s)`);
+        } catch (error) {
+            console.error('Failed to update badge assignments:', error);
+            alert('Failed to update badge assignments: ' + error.message);
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
+    const filteredUsers = allUsers.filter(user =>
+        user.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const getActionText = () => {
+        if (selectedUsers.size === 0) return 'Select users';
+        
+        const selectedUsersList = Array.from(selectedUsers);
+        const toAward = selectedUsersList.filter(userId => !userBadges.get(userId));
+        const toRemove = selectedUsersList.filter(userId => userBadges.get(userId));
+        
+        if (toAward.length > 0 && toRemove.length > 0) {
+            return `Award to ${toAward.length}, Remove from ${toRemove.length}`;
+        } else if (toAward.length > 0) {
+            return `Award to ${toAward.length} user(s)`;
+        } else {
+            return `Remove from ${toRemove.length} user(s)`;
+        }
+    };
+
+    return (
+        <div className="modal-overlay">
+            <div className="modal-backdrop" onClick={onClose}></div>
+            <div className="modal-content max-w-2xl">
+                <div className="modal-header">
+                    <h2 className="modal-title">Manage Badge Assignments</h2>
+                    <button className="modal-close" onClick={onClose}>
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+
+                <div className="space-y-6">
+                    {/* Badge Info Header */}
+                    <div className="card p-4">
+                        <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center">
+                                <span className="text-xl">🏆</span>
+                            </div>
+                            <div>
+                                <h3 className="font-semibold text-gradient">{badge.name}</h3>
+                                <p className="text-sm text-slate-400">{badge.rewardPoints} points</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Search Users */}
+                    <div className="flex items-center gap-4 mt-4">
+                        <div className="search-container flex-1">
+                            <input
+                                type="text"
+                                placeholder="Search users by name or email..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="search-input"
+                            />
+                        </div>
+                        <button
+                            className="btn-primary flex items-center gap-2"
+                            onClick={handleBulkAssign}
+                            disabled={isProcessing || selectedUsers.size === 0}
+                        >
+                            <Award className="w-4 h-4" />
+                            {isProcessing ? 'Processing...' : getActionText()}
+                        </button>
+                    </div>
+
+                    {/* User List */}
+                    <div className="card p-4 mt-4">
+                        <h4 className="font-semibold mb-4">Users ({filteredUsers.length})</h4>
+                        
+                        {isLoading ? (
+                            <div className="text-center py-8">
+                                <div className="login-spinner mx-auto mb-4"></div>
+                                <p className="text-slate-400">Loading users...</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-3 max-h-96 overflow-y-auto">
+                                {filteredUsers.map(user => {
+                                    const hasBadge = userBadges.get(user.uid);
+                                    const isSelected = selectedUsers.has(user.uid);
+                                    
+                                    return (
+                                        <div
+                                            key={user.uid}
+                                            className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                                                isSelected 
+                                                    ? 'border-blue-500/50 bg-blue-500/10' 
+                                                    : 'border-white/10 hover:border-white/20'
+                                            }`}
+                                            onClick={() => handleUserToggle(user.uid)}
+                                        >
+                                            <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                                                isSelected 
+                                                    ? 'border-blue-500 bg-blue-500' 
+                                                    : 'border-white/30'
+                                            }`}>
+                                                {isSelected && <Check className="w-3 h-3 text-white" />}
+                                            </div>
+                                            
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-medium">{user.displayName || 'Anonymous'}</span>
+                                                    {hasBadge && (
+                                                        <span className="text-xs px-2 py-1 bg-green-500/20 text-green-400 rounded-full">
+                                                            Has Badge
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <div className="text-sm text-slate-400">{user.email}</div>
+                                            </div>
+
+                                            <div className="text-xs text-slate-500">
+                                                Level {user.level || 1} • {user.points || 0} pts
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                                
+                                {filteredUsers.length === 0 && (
+                                    <div className="text-center py-8 text-slate-400">
+                                        {searchTerm ? 'No users match your search.' : 'No users found.'}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                <div className="modal-footer">
+                    <button className="btn-secondary" onClick={onClose}>
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 function AdminBadgeDetailPopup({ badge, onClose, onBadgeUpdated }) {
     const [isProcessing, setIsProcessing] = useState(false);
     const [showEditPopup, setShowEditPopup] = useState(false);
+    const [showAssignmentManager, setShowAssignmentManager] = useState(false);
     const [isUpdatingBadge, setIsUpdatingBadge] = useState(false);
     const [badgeImage, setBadgeImage] = useState('');
     const [imageLoading, setImageLoading] = useState(true);
@@ -353,6 +583,24 @@ function AdminBadgeDetailPopup({ badge, onClose, onBadgeUpdated }) {
                         </div>
                     </div>
 
+                    {/* Badge Assignment Management */}
+                    <div className="card p-4">
+                        <div className="flex items-center justify-between mb-3">
+                            <h4 className="font-semibold">Badge Assignments</h4>
+                            <button
+                                className="btn-secondary flex items-center gap-2"
+                                onClick={() => setShowAssignmentManager(true)}
+                                disabled={isProcessing}
+                            >
+                                <Users className="w-4 h-4" />
+                                Manage Users
+                            </button>
+                        </div>
+                        <p className="text-sm text-slate-400">
+                            Assign or remove this badge from specific users. Click "Manage Users" to view all users and their badge status.
+                        </p>
+                    </div>
+
                     {/* Action Buttons */}
                     <div className="flex gap-3">
                         <button
@@ -381,6 +629,17 @@ function AdminBadgeDetailPopup({ badge, onClose, onBadgeUpdated }) {
                         onCancel={() => setShowEditPopup(false)}
                         isProcessing={isUpdatingBadge}
                         submitText="Update Badge"
+                    />
+                )}
+
+                {showAssignmentManager && (
+                    <BadgeAssignmentManager
+                        badge={badge}
+                        onClose={() => setShowAssignmentManager(false)}
+                        onAssignmentsUpdated={() => {
+                            onBadgeUpdated();
+                            // Could add more specific updates here if needed
+                        }}
                     />
                 )}
             </div>
@@ -517,41 +776,18 @@ function BadgeManagerPage({ user }) {
         <div className="space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
-                <div>
-                    <h2 className="text-2xl font-bold text-gradient">Badge Manager</h2>
-                    <p className="text-slate-400">Manage achievement badges for the application</p>
-                </div>
-                <div className="flex gap-3">
-                    <button
-                        className="btn-secondary flex items-center gap-2"
-                        onClick={() => awardBadges(user.uid)}
-                    >
-                        <Award className="w-4 h-4" />
-                        Award Badges
-                    </button>
-                    <button
-                        className="btn-primary flex items-center gap-2"
-                        onClick={() => setShowCreateBadgePopup(true)}
-                    >
-                        <Plus className="w-4 h-4" />
-                        Create Badge
-                    </button>
-                </div>
-            </div>
-
-            {/* Search Bar */}
-            <div className="search-container">
-                <input
-                    type="text"
-                    placeholder="Search badges by name, description, or rarity..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="search-input"
-                />
+                <h2 className="text-2xl font-bold text-gradient">Badge Manager</h2>
+                <button
+                    className="btn-secondary flex items-center gap-2"
+                    onClick={() => awardBadges(user.uid)}
+                >
+                    <Award className="w-4 h-4" />
+                    Award Badges
+                </button>
             </div>
 
             {/* Stats Cards */}
-            <div className="grid-3 gap-4 mt-4">
+            <div className="grid-3 gap-4">
                 <div className="card text-center">
                     <div className="text-2xl font-bold text-gradient">{allBadges.length}</div>
                     <div className="text-sm text-slate-400">Total Badges</div>
@@ -568,6 +804,26 @@ function BadgeManagerPage({ user }) {
                     </div>
                     <div className="text-sm text-slate-400">Total Points</div>
                 </div>
+            </div>
+
+            {/* Search and Create */}
+            <div className="flex items-center gap-4 mt-4">
+                <div className="search-container flex-1">
+                    <input
+                        type="text"
+                        placeholder="Search badges by name, description, or rarity..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="search-input"
+                    />
+                </div>
+                <button
+                    className="btn-primary flex items-center gap-2"
+                    onClick={() => setShowCreateBadgePopup(true)}
+                >
+                    <Plus className="w-4 h-4" />
+                    Create Badge
+                </button>
             </div>
 
             {/* Badge List */}

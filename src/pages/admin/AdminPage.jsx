@@ -8,6 +8,7 @@ import '../../components/styles/sphere-styles.css';
 import WorkoutManagerPage from './WorkoutManagerPage';
 import StationManagerPage from './StationManagerPage';
 import StationGamePage from './StationGamePage';
+import UserPage from '../UserPage';
 
 function AdminPageMain({ user }) {
     const [currentPage, setCurrentPage] = useState('Group Manager');
@@ -36,7 +37,7 @@ function AdminPageMain({ user }) {
                 return <StationGamePage user={user} />;
             default:
                 console.log('AdminPage - Unknown page, defaulting to Group Manager');
-                return <GroupManagerPage />;
+                return <UserManagerPage user={user} />;
         }
     };
 

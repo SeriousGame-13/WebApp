@@ -517,32 +517,15 @@ function UserManagerPage({ user: currentUser }) {
     const regularUserCount = users.filter(user => !user.isAdmin).length;
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
-                <div>
-                    <h2 className="text-2xl font-bold text-gradient">User Manager</h2>
-                    <p className="text-slate-400">Manage system users and their permissions</p>
-                </div>
-                <div className="text-sm text-slate-500">
-                    Users register through the application signup process
-                </div>
-            </div>
-
-            {/* Search Bar */}
-            <div className="search-container">
-                <Search className="search-icon" />
-                <input
-                    type="text"
-                    placeholder="Search users by name or email..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="search-input"
-                />
+                <h2 className="text-2xl font-bold text-gradient">User Manager</h2>
+                
             </div>
 
             {/* Stats Cards */}
-            <div className="grid-3 gap-6 mt-4">
+            <div className="grid-3 gap-6">
                 <div className="card text-center">
                     <div className="text-2xl font-bold text-gradient">{users.length}</div>
                     <div className="text-sm text-slate-400">Total Users</div>
@@ -554,6 +537,20 @@ function UserManagerPage({ user: currentUser }) {
                 <div className="card text-center">
                     <div className="text-2xl font-bold text-gradient">{regularUserCount}</div>
                     <div className="text-sm text-slate-400">Regular Users</div>
+                </div>
+            </div>
+
+            {/* Search */}
+            <div className="flex items-center gap-4  mt-4">
+                <div className="search-container flex-1">
+                    <Search className="search-icon" />
+                    <input
+                        type="text"
+                        placeholder="Search users by name or email..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="search-input"
+                    />
                 </div>
             </div>
 

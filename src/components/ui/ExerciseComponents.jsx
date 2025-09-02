@@ -51,28 +51,35 @@ export function ExerciseCard({ exercise, helpers, onClick }) {
   
   return (
     <Card className="exercise-card" onClick={onClick}>
-      <div className="font-medium mb-1 mt-4">
-        {exercise.name || getStationNameById(exercise.stationId)}
-      </div>
-      <div className="text-xs text-slate-400 mb-1">
-        {getStationNameById(exercise.stationId)}
-      </div>
-      {exercise.startTime && exercise.endTime && (
-        <div className="text-xs text-slate-500 mb-2">
-          {(() => {
-            const start = getDateFromTimestamp(exercise.startTime);
-            const end = getDateFromTimestamp(exercise.endTime);
-            const startTime = new Date(start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            const endTime = new Date(end).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            return `${startTime} - ${endTime}`;
-          })()}
+      <div className="flex justify-between items-center mb-1">
+        <div className="text-s text-slate-500">
+          {exercise.name || getStationNameById(exercise.stationId)}
         </div>
-      )}
+        <div className="text-s text-slate-500">
+          {getStationNameById(exercise.stationId)}
+        </div>
+      </div>
+      <div className="flex justify-between items-center mb-1">
+        <div className="text-xs text-slate-400">
+          {((exercise.endTime - exercise.startTime) / 60)} min
+        </div>
+        {exercise.startTime && exercise.endTime && (
+          <div className="text-xs text-slate-400">
+            {(() => {
+              const start = getDateFromTimestamp(exercise.startTime);
+              const end = getDateFromTimestamp(exercise.endTime);
+              const startTime = new Date(start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+              const endTime = new Date(end).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+              return `${startTime} - ${endTime}`;
+            })()}
+          </div>
+        )}
+      </div>
       <div className="flex justify-between items-center">
-        <div className="text-sm text-slate-400">
+        <div className="text-xs text-slate-400">
           {exercise.points} points
         </div>
-        <div className="text-xs text-slate-500">
+        <div className="text-xs text-slate-400">
           {exercise.calories} kcal
         </div>
       </div>

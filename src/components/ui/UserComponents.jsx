@@ -54,7 +54,7 @@ export function LevelProgressBar({ userData }) {
         <span className="text-slate-300 text-sm">{userData.points}/{userData.currentMaxPoints()} Points</span>
       </div>
       <div className="progress-bar">
-        <div className="progress-fill" style={{ width: `${progress}%` }} />
+        <div className="progress-fill" style={{ width: `${progress < 0 ? 0 : progress}%` }} />
       </div>
     </Card>
   );

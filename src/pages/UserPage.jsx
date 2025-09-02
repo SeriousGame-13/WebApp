@@ -317,7 +317,7 @@ function BadgeDetailModal({ badgeId, open, onClose, allBadges, userBadgesMap }) 
 }
 
 // ---------- Settings Modal ----------
-function SettingsModal({ open, onClose, user, onUserUpdated, onImageUpdated }) {
+function SettingsModal({ open, onClose, user, onUserUpdated, onImageUpdated, onNameUpdated }) {
   const [isEditingName, setIsEditingName] = useState(false);
   const [newName, setNewName] = useState('');
   const [isSavingName, setIsSavingName] = useState(false);
@@ -355,6 +355,12 @@ function SettingsModal({ open, onClose, user, onUserUpdated, onImageUpdated }) {
       }, true);
       
       setIsEditingName(false);
+      
+      // Notify parent component that name was updated
+      if (onNameUpdated) {
+        onNameUpdated(newName.trim());
+      }
+      
       if (onUserUpdated) {
         onUserUpdated();
       }
@@ -463,18 +469,34 @@ function Page({ data, onOpenBadge, onOpenSettings, onUserUpdated }) {
   const [selectedBadgeId, setSelectedBadgeId] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
   const [imageRefreshTrigger, setImageRefreshTrigger] = useState(0);
+  const [displayName, setDisplayName] = useState('');
 
   console.log('UserPage executing with data:', data);
 
     // Use real user data if available, fallback to dummy data  
-    const userData = data || {
+    const baseUserData = data || {
     id: "me",
+    uid: "dummy-uid-for-testing", // Add uid for testing
     name: "Max Mustermann",
     displayName: "Max Mustermann",
     level: 5
     };
 
+    // Create userData with updated display name if available
+    const userData = {
+      ...baseUserData,
+      displayName: displayName || baseUserData.displayName || baseUserData.name,
+      name: displayName || baseUserData.displayName || baseUserData.name
+    };
+
     console.log('Final userData:', userData);
+
+    // Initialize display name from data when component mounts or data changes
+    useEffect(() => {
+      if (data && !displayName) {
+        setDisplayName(data.displayName || data.name || '');
+      }
+    }, [data, displayName]);
 
     // Load user badges from Firebase
     const [userBadgesMap, setUserBadgesMap] = useState(new Map());
@@ -583,19 +605,22 @@ function Page({ data, onOpenBadge, onOpenSettings, onUserUpdated }) {
     setImageRefreshTrigger(prev => prev + 1);
   };
 
+  const handleNameUpdated = (newName) => {
+    // Update the display name state to immediately reflect the change
+    setDisplayName(newName);
+  };
+
   const header = (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-3">
         <div className="relative" style={{ width: 48, height: 48 }}>
-          <ProfileImageElements.ProfileImageDisplay 
-            userId={userData.uid} 
-            imageclass="w-full h-full rounded-full object-cover"
-            style={{ width: 48, height: 48 }}
+          <Avatar 
+            name={userData.name || userData.displayName} 
+            size={48} 
+            seed={userData.id || 'default'}
+            userId={userData.uid}
             refreshTrigger={imageRefreshTrigger}
           />
-          {!userData.uid && (
-            <Avatar name={userData.name || userData.displayName} size={48} seed={userData.id || 'default'} />
-          )}
         </div>
         <div>
           <h1 className="screen-title">{userData.name || userData.displayName}</h1>
@@ -665,6 +690,7 @@ function Page({ data, onOpenBadge, onOpenSettings, onUserUpdated }) {
         user={userData}
         onUserUpdated={onUserUpdated}
         onImageUpdated={handleImageUpdated}
+        onNameUpdated={handleNameUpdated}
       />
     </>
   );

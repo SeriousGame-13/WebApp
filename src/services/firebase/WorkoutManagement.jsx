@@ -1,13 +1,22 @@
 /**
  * @fileoverview Workout Management Service
+ * 
+ * A comprehensive service module for managing workouts and exercises in the fitness application.
+ * This service provides a complete CRUD interface for workout operations, automatic data calculations,
+ * user progress tracking, and integration with the reward system.
  *
- * This module provides comprehensive workout and exercise management functionality for the fitness application.
- * It handles workout creation, exercise tracking, time calculations, highscore processing, and complete
- * workout lifecycle management using Firestore as the backend. The system automatically tracks active
- * and idle times, awards points, and manages exercise-level data within workout sessions.
- *
+ * Key Features:
+ * - Full workout lifecycle management (create, read, update, delete)
+ * - Automatic workout data recalculation from exercises
+ * - Real-time heart rate statistics calculation
+ * - Point and calorie tracking with user progress updates
+ * - Integration with highscore, badge, goal, and challenge systems
+ * - Background data processing for optimal performance
+ * 
+ * @module WorkoutManagement
  * @author Igor, Alexander, Hyunu, Robert
- * @version 1.0.0
+ * @version 2.0.0
+ * @since 1.0.0
  */
 
 import FirestoreManager from './FirestoreManager.jsx';
@@ -22,8 +31,13 @@ import ChallengeManagement from './ChallengeManagement.jsx';
 
 /**
  * Creates the Firestore collection path for a user's workouts.
- * @param {string} userId - The user ID to create the path for
+ * 
+ * @function createPath
+ * @param {string} userId - The unique identifier for the user
  * @returns {string} The complete Firestore collection path for user workouts
+ * @example
+ * // Returns: "users/user123/workouts"
+ * createPath("user123")
  */
 const createPath = (userId) => {
     return `${UserManagement.getUserDatabasePath(userId)}${WORKOUT_COLLECTION}`;
@@ -31,18 +45,31 @@ const createPath = (userId) => {
 
 
 /**
- * Fetches all exercises for a workout, calculates comprehensive workout data, and updates the workout document.
- * Recalculates active/idle times, start/end times from exercises, and heart rate statistics.
- * Runs as a background task and does not throw errors to avoid disrupting main operations.
- * @param {string} userId - The ID of the user
- * @param {string} workoutId - The ID of the workout to update
- * @returns {Promise<void>}
+ * Recalculates and updates workout data based on its exercises.
+ * 
+ * This function performs comprehensive workout data recalculation including:
+ * - Heart rate statistics (min, max, average)
+ * - Total points and calories from exercises
+ * - Workout duration and time range
+ * 
+ * Runs as a background operation to avoid blocking the UI. Errors are logged
+ * but not propagated to prevent disruption of primary operations.
+ * 
+ * @async
+ * @function recalculateAndUpdateWorkoutData
+ * @param {string} userId - The unique identifier for the user
+ * @param {string} workoutId - The unique identifier for the workout
+ * @returns {Promise<void>} Resolves when calculation and update are complete
+ * @throws {Error} Logs errors but does not throw to maintain operation flow
+ * 
+ * @example
+ * await recalculateAndUpdateWorkoutData("user123", "workout456");
  */
 const recalculateAndUpdateWorkoutData = async (userId, workoutId) => {
     try {
         const workout = await loadWorkoutById(userId, workoutId);
         workout.recalculateProperties();
-        update(workout);
+        await update(workout);
     } catch (error) {
         console.error(`Failed to calculate and save workout data for workout ${workoutId}:`, error);
         // Do not re-throw, as this is a background task and shouldn't fail the main operation
@@ -50,11 +77,31 @@ const recalculateAndUpdateWorkoutData = async (userId, workoutId) => {
 }
 
 /**
- * Saves a new workout to the database with its exercises.
- * Automatically awards points to the user and saves all associated exercises.
- * @param {Workout|Object} workout - The workout data to save (Workout instance or plain object)
- * @returns {Promise<string>} The ID of the created workout document
- * @throws {Error} When workout cannot be saved or validation fails
+ * Creates a new workout in the database with associated exercises.
+ * 
+ * This function handles the complete workout creation process:
+ * - Validates and converts workout data to Workout instance
+ * - Saves workout metadata to Firestore
+ * - Creates exercise subcollection documents
+ * - Maintains data integrity across related collections
+ * 
+ * @async
+ * @function saveWorkout
+ * @param {Workout|Object} workout - The workout data (Workout instance or plain object)
+ * @param {string} workout.userId - The user who owns the workout
+ * @param {string} workout.name - The workout name
+ * @param {string} [workout.description] - Optional workout description
+ * @param {Array<Exercise>} [workout.exercises] - Array of exercise objects
+ * @returns {Promise<string>} The unique ID of the created workout document
+ * @throws {Error} When workout validation fails or database operation errors occur
+ * 
+ * @example
+ * const workoutId = await saveWorkout({
+ *   userId: "user123",
+ *   name: "Morning Cardio",
+ *   description: "30-minute cardio session",
+ *   exercises: [exerciseData1, exerciseData2]
+ * });
  */
 const saveWorkout = async (workout) => {
     if (!(workout instanceof Workout)) {
@@ -82,11 +129,23 @@ const saveWorkout = async (workout) => {
 }
 
 /**
- * Loads all workouts for a specific user including their exercises.
- * Retrieves complete workout data with associated exercise collections.
- * @param {string} userId - The user ID to load workouts for
- * @returns {Promise<Object[]>} Array of workout objects with embedded exercises
- * @throws {Error} When workouts cannot be loaded from database
+ * Retrieves all workouts for a specific user with their exercises.
+ * 
+ * This function performs a comprehensive data fetch:
+ * - Loads all workout documents for the user
+ * - Fetches exercise subcollections for each workout
+ * - Constructs complete Workout instances with embedded exercises
+ * - Returns fully hydrated workout objects ready for use
+ * 
+ * @async
+ * @function loadWorkouts
+ * @param {string} userId - The unique identifier for the user
+ * @returns {Promise<Array<Workout>>} Array of complete workout objects with exercises
+ * @throws {Error} When database access fails or data cannot be processed
+ * 
+ * @example
+ * const userWorkouts = await loadWorkouts("user123");
+ * console.log(`Found ${userWorkouts.length} workouts`);
  */
 const loadWorkouts = async (userId) => {
     try {
@@ -256,6 +315,30 @@ const deleteExercise = async (userId, workoutId, exerciseId) => {
     }
 };
 
+/**
+ * Post-exercise processing for rewards, goals, and challenges.
+ * 
+ * Handles all secondary effects after an exercise is added or updated:
+ * - Badge system integration for achievement tracking
+ * - Goal progress updates based on station and points
+ * - Highscore record creation for station-based exercises
+ * - Challenge progress updates for active user challenges
+ * 
+ * @async
+ * @function handlePostExercise
+ * @param {string} userId - The unique identifier for the user
+ * @param {Exercise} exercise - The exercise data to process
+ * @param {string} exercise.stationId - Station where exercise was performed
+ * @param {number} exercise.points - Points earned from the exercise
+ * @returns {Promise<void>} Resolves when all post-processing is complete
+ * 
+ * @example
+ * await handlePostExercise("user123", {
+ *   stationId: "station456",
+ *   points: 50,
+ *   userId: "user123"
+ * });
+ */
 async function handlePostExercise(userId, exercise) {
     RewardSystem.awardBadges(userId);
     GoalSystem.updateGoalsFromWorkout(userId, exercise.stationId, exercise.points);
@@ -273,10 +356,46 @@ async function handlePostExercise(userId, exercise) {
 
 /**
  * @namespace WorkoutManager
- * @description Firebase service module for comprehensive workout and exercise management.
- * Provides functionality to create, read, update, and delete workouts and exercises,
- * with automatic time tracking, point calculation, highscore processing, and complete
- * workout session lifecycle management for the fitness application.
+ * @description 
+ * Comprehensive Firebase service module for workout and exercise management in the fitness application.
+ * 
+ * This service provides a complete suite of operations for managing workout data including:
+ * 
+ * **Core Operations:**
+ * - Workout CRUD operations (create, read, update, delete)
+ * - Exercise management within workouts
+ * - Automatic data recalculation and synchronization
+ * 
+ * **Data Processing:**
+ * - Real-time heart rate statistics calculation
+ * - Point and calorie aggregation from exercises
+ * - Workout duration and time range computation
+ * 
+ * **System Integration:**
+ * - User progress tracking and level updates
+ * - Reward system integration for badges and achievements
+ * - Goal system updates based on exercise completion
+ * - Challenge progress tracking
+ * - Highscore management for competitive features
+ * 
+ * **Performance Features:**
+ * - Background data processing for optimal UX
+ * - Efficient batch operations for multiple exercises
+ * - Error handling with graceful degradation
+ * 
+ * @example
+ * // Create a new workout
+ * const workoutId = await WorkoutManager.saveWorkout({
+ *   userId: "user123",
+ *   name: "Morning Run",
+ *   exercises: [exerciseData]
+ * });
+ * 
+ * // Load user's workouts
+ * const workouts = await WorkoutManager.loadWorkouts("user123");
+ * 
+ * // Add exercise to existing workout
+ * await WorkoutManager.addExercise("user123", workoutId, exerciseData);
  */
 const WorkoutManager = {
     saveWorkout,

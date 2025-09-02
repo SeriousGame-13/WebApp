@@ -1,9 +1,17 @@
 import BaseModel from './base.jsx';
-import {
-  serverTimestamp
-} from 'firebase/firestore';
+
 
 export class Workout extends BaseModel {
+  /**
+   * Creates a new Workout instance.
+   * 
+   * @param {Object} data - The workout data
+   * @param {string} [data.uid] - Unique identifier (auto-generated if not provided)
+   * @param {string} data.userId - The user who owns this workout
+   * @param {string} [data.name=''] - The workout name
+   * @param {string} [data.description=''] - The workout description
+   * @param {Array<Exercise>} [data.exercises=[]] - Array of exercises in this workout
+   */
   constructor(data = {}) {
     super({
       uid: data.uid,
@@ -16,7 +24,16 @@ export class Workout extends BaseModel {
     this.recalculateProperties();
   }
 
-  
+  /**
+   * Recalculates all workout properties based on current exercises.
+   * 
+   * This method updates all calculated fields including heart rate statistics,
+   * total calories, total points, and workout time range. Should be called
+   * whenever exercises are added, removed, or modified.
+   * 
+   * @method recalculateProperties
+   * @returns {void}
+   */
   recalculateProperties() {
     this.calculateHeartRateStats();
     this.calculateCalories();
@@ -25,7 +42,15 @@ export class Workout extends BaseModel {
   }
 
   /**
-   * Calculate heart rate statistics from all exercises
+   * Calculate heart rate statistics from all exercises.
+   * 
+   * Computes average, minimum, and maximum heart rate values across all
+   * exercises that have heart rate data. Sets values to null if no
+   * heart rate data is available.
+   * 
+   * @method calculateHeartRateStats
+   * @returns {void}
+   * @private
    */
   calculateHeartRateStats() {
     const exercisesWithHeartRate = this.exercises.filter(ex => 
@@ -56,7 +81,11 @@ export class Workout extends BaseModel {
   }
 
   /**
-   * Calculate total calories from all exercises
+   * Calculate total calories burned from all exercises.
+   * 
+   * @method calculateCalories
+   * @returns {void}
+   * @private
    */
   calculateCalories() {
     this.calories = this.exercises.reduce((total, exercise) => {
@@ -65,7 +94,11 @@ export class Workout extends BaseModel {
   }
 
   /**
-   * Calculate total points from all exercises
+   * Calculate total points earned from all exercises.
+   * 
+   * @method calculatePoints
+   * @returns {void}
+   * @private
    */
   calculatePoints() {
     this.points = this.exercises.reduce((total, exercise) => {
@@ -74,7 +107,14 @@ export class Workout extends BaseModel {
   }
 
   /**
-   * Calculate start and end times from exercises
+   * Calculate workout start and end times from exercises.
+   * 
+   * Determines the earliest start time and latest end time across all
+   * exercises to establish the overall workout duration.
+   * 
+   * @method calculateTimeRange
+   * @returns {void}
+   * @private
    */
   calculateTimeRange() {
     const exercisesWithTimes = this.exercises.filter(ex => ex.startTime && ex.endTime);
@@ -95,7 +135,15 @@ export class Workout extends BaseModel {
   }
 
   /**
-   * Safely converts various timestamp formats to a JavaScript Date object
+   * Safely converts various timestamp formats to a JavaScript Date object.
+   * 
+   * Handles multiple timestamp formats including Firestore Timestamps,
+   * JavaScript Date objects, Unix timestamps, and ISO date strings.
+   * 
+   * @method safeTimestampToDate
+   * @param {*} timestamp - The timestamp to convert
+   * @returns {Date} A valid Date object, or epoch date if conversion fails
+   * @private
    */
   safeTimestampToDate(timestamp) {
     if (!timestamp) return new Date(0);
@@ -130,7 +178,10 @@ export class Workout extends BaseModel {
   }
 
   /**
-   * Get workout duration in milliseconds
+   * Get workout duration in milliseconds.
+   * 
+   * @method getDuration
+   * @returns {number} Duration in milliseconds, 0 if times are not available
    */
   getDuration() {
     if (!this.startTime || !this.endTime) return 0;
@@ -138,7 +189,10 @@ export class Workout extends BaseModel {
   }
 
   /**
-   * Get workout duration formatted as hh:mm:ss
+   * Get workout duration formatted as HH:MM:SS.
+   * 
+   * @method getDurationFormatted
+   * @returns {string} Formatted duration string (e.g., "01:30:45")
    */
   getDurationFormatted() {
     const durationMs = this.getDuration();
@@ -152,17 +206,38 @@ export class Workout extends BaseModel {
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   }
 
-
+  /**
+   * Add an exercise to this workout and recalculate properties.
+   * 
+   * @method addExercise
+   * @param {Exercise} exercise - The exercise to add
+   * @returns {void}
+   */
   addExercise(exercise) {
     this.exercises.push(exercise);
     this.recalculateProperties();
   }
 
+  /**
+   * Remove an exercise from this workout and recalculate properties.
+   * 
+   * @method removeExercise
+   * @param {string} exerciseId - The unique ID of the exercise to remove
+   * @returns {void}
+   */
   removeExercise(exerciseId) {
     this.exercises = this.exercises.filter(ex => ex.uid !== exerciseId);
     this.recalculateProperties();
   }
 
+  /**
+   * Update an exercise in this workout and recalculate properties.
+   * 
+   * @method updateExercise
+   * @param {string} exerciseId - The unique ID of the exercise to update
+   * @param {Object} updatedData - The new exercise data
+   * @returns {void}
+   */
   updateExercise(exerciseId, updatedData) {
     const exerciseIndex = this.exercises.findIndex(ex => ex.uid === exerciseId);
     if (exerciseIndex !== -1) {
@@ -172,7 +247,10 @@ export class Workout extends BaseModel {
   }
 
   /**
-   * Validate the workout object
+   * Validate the workout object.
+   * 
+   * @method validate
+   * @returns {boolean} True if the workout has required fields
    */
   validate() {
     return this.uid && this.userId;

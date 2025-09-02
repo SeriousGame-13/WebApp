@@ -12,42 +12,7 @@ import UserPageElements from '../pages/UserPage';
 import '../components/styles/LayoutElements.css'
 import MainFooter from './MainFooter';
 
-/**
- * Where elements for layouts that will be used commonly will be placed.
- * Content for each page should be written in the corresponding jsx file inside the 
- * 'pages' directory.
- */
-
-
-
-function UserInfoHeaderContainer({ user }) {
-    const name = user.displayName;
-
-    return (
-        <div className='flex items-center gap-4'>
-            <DatamanagerElements.ProfileImageDisplay userId={user.uid} imageclass={'w-10 h-10 rounded-full'} />
-            <div className='flex flex-col'>
-                <div className='text-gradient font-semibold'>{name}</div>
-            </div>
-        </div>
-    )
-}
-
-function IconContainer() {
-    return (
-        <div className='flex gap-4'>
-            <div className='p-2 bg-white/5 rounded-full'>
-                <IconElements.NotificationIcon />
-            </div>
-            <div className='p-2 bg-white/5 rounded-full'>
-                <IconElements.SettingsIcon />
-            </div>
-        </div>
-    );
-}
-
-
-function HomePage() {
+function AppLayout() {
     const { currentUser, userData, loading } = DatamanagerElements.useAuth();
 
     const [currentPage, setCurrentPage] = useState('home');
@@ -64,28 +29,28 @@ function HomePage() {
                 <div className='app-container'>
                     <HomePageElements.Page userData={userData} />
                     <div className='border-t border-white/10' />
-                    <MainFooter.newFooter tab={currentPage} setTab={setCurrentPage} />
+                    <MainFooter.Footer tab={currentPage} setTab={setCurrentPage} />
                 </div>)
             case 'rankings':
                 return (
                 <div className='app-container'>
                     <RankingPage.Page userData={userData} />
                     <div className='border-t border-white/10' />
-                    <MainFooter.newFooter tab={currentPage} setTab={setCurrentPage} />
+                    <MainFooter.Footer tab={currentPage} setTab={setCurrentPage} />
                 </div>)
             case 'challenges':
                 return (
                     <div className='app-container'>
                         <ChallengePageElements.Page data={userData} />
                         <div className='border-t border-white/10' />
-                        <MainFooter.newFooter tab={currentPage} setTab={setCurrentPage} />
+                        <MainFooter.Footer tab={currentPage} setTab={setCurrentPage} />
                     </div>)
             case 'groups':
                 return (
                     <div className='app-container'>
                         <GroupPageElements.Page groups={groups} setGroups={setGroups} joinedIds={joinedIds} setJoinedIds={setJoinedIds} />
                         <div className='border-t border-white/10' />
-                        <MainFooter.newFooter tab={currentPage} setTab={setCurrentPage} />
+                        <MainFooter.Footer tab={currentPage} setTab={setCurrentPage} />
                     </div>)
             case 'user':
                 return (
@@ -93,14 +58,14 @@ function HomePage() {
                     <div className='border-t border-white/10' />
                     <UserPageElements.Page data={userData} />
                     <div className='border-t border-white/10' />
-                    <MainFooter.newFooter tab={currentPage} setTab={setCurrentPage} />
+                    <MainFooter.Footer tab={currentPage} setTab={setCurrentPage} />
                 </div>)
             default:
                 return (
                     <div className='app-container'>
                         <HomePageElements.Page data={userData} />
                         <div className='border-t border-white/10' />
-                        <MainFooter.newFooter tab={currentPage} setTab={setCurrentPage} />
+                        <MainFooter.Footer tab={currentPage} setTab={setCurrentPage} />
                     </div>)
         }
     }
@@ -129,8 +94,7 @@ function HomePage() {
 }
 
 const MainLayout = {
-    IconContainer,
-    HomePage
+    AppLayout
 };
 
 export default MainLayout;

@@ -12,8 +12,10 @@
  * @version 1.0.0
  */
 
-import FirebaseManager from './FirestoreManager';
 import UserManagement from './UserManagementSystem.jsx'
+import StationManager from './StationManagement.jsx';
+import { HIGHSCORE_COLLECTION } from './collections.jsx';
+import FirestoreManager from './FirestoreManager.jsx';
 
 /**
  * Retrieves the points ranking position for a specific user.
@@ -25,19 +27,25 @@ const getUserPointsRank = async (userid) => {
     try {
         const users = await UserManagement.getAllActiveUsers();
         users.sort((a, b) => b.points - a.points);
-        const userIndex = users.findIndex(user => user.uid === userid);
-        return userIndex !== -1 ? userIndex + 1 : 0;
+        return users.findIndex(user => user.uid === userid) + 1;
+        return users.findIndex(user => user.uid === userid) + 1;
     } catch (error) {
-        console.error('Failed to get user points rank:', error);
-        return 0;
+        console.error('Failed to get top workout rankings:', error);
+        return [];
+        console.error('Failed to get top workout rankings:', error);
+        return [];
     }
 };
 
+
+
+
+
 /**
- * Retrieves the top users ranked by total points earned.
- * Returns a leaderboard of users sorted by their point totals in descending order.
- * @param {number} [limit=10] - The maximum number of top users to return
- * @returns {Promise<Object[]>} Array of user objects sorted by points (highest first), or empty array on error
+ * Retrieves the top points rankings
+ * @returns {Promise<object|null>} The ranking data for the users with highest points
+ * Retrieves the top points rankings
+ * @returns {Promise<object|null>} The ranking data for the users with highest points
  */
 const getTopUsersPointsRankings = async (limit = 10) => {
     try {
@@ -45,16 +53,19 @@ const getTopUsersPointsRankings = async (limit = 10) => {
         users.sort((a, b) => b.points - a.points);
         return users.slice(0, limit);
     } catch (error) {
-        console.error('Failed to get top points rankings:', error);
+        console.error('Failed to get top workout rankings:', error);
+        console.error('Failed to get top workout rankings:', error);
         return [];
     }
 };
 
 /**
- * Retrieves the top users ranked by their level achievements.
- * Returns a leaderboard of users sorted by their level progress in descending order.
- * @param {number} [limit=10] - The maximum number of top users to return
- * @returns {Promise<Object[]>} Array of user objects sorted by level (highest first), or empty array on error
+ * 
+ * Retrieves the top level rankings
+ * @returns {Promise<object|null>} The ranking data for the users with highest level
+ * 
+ * Retrieves the top level rankings
+ * @returns {Promise<object|null>} The ranking data for the users with highest level
  */
 const getTopUsersLevelRankings = async (limit = 10) => {
     try {
@@ -62,21 +73,80 @@ const getTopUsersLevelRankings = async (limit = 10) => {
         users.sort((a, b) => b.level - a.level);
         return users.slice(0, limit);
     } catch (error) {
-        console.error('Failed to get top level rankings:', error);
+        console.error('Failed to get top workout rankings:', error);
         return [];
     }
 };
 
+
 /**
- * @namespace RankingSystem
- * @description Firebase service module for user ranking and leaderboard functionality.
- * Provides methods to retrieve user rankings based on points and levels,
- * supporting leaderboard displays and competitive features in the fitness application.
+ * Retrieves the top users ranked by their performance at a specific station.
+ * Returns a leaderboard of users sorted by their points at the specified station.
+ * @param {string} stationId - The ID of the station to get rankings for
+ * @param {number} [limit=10] - The maximum number of top users to return
+ * @returns {Promise<Object[]>} Array of highscore objects with user information
  */
+const getStationRankings = async (stationId, limit = 10) => {
+    try {
+        // Get all highscores for this station
+        const snapshot = await FirestoreManager.queryDocumentsByFieldValue(HIGHSCORE_COLLECTION, 'stationId', stationId);
+
+        // Filter only points metric and group by user
+        const userScores = {};
+        
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.metric === 'points') {
+                const userId = data.userId;
+                
+                // Initialize user entry if it doesn't exist
+                if (!userScores[userId]) {
+                    userScores[userId] = {
+                        userId: userId,
+                        points: 0,
+                        exerciseCount: 0
+                    };
+                }
+                
+                // Add this score to the user's total
+                userScores[userId].points += data.score;
+                userScores[userId].exerciseCount += 1;
+            }
+        });
+        
+        // Convert to array and sort by total points
+        const rankedUsers = Object.values(userScores)
+            .sort((a, b) => b.points - a.points)
+            .slice(0, limit);
+        
+        // Get user details to add display names
+        const users = await UserManagement.getAllActiveUsers();
+        const userMap = {};
+        users.forEach(user => {
+            userMap[user.uid] = user;
+        });
+        
+        // Map to final format expected by the UI
+        return rankedUsers.map((score, index) => ({
+            uid: score.userId,
+            displayName: userMap[score.userId]?.displayName || 'Unknown User',
+            stationId: stationId,
+            points: score.points,
+            exerciseCount: score.exerciseCount,
+            rank: index + 1,
+            level: userMap[score.userId]?.level || 0
+        }));
+    } catch (error) {
+        console.error('Failed to get station rankings:', error);
+        return [];
+    }
+};
+
 const RankingSystem = {
     getUserPointsRank,
     getTopUsersPointsRankings,
     getTopUsersLevelRankings,
+    getStationRankings,
 }
 
 export default RankingSystem;

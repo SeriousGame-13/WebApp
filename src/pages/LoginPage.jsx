@@ -3,7 +3,7 @@ import { Mail, Lock, User, Eye, EyeOff, LogIn, UserPlus } from "lucide-react";
 import '../sphere-styles.css';
 
 const AdminPage = lazy(() => import('./AdminPage.jsx').then(module => ({ default: module.default.AdminPageMain })));
-const MainLayout = lazy(() => import('../layouts/MainLayout.jsx').then(module => ({ default: module.default.HomePage })));
+const MainLayout = lazy(() => import('../layouts/MainLayout.jsx').then(module => ({ default: module.default.AppLayout })));
 const NewApp = lazy(() => import('../layouts/newApp.jsx'));
 
 import UserManagement from '../services/firebase/UserManagementSystem.jsx';

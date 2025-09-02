@@ -1,5 +1,4 @@
 
-import React, { useState, useEffect } from "react";
 import { Trophy, Users, Home as HomeIcon, User, CalendarDays, Flame, Star, Moon, Settings, Search, Plus, Check, X, Dumbbell, Bike, HeartPulse, Activity, Info, Medal } from "lucide-react";
 
 const TABS = [
@@ -10,59 +9,7 @@ const TABS = [
   { key: "user", label: "Profile", icon: <User className="w-6 h-6" /> },
 ];
 
-function Footer({ selectedIcon, onIconSelect }) {
-
-    return (
-        <footer className="AppFooter">
-            <div className='FooterIconbox'
-                style={{ color: selectedIcon === 'home' ? 'var(--main-color)' : 'var(--text-secondary)' }}
-                onClick={() => onIconSelect('home')}>
-                <IconElements.HomeIcon />
-                <div className='IconName' style={{ color: selectedIcon === 'home' ? 'var(--main-color)' : 'var(--text-secondary)' }}>
-                    HOME
-                </div>
-            </div>
-
-            <div className='FooterIconbox'
-                style={{ color: selectedIcon === 'ranking' ? 'var(--main-color)' : 'var(--text-secondary)' }}
-                onClick={() => onIconSelect('ranking')}>
-                <IconElements.RankingIcon />
-                <div className='IconName' style={{ color: selectedIcon === 'ranking' ? 'var(--main-color)' : 'var(--text-secondary)' }}>
-                    RANKING
-                </div>
-            </div>
-
-            <div className='FooterIconbox'
-                style={{ color: selectedIcon === 'challenge' ? 'var(--main-color)' : 'var(--text-secondary)' }}
-                onClick={() => onIconSelect('challenge')}>
-                <IconElements.ChallengeIcon />
-                <div className='IconName' style={{ color: selectedIcon === 'challenge' ? 'var(--main-color)' : 'var(--text-secondary)' }}>
-                    CHALLENGE
-                </div>
-            </div>
-
-            <div className='FooterIconbox'
-                style={{ color: selectedIcon === 'group' ? 'var(--main-color)' : 'var(--text-secondary)' }}
-                onClick={() => onIconSelect('group')}>
-                <IconElements.GroupIcon />
-                <div className='IconName' style={{ color: selectedIcon === 'group' ? 'var(--main-color)' : 'var(--text-secondary)' }}>
-                    GROUP
-                </div>
-            </div>
-
-            <div className='FooterIconbox'
-                style={{ color: selectedIcon === 'user' ? 'var(--main-color)' : 'var(--text-secondary)' }}
-                onClick={() => onIconSelect('user')}>
-                <IconElements.UserIcon />
-                <div className='IconName' style={{ color: selectedIcon === 'user' ? 'var(--main-color)' : 'var(--text-secondary)' }}>
-                    USER
-                </div>
-            </div>
-        </footer>
-    );
-}
-
-function newFooter({tab, setTab}) {
+function Footer({tab, setTab}) {
     return <nav className="bottom-nav">
         <ul className="nav-list">
           {TABS.map(t => (
@@ -84,8 +31,7 @@ function newFooter({tab, setTab}) {
 }
 
 const MainFooter = {
-    Footer,
-    newFooter
+    Footer
 };
 
 export default MainFooter

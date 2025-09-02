@@ -33,7 +33,7 @@ function Legend({ userBadgesMap, allBadges }) {
     const badgeId = badge.id || badge.badgeId;
     if (userBadgesMap && userBadgesMap.has(badgeId)) {
       const rarity = badge.rarity?.toLowerCase() || 'common';
-      if (rarityCount.hasOwnProperty(rarity)) {
+      if (Object.prototype.hasOwnProperty.call(rarityCount, rarity)) {
         rarityCount[rarity]++;
       }
     }
@@ -358,6 +358,12 @@ function SettingsModal({ open, onClose, user, onUserUpdated }) {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    if (window.confirm('Bist du sicher, dass du dein Konto löschen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.')) {
+        // await FirestoreManager.deleteAllData();
+    }
+  };
+
   if (!open) return null;
 
   return (
@@ -436,6 +442,27 @@ function SettingsModal({ open, onClose, user, onUserUpdated }) {
             <p className="text-slate-400 text-sm">
               Additional settings will be added here.
             </p>
+          </div>
+        </div>
+
+        {/* Danger Zone */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-red-500">Danger Zone</h3>
+          <div className="card p-4 bg-red-900/20">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-semibold text-red-400">Konto löschen</p>
+                <p className="text-sm text-slate-400">
+                  Diese Aktion kann nicht rückgängig gemacht werden. Alle deine Daten werden dauerhaft entfernt.
+                </p>
+              </div>
+              <button
+                onClick={handleDeleteAccount}
+                className="btn-danger text-sm"
+              >
+                Löschen
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -546,7 +573,7 @@ function Page({ data, onOpenBadge, onOpenSettings, onUserUpdated }) {
     };
 
     loadAllBadges();
-  }, [userData.badges]);
+  }, [userData.badges, userBadgesMap]);
 
   const total = allBadges.length;
 

@@ -13,7 +13,7 @@ export class Challenge extends BaseModel {
       creatorId: data.creatorId || '',
       rewardPoints: data.rewardPoints || 0,
       challengeType: data.challengeType || CHALLENGE_TYPE.TARGET,
-      challengeStyle: data.challengeStyle || CHALLENGE_STYLE.INDIVIDUAL,
+      challengeStyle: data.challengeStyle || CHALLENGE_STYLE.GROUP,
       targetValue: data.targetValue || null,
       targetField: data.targetField || null,
       participants: data.participants || [],

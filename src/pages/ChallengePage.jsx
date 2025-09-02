@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { LinearExpContainerSimple} from '../components/ui/ExpBarComponents.jsx';
+import { LinearExpContainerSimple } from '../components/ui/ExpBarComponents.jsx';
 import ChallengeManagement from '../services/ChallengeManagement.jsx';
 import GroupManagement from '../services/GroupManagementSystem.jsx';
 import UserManagement from '../services/UserManagementSystem.jsx';
@@ -8,30 +8,30 @@ import FirestoreManager from '../services/firebase/FirestoreManager.jsx';
 import { Timestamp } from '../services/firebase/FirebaseHelper.jsx';
 import { CheckCircle, Clock, X } from 'lucide-react';
 import '../components/styles/sphere-styles.css';
-import { CHALLENGE_TYPE } from '../services/interfaces/Constants.jsx';
+import { CHALLENGE_STYLE, CHALLENGE_TYPE } from '../services/interfaces/Constants.jsx';
 
 function Modal({ open, onClose, children, title, size = "md" }) {
-  if (!open) return null;
-  const maxW = size === "sm" ? "max-w-sm" : size === "lg" ? "max-w-xl" : "max-w-lg";
-  return (
-    <div className="modal-overlay">
-        <div className="modal-backdrop" onClick={onClose} />
-        <div className='centered'>
-            <div className={`modal-content card ${maxW}`}>
-                <div className="modal-header">
-                <h3 className="modal-title">{title}</h3>
-                <button onClick={onClose} className="modal-close">
-                    <X className="w-5 h-5" />
-                </button>
+    if (!open) return null;
+    const maxW = size === "sm" ? "max-w-sm" : size === "lg" ? "max-w-xl" : "max-w-lg";
+    return (
+        <div className="modal-overlay">
+            <div className="modal-backdrop" onClick={onClose} />
+            <div className='centered'>
+                <div className={`modal-content card ${maxW}`}>
+                    <div className="modal-header">
+                        <h3 className="modal-title">{title}</h3>
+                        <button onClick={onClose} className="modal-close">
+                            <X className="w-5 h-5" />
+                        </button>
+                    </div>
+                    {children}
                 </div>
-                {children}
             </div>
         </div>
-    </div>
-  );
+    );
 }
 
-function ChallengeDetailModal({ challengeId, open, onClose, allChallenges, groupNames, userData, setEditingChallenge, setShowEditChallenge}) {
+function ChallengeDetailModal({ challengeId, open, onClose, allChallenges, groupNames, userData, setEditingChallenge, setShowEditChallenge }) {
     const [challenge, setChallenge] = useState(null);
     const [loading, setLoading] = useState(true);
     const [userProgress, setUserProgress] = useState(0);
@@ -47,22 +47,7 @@ function ChallengeDetailModal({ challengeId, open, onClose, allChallenges, group
                 setChallenge(foundChallenge || null);
 
                 if (foundChallenge && userData?.uid) {
-                    try {
-                        const participantData = await FirestoreManager.findDocumentByField(
-                        `challenges/${challengeId}/participants`,
-                        'uid',
-                        userData.uid
-                        );
-                        
-                        if (participantData) {
-                        setUserProgress(participantData.currentValue || 0);
-                        } else {
-                        setUserProgress(0);
-                        }
-                    } catch (error) {
-                        console.error('Failed to load user progress:', error);
-                        setUserProgress(0);
-                    }
+                    await setProgress(challengeId, userData, foundChallenge, setUserProgress);
                 }
             } catch (error) {
                 console.error('Failed to load challenge details:', error);
@@ -98,14 +83,14 @@ function ChallengeDetailModal({ challengeId, open, onClose, allChallenges, group
 
     const getStatusIcon = (challenge) => {
         if (challenge?.isActive && challenge.isActive()) {
-        return <CheckCircle className="w-5 h-5 text-green-400" />;
+            return <CheckCircle className="w-5 h-5 text-green-400" />;
         }
         return <Clock className="w-5 h-5 text-slate-400" />;
     };
 
     const getStatusText = (challenge) => {
         if (challenge?.isActive && challenge.isActive()) {
-        return "Active";
+            return "Active";
         }
         return "Inactive";
     };
@@ -114,133 +99,133 @@ function ChallengeDetailModal({ challengeId, open, onClose, allChallenges, group
         <Modal open={open} onClose={onClose} title={challenge?.name || "Challenge Details"} size="lg">
             <div className="p-4">
                 {loading ? (
-                <div className="text-center text-slate-400 py-4">Loading...</div>
+                    <div className="text-center text-slate-400 py-4">Loading...</div>
                 ) : challenge ? (
-                <div className="space-y-6">
-                    <div className="flex items-start gap-4" style={{marginBottom: '20px'}}>
-                    <div className="flex-1">
-                        <h3 className="text-lg Badge-title font-semibold text-white mb-1">{challenge.name}</h3>
-                        <div className="flex Badge-subtitle items-center gap-2 mb-2">
-                        <span 
-                            className="text-sm font-medium"
-                            style={{ color: getChallengeSourceColor(challenge) }}
-                        >
-                            {getChallengeSourceText(challenge)}
-                        </span>
-                        <span className="text-slate-500">:</span>
-                        <div className="flex items-center gap-1">
-                            <span className={`text-sm ${challenge?.isActive && challenge.isActive() ? 'text-green-400' : 'text-slate-400'}`}>
-                            {getStatusText(challenge)}
-                            </span>
+                    <div className="space-y-6">
+                        <div className="flex items-start gap-4" style={{ marginBottom: '20px' }}>
+                            <div className="flex-1">
+                                <h3 className="text-lg Badge-title font-semibold text-white mb-1">{challenge.name}</h3>
+                                <div className="flex Badge-subtitle items-center gap-2 mb-2">
+                                    <span
+                                        className="text-sm font-medium"
+                                        style={{ color: getChallengeSourceColor(challenge) }}
+                                    >
+                                        {getChallengeSourceText(challenge)}
+                                    </span>
+                                    <span className="text-slate-500">:</span>
+                                    <div className="flex items-center gap-1">
+                                        <span className={`text-sm ${challenge?.isActive && challenge.isActive() ? 'text-green-400' : 'text-slate-400'}`}>
+                                            {getStatusText(challenge)}
+                                        </span>
+                                    </div>
+                                </div>
+                                <span className="text-sm text-slate-400">Description</span>
+                                {challenge.description && (
+                                    <p className="text-sm text-slate-300" style={{ textAlign: 'center' }}>{challenge.description}</p>
+                                )}
+                            </div>
                         </div>
+
+                        {/* Progressbar */}
+                        <div className="space-y-2" style={{ marginBottom: '20px' }}>
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm text-slate-300">Progress</span>
+                                <span className="text-sm text-slate-300">
+                                    {userProgress} / {challenge.targetValue || 0}
+                                </span>
+                            </div>
+                            <LinearExpContainerSimple
+                                expnow={userProgress}
+                                expmax={challenge.targetValue || 100}
+                            />
                         </div>
-                        <span className="text-sm text-slate-400">Description</span>
-                        {challenge.description && (
-                        <p className="text-sm text-slate-300" style={{textAlign: 'center'}}>{challenge.description}</p>
+
+                        <span className="text-sm text-slate-400" style={{ marginBottom: '20px' }}>Details</span>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4" style={{ marginTop: '20px' }}>
+                            {/* Challenge Type */}
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm text-slate-400">Challenge Type</span>
+                                </div>
+                                <p className="text-white font-medium">{challenge.challengeType || 'N/A'}</p>
+                            </div>
+
+                            {/* Ziel value */}
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm text-slate-400">Target Value</span>
+                                </div>
+                                <p className="text-white font-medium">{challenge.targetValue || 'N/A'}</p>
+                            </div>
+
+                            {/* Start Date */}
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm text-slate-400">Start Date</span>
+                                </div>
+                                <p className="text-white font-medium">{formatDate(challenge.startDate)}</p>
+                            </div>
+
+                            {/* End Date */}
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm text-slate-400">End Date</span>
+                                </div>
+                                <p className="text-white font-medium">{formatDate(challenge.endDate)}</p>
+                            </div>
+
+                            {/* points */}
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm text-slate-400">Reward Points</span>
+                                </div>
+                                <p className="text-white font-medium">{challenge.rewardPoints || 0} pts</p>
+                            </div>
+
+                            {/* number Teilnehmers */}
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm text-slate-400">Participants</span>
+                                </div>
+                                <p className="text-white font-medium">{challenge.getParticipantCount ? challenge.getParticipantCount() : 0}</p>
+                            </div>
+                        </div>
+
+                        {challenge.targetField && (
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm text-slate-400">Target Field</span>
+                                </div>
+                                <p className="text-white font-medium">{challenge.targetField}</p>
+                            </div>
                         )}
-                    </div>
-                    </div>
 
-                    {/* Progressbar */}
-                    <div className="space-y-2" style={{marginBottom: '20px'}}>
-                    <div className="flex items-center justify-between">
-                        <span className="text-sm text-slate-300">Progress</span>
-                        <span className="text-sm text-slate-300">
-                        {userProgress} / {challenge.targetValue || 0}
-                        </span>
-                    </div>
-                    <LinearExpContainerSimple 
-                        expnow={userProgress} 
-                        expmax={challenge.targetValue || 100} 
-                    />
-                    </div>
+                        {/* conditions */}
+                        {challenge.conditions && (
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm text-slate-400">Conditions</span>
+                                </div>
+                                <div className="bg-slate-800/50 rounded-lg p-3">
+                                    <pre className="text-sm text-slate-300 whitespace-pre-wrap">{challenge.conditions}</pre>
+                                </div>
+                            </div>
+                        )}
 
-                    <span className="text-sm text-slate-400" style={{marginBottom: '20px'}}>Details</span>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4" style={{marginTop: '20px'}}>
-                    {/* Challenge Type */}
-                    <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                        <span className="text-sm text-slate-400">Challenge Type</span>
-                        </div>
-                        <p className="text-white font-medium">{challenge.challengeType || 'N/A'}</p>
-                    </div>
-
-                    {/* Ziel value */}
-                    <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                        <span className="text-sm text-slate-400">Target Value</span>
-                        </div>
-                        <p className="text-white font-medium">{challenge.targetValue || 'N/A'}</p>
-                    </div>
-
-                    {/* Start Date */}
-                    <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                        <span className="text-sm text-slate-400">Start Date</span>
-                        </div>
-                        <p className="text-white font-medium">{formatDate(challenge.startDate)}</p>
-                    </div>
-
-                    {/* End Date */}
-                    <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                        <span className="text-sm text-slate-400">End Date</span>
-                        </div>
-                        <p className="text-white font-medium">{formatDate(challenge.endDate)}</p>
-                    </div>
-
-                    {/* points */}
-                    <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                        <span className="text-sm text-slate-400">Reward Points</span>
-                        </div>
-                        <p className="text-white font-medium">{challenge.rewardPoints || 0} pts</p>
-                    </div>
-
-                    {/* number Teilnehmers */}
-                    <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                        <span className="text-sm text-slate-400">Participants</span>
-                        </div>
-                        <p className="text-white font-medium">{challenge.getParticipantCount ? challenge.getParticipantCount() : 0}</p>
-                    </div>
-                    </div>
-
-                    {challenge.targetField && (
-                    <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                        <span className="text-sm text-slate-400">Target Field</span>
-                        </div>
-                        <p className="text-white font-medium">{challenge.targetField}</p>
-                    </div>
-                    )}
-
-                    {/* conditions */}
-                    {challenge.conditions && (
-                    <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                        <span className="text-sm text-slate-400">Conditions</span>
-                        </div>
-                        <div className="bg-slate-800/50 rounded-lg p-3">
-                        <pre className="text-sm text-slate-300 whitespace-pre-wrap">{challenge.conditions}</pre>
+                        <div className="pt-4 border-t border-white/10 space-y-2">
+                            <p className="text-xs text-slate-500">
+                                Challenge ID: {challenge.challengeId}
+                            </p>
+                            {challenge.createdAt && (
+                                <p className="text-xs text-slate-500">
+                                    Created: {formatDate(challenge.createdAt)}
+                                </p>
+                            )}
                         </div>
                     </div>
-                    )}
-
-                    <div className="pt-4 border-t border-white/10 space-y-2">
-                    <p className="text-xs text-slate-500">
-                        Challenge ID: {challenge.challengeId}
-                    </p>
-                    {challenge.createdAt && (
-                        <p className="text-xs text-slate-500">
-                        Created: {formatDate(challenge.createdAt)}
-                        </p>
-                    )}
-                    </div>
-                </div>
                 ) : (
-                <div className="text-center text-slate-400 py-4">Challenge not found</div>
+                    <div className="text-center text-slate-400 py-4">Challenge not found</div>
                 )}
             </div>
             {userData?.uid === challenge?.creatorId && (
@@ -252,7 +237,7 @@ function ChallengeDetailModal({ challengeId, open, onClose, allChallenges, group
                             onClose();
                         }}
                         className="btn-primary flex centered gap-2"
-                        style={{marginBottom: '20px', marginTop: '20px' }}
+                        style={{ marginBottom: '20px', marginTop: '20px' }}
                     >
                         Edit Challenge
                     </button>
@@ -262,6 +247,29 @@ function ChallengeDetailModal({ challengeId, open, onClose, allChallenges, group
     );
 }
 
+async function setProgress(challengeId, userData, foundChallenge, setUserProgress) {
+    try {
+        const participantData = await FirestoreManager.findDocumentByField(
+            `challenges/${challengeId}/participants`,
+            'uid',
+            userData.uid
+        );
+
+        if (foundChallenge.challengeStyle == CHALLENGE_STYLE.GROUP) {
+            setUserProgress(foundChallenge.progress);
+        } else {
+            if (participantData) {
+                setUserProgress(participantData.currentValue || 0);
+            } else {
+                setUserProgress(0);
+            }
+        }
+    } catch (error) {
+        console.error('Failed to load user progress:', error);
+        setUserProgress(0);
+    }
+}
+
 // ========== Challege Card  ==========
 function ClickableChallengeCard({ challenge, groupNames, onClick, userData }) {
     const [userProgress, setUserProgress] = useState(0);
@@ -269,29 +277,12 @@ function ClickableChallengeCard({ challenge, groupNames, onClick, userData }) {
 
     useEffect(() => {
         const loadUserProgress = async () => {
-        if (!challenge.challengeId || !userData?.uid) {
-            setLoading(false);
-            return;
-        }
-
-        try {
-            const participantData = await FirestoreManager.findDocumentByField(
-            `challenges/${challenge.challengeId}/participants`,
-            'uid',
-            userData.uid
-            );
-            
-            if (participantData) {
-            setUserProgress(participantData.currentValue || 0);
-            } else {
-            setUserProgress(0);
+            if (!challenge.challengeId || !userData?.uid) {
+                setLoading(false);
+                return;
             }
-        } catch (error) {
-            console.error('Failed to load user progress:', error);
-            setUserProgress(0);
-        } finally {
-            setLoading(false);
-        }
+
+            await setProgress(challenge.challengeId, userData, challenge, setUserProgress);
         };
 
         loadUserProgress();
@@ -306,35 +297,35 @@ function ClickableChallengeCard({ challenge, groupNames, onClick, userData }) {
 
     return (
         <div
-        className='card cursor-pointer hover:bg-slate-800/50 transition-colors'
-        onClick={() => onClick(challenge.challengeId)}
+            className='card cursor-pointer hover:bg-slate-800/50 transition-colors'
+            onClick={() => onClick(challenge.challengeId)}
         >
-        <div className='flex items-center gap-2 mb-2'>
-            <span className='text-gradient font-semibold'>
-            {challenge.name}
-            </span>
-            <span className='text-slate-300 text-sm'>
-            - {getChallengeSourceText(challenge)}
-            </span>
-            <span className='text-green-400 text-xs'>
-            (Active)
-            </span>
-        </div>
-        <div className='text-slate-300 mb-2'>
-            {challenge.description || 'No description available.'}
-        </div>
-        <div className='text-slate-400 text-sm'>
-            Type: {challenge.challengeType} |
-            Target: {challenge.targetValue || 'N/A'} |
-            Participants: {challenge.getParticipantCount ? challenge.getParticipantCount() : 0} |
-            Reward: {challenge.rewardPoints} pts
-        </div>
-        <div className='mt-3'>
-            <LinearExpContainerSimple
-            expnow={userProgress}
-            expmax={challenge.targetValue || 100}
-            />
-        </div>
+            <div className='flex items-center gap-2 mb-2'>
+                <span className='text-gradient font-semibold'>
+                    {challenge.name}
+                </span>
+                <span className='text-slate-300 text-sm'>
+                    - {getChallengeSourceText(challenge)}
+                </span>
+                <span className='text-green-400 text-xs'>
+                    (Active)
+                </span>
+            </div>
+            <div className='text-slate-300 mb-2'>
+                {challenge.description || 'No description available.'}
+            </div>
+            <div className='text-slate-400 text-sm'>
+                Type: {challenge.challengeType} |
+                Target: {challenge.targetValue || 'N/A'} |
+                Participants: {challenge.getParticipantCount ? challenge.getParticipantCount() : 0} |
+                Reward: {challenge.rewardPoints} pts
+            </div>
+            <div className='mt-3'>
+                <LinearExpContainerSimple
+                    expnow={userProgress}
+                    expmax={challenge.targetValue || 100}
+                />
+            </div>
         </div>
     );
 }
@@ -358,38 +349,38 @@ function Page({ data }) {
     const loadUserActiveChallenges = async () => {
         try {
             setIsLoadingChallenges(true);
-            
+
             const allChallenges = await ChallengeManagement.getAllChallenges();
-            
-            const publicChallenges = allChallenges.filter(challenge => 
+
+            const publicChallenges = allChallenges.filter(challenge =>
                 challenge.visibility === 'public' && challenge.isActive()
             );
-            
-            const hiddenChallenges = allChallenges.filter(challenge => 
-                challenge.visibility === 'hidden' && 
-                challenge.isActive() && 
+
+            const hiddenChallenges = allChallenges.filter(challenge =>
+                challenge.visibility === 'hidden' &&
+                challenge.isActive() &&
                 challenge.hasParticipant(userData.uid)
             );
-            
+
             const userGroups = await GroupManagement.getUserGroups(userData.uid);
-            
+
             const allGroupChallenges = [];
             const groupNamesMap = {};
-            
+
             for (const group of userGroups) {
                 const groupChallenges = allChallenges.filter(challenge =>
-                    challenge.visibility === 'group' && 
+                    challenge.visibility === 'group' &&
                     challenge.groupId === group.groupId &&
                     challenge.isActive()
                 );
-                
+
                 groupNamesMap[group.groupId] = group.name;
-                
+
                 allGroupChallenges.push(...groupChallenges);
             }
-            
+
             const userActiveChallenges = [...publicChallenges, ...allGroupChallenges, ...hiddenChallenges];
-            
+
             setActiveChallenges(userActiveChallenges);
             setGroupNames(groupNamesMap);
         } catch (error) {
@@ -413,11 +404,11 @@ function Page({ data }) {
                         <div className="bg-gradient-2"></div>
                         <div className="bg-overlay"></div>
                     </div>
-                    
+
                     <div className="screen-main">
                         <h2 className="screen-title mb-2">Challenges</h2>
                         <h3 className="text-slate-200 font-semibold mb-4">My Challenges</h3>
-                        
+
                         {isLoadingChallenges ? (
                             <div className="text-slate-400 text-center py-6">
                                 Loading challenges...
@@ -443,7 +434,7 @@ function Page({ data }) {
                 </div>
             </div>
 
-            <ChallengeDetailModal 
+            <ChallengeDetailModal
                 challengeId={selectedChallengeId}
                 open={!!selectedChallengeId}
                 onClose={() => setSelectedChallengeId(null)}
@@ -475,43 +466,43 @@ function Page({ data }) {
 
 // ========== Legacy newChallenges==========
 function newChallenges() {
-  const [items, setItems] = useState([
-    { id: "c1", title: "Herzsache", description: "halte die Herzfrequenz über 120", done: true },
-    { id: "c2", title: "Fokus-Zone", description: "bleibe 5 Minuten fehlerfrei", done: false },
-    { id: "c3", title: "Kombiniert", description: "schlage 3 Kombos in einem Training", done: false },
-  ]);
+    const [items, setItems] = useState([
+        { id: "c1", title: "Herzsache", description: "halte die Herzfrequenz über 120", done: true },
+        { id: "c2", title: "Fokus-Zone", description: "bleibe 5 Minuten fehlerfrei", done: false },
+        { id: "c3", title: "Kombiniert", description: "schlage 3 Kombos in einem Training", done: false },
+    ]);
 
-  const markDone = (id) => setItems(prev => prev.map(c => (c.id === id ? { ...c, done: !c.done } : c)));
+    const markDone = (id) => setItems(prev => prev.map(c => (c.id === id ? { ...c, done: !c.done } : c)));
 
-  return (
-    <Screen title="Weekly Challenge">
-      <div className="space-y-3">
-        {items.map(c => (
-          <Card key={c.id}>
-            <div className="flex items-center gap-3">
-              <div className={`${c.done ? "btn-primary" : "bg-white/10"} w-10 h-10 rounded-xl flex items-center justify-center`}>
-                {c.done ? <Check className="w-5 h-5" /> : <CalendarDays className="w-5 h-5" />}
-              </div>
-              <div className="flex-1">
-                <p className="text-lg font-semibold">{c.title}</p>
-                <p className="text-slate-400 text-sm">{c.description}</p>
-              </div>
-              <button 
-                onClick={() => markDone(c.id)} 
-                className={c.done ? "btn-secondary" : "btn-primary"}
-              >
-                {c.done ? "Undo" : "Mark"}
-              </button>
+    return (
+        <Screen title="Weekly Challenge">
+            <div className="space-y-3">
+                {items.map(c => (
+                    <Card key={c.id}>
+                        <div className="flex items-center gap-3">
+                            <div className={`${c.done ? "btn-primary" : "bg-white/10"} w-10 h-10 rounded-xl flex items-center justify-center`}>
+                                {c.done ? <Check className="w-5 h-5" /> : <CalendarDays className="w-5 h-5" />}
+                            </div>
+                            <div className="flex-1">
+                                <p className="text-lg font-semibold">{c.title}</p>
+                                <p className="text-slate-400 text-sm">{c.description}</p>
+                            </div>
+                            <button
+                                onClick={() => markDone(c.id)}
+                                className={c.done ? "btn-secondary" : "btn-primary"}
+                            >
+                                {c.done ? "Undo" : "Mark"}
+                            </button>
+                        </div>
+                    </Card>
+                ))}
             </div>
-          </Card>
-        ))}
-      </div>
 
-      <button className="btn-primary w-full mt-6 py-3">
-        Group Challenges
-      </button>
-    </Screen>
-  );
+            <button className="btn-primary w-full mt-6 py-3">
+                Group Challenges
+            </button>
+        </Screen>
+    );
 }
 
 function EditChallengePopup({ challenge, onClose, onUpdate }) {

@@ -60,7 +60,7 @@ function GroupPage({ groups, setGroups, joinedIds, setJoinedIds }) {
                     name: group.name,
                     description: group.description,
                     members: group.getActiveMemberCount(),
-                    memberIds: group.members.map(m => m.userId),
+                    memberIds: group.members.filter(m => m.isActive()).map(m => m.userId),
                     isPrivate: group.isPrivate,
                     image: image,
                     createdBy: group.createdBy,

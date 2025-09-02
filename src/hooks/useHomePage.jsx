@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import WorkoutManager from '../services/WorkoutManagement.jsx';
 import StationManagement from '../services/StationManagement.jsx';
 
@@ -75,22 +75,14 @@ export function useHomePage(userData) {
     }
   };
 
-  // Load last workout
-  useEffect(() => {
-    loadLastWorkout();
-  }, [userData.uid]);
-
-  // Load stations
-  useEffect(() => {
-    loadStations();
-  }, []);
+  
 
   // Function to refresh user data (level, points) after exercise changes
   const refreshUserData = () => {
     window.dispatchEvent(new CustomEvent('refreshUserData'));
   };
 
-  const loadLastWorkout = async () => {
+  const loadLastWorkout = useCallback(async (preferredWorkoutId = null) => {
     try {
       setLoadingState(prev => ({ ...prev, isLoadingLastWorkout: true }));
       const workouts = await WorkoutManager.loadWorkouts(userData.uid);
@@ -101,12 +93,25 @@ export function useHomePage(userData) {
           const bTime = b.createdAt?.toDate?.() || new Date(b.createdAt);
           return bTime.getTime() - aTime.getTime();
         });
-        
+        // If a preferred workout is provided and exists, keep it selected; otherwise pick the latest
+        const preferred = preferredWorkoutId
+          ? sortedWorkouts.find(w => w.uid === preferredWorkoutId)
+          : null;
+        const nextSelected = preferred ? preferred : sortedWorkouts[0];
+
         setDataState(prev => ({
           ...prev,
-          lastWorkout: sortedWorkouts[0],
+          lastWorkout: nextSelected,
           allWorkouts: sortedWorkouts,
-          selectedWorkoutId: sortedWorkouts[0].uid
+          selectedWorkoutId: nextSelected.uid
+        }));
+      } else {
+        // No workouts found; clear related state to avoid showing stale data
+        setDataState(prev => ({
+          ...prev,
+          lastWorkout: null,
+          allWorkouts: [],
+          selectedWorkoutId: null
         }));
       }
     } catch (error) {
@@ -114,9 +119,9 @@ export function useHomePage(userData) {
     } finally {
       setLoadingState(prev => ({ ...prev, isLoadingLastWorkout: false }));
     }
-  };
+  }, [userData.uid]);
 
-  const loadStations = async () => {
+  const loadStations = useCallback(async () => {
     try {
       setLoadingState(prev => ({ ...prev, isLoadingStations: true }));
       const stations = await StationManagement.loadAll();
@@ -126,7 +131,17 @@ export function useHomePage(userData) {
     } finally {
       setLoadingState(prev => ({ ...prev, isLoadingStations: false }));
     }
-  };
+  }, []);
+
+  // Load last workout on mount and when dependencies change
+  useEffect(() => {
+    loadLastWorkout();
+  }, [loadLastWorkout]);
+
+  // Load stations on mount
+  useEffect(() => {
+    loadStations();
+  }, [loadStations]);
 
   const handleExerciseClick = (exercise) => {
     setDataState(prev => ({ ...prev, selectedExercise: exercise }));
@@ -150,7 +165,7 @@ export function useHomePage(userData) {
         dataState.selectedExercise.uid
       );
       
-      await loadLastWorkout();
+  await loadLastWorkout(dataState.selectedWorkoutId);
       refreshUserData();
       
       setModalState(prev => ({ ...prev, addExerciseOpen: false, isEditing: false }));
@@ -162,7 +177,9 @@ export function useHomePage(userData) {
   const handleDeleteWorkout = async (workoutId) => {
     try {
       await WorkoutManager.deleteWorkout(userData.uid, workoutId);
-      await loadLastWorkout();
+  await loadLastWorkout();
+  // Ensure user-dependent aggregates (level, points) are refreshed
+  refreshUserData();
     } catch (error) {
       console.error('Error deleting workout:', error);
     }
@@ -259,7 +276,7 @@ export function useHomePage(userData) {
         await WorkoutManager.addExercise(userData.uid, dataState.selectedWorkoutId, exerciseData);
       }
 
-      await loadLastWorkout();
+  await loadLastWorkout(dataState.selectedWorkoutId);
       refreshUserData();
       
       setModalState(prev => ({ ...prev, addExerciseOpen: false, isEditing: false }));

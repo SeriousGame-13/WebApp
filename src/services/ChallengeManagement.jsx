@@ -188,6 +188,10 @@ const getPublicChallenges = async () => {
             CHALLENGES_COLLECTION,
             [['visibility', '==', CHALLENGE_VISIBILITY.PUBLIC]]
         );
+        
+        if (snapshot == null) {
+            return [];
+        }
 
         const challenges = [];
         for (const doc of snapshot.docs) {
@@ -455,27 +459,31 @@ const completeChallengeForUser = async (challengeId, userId) => {
 const updateProgress = async (challengeId) => {
     const conditions = [];
     const promise = getChallenge(challengeId);
-    const participants = await getChallengeParticipants(challengeId);
-    participants.forEach(part => {
-        conditions.push({ field: 'userId', operator: '==', value: part.userId });
-    });
+    const partPromise =  getChallengeParticipants(challengeId);
 
     const challenge = await promise;
-
     const challengeConditions = buildConditions(challenge.conditions.split('\n'), []);
     challengeConditions.map(o => conditions.push(o))
 
     let start = challenge.startDate;
     if (!challenge.startDate?.toDate) {
-
         start = Timestamp.fromMillis(start);
         console.log(start.toDate())
     }
     conditions.push({ field: 'startTime', operator: '>=', value: start })
-    const docs = await FirestoreManager.queryDocuments('exercises', conditions);
-    if (docs == null)
-        return;
-    const result = aggregate([{ function: 'sum', field: 'points' }], docs.docs);
+
+    const participants = await partPromise;
+    const promises = [];
+    participants.forEach(part => {
+        const tmp = [...conditions];
+        tmp.push({ field: 'userId', operator: '==', value: part.userId });
+        promises.push(FirestoreManager.queryDocuments('exercises', tmp));
+    });
+
+    let docs = await Promise.all(promises);
+    docs = docs.map(d => d.docs).flat();
+
+    const result = aggregate([{ function: 'sum', field: 'points' }], docs);
     const update = { progress: result[Object.keys(result)[0]] };
     console.log(result[Object.keys(result)[0]]);
 

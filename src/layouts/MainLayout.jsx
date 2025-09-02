@@ -44,11 +44,27 @@ const useAuth = () => {
         return () => unsubscribe(); // Prevent memory leaks
     }, []);
 
+    // Listen for global user-data refresh events (e.g., after workout/exercise changes)
+    useEffect(() => {
+        const onRefresh = async () => {
+            try {
+                if (currentUser?.uid) {
+                    const updated = await UserManagement.getUser(currentUser.uid);
+                    setUserData(updated);
+                }
+            } catch (error) {
+                console.error('Failed to refresh user data:', error);
+            }
+        };
+        window.addEventListener('refreshUserData', onRefresh);
+        return () => window.removeEventListener('refreshUserData', onRefresh);
+    }, [currentUser?.uid]);
+
     return { currentUser, userData, loading };
 };
 
 function AppLayout() {
-    const { currentUser, userData, loading } = useAuth();
+    const { userData, loading } = useAuth();
 
     const [currentPage, setCurrentPage] = useState('home');
 

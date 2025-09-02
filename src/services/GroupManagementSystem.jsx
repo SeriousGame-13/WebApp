@@ -19,6 +19,7 @@ import { Group, GroupMember } from './interfaces/Group.jsx';
 import { GROUP_ROLE } from './interfaces/Constants.jsx';
 import { GROUPS_COLLECTION, GROUP_MEMBERS_COLLECTION, USERS_COLLECTION } from './firebase/Collections.jsx'
 import { serverTimestamp } from './firebase/FirebaseHelper.jsx';
+import ChallengeManagement from './ChallengeManagement.jsx';
 
 const GROUP_IMAGES_COLLECTION = 'groupimages';
 
@@ -380,6 +381,7 @@ const addGroupMember = async (groupId, userId, role = GROUP_ROLE.MEMBER) => {
         });
 
         await FirestoreManager.createDocument(GROUP_MEMBERS_COLLECTION, membership, membershipId, true);
+        ChallengeManagement.addUserToGroupChallenges(group.groupId, userId);
 
         return membership;
     } catch (error) {
@@ -516,6 +518,7 @@ const removeGroupMember = async (groupId, userId, targetUserId) => {
                 true
             );
         }
+        ChallengeManagement.removeUserFromGroupChallenges(group.groupId, userId);
     } catch (error) {
         console.error('Failed to remove group member:', error);
         throw error;

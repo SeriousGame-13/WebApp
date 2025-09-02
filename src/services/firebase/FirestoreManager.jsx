@@ -226,6 +226,8 @@ const createDocumentWithAutoId = async (collectionName, data) => {
         const docRef = await addDoc(collectionGroup(db, collectionName), data);
         return docRef;
     } catch (error) {
+        // collectionGroup kann nicht zum Schreiben verwendet werden; versuche normale Collection
+        console.debug(`addDoc via collectionGroup('${collectionName}') fehlgeschlagen, fallback auf collection(). Grund:`, error);
         try {
             const docRef = await addDoc(collection(db, collectionName), data);
             return docRef;
@@ -266,14 +268,41 @@ const findDocumentByField = async (collectionName, field, value) => {
 
 /**
  * Frägt Dokumente aus einer Sammlung basierend auf mehreren Bedingungen ab.
+ * Unterstützt zwei Formate je Bedingung:
+ * 1) Objekt: { field: string, operator: WhereFilterOp, value: any }
+ * 2) Tupel/Array: [field: string, operator: WhereFilterOp, value: any]
+ * Beispiele:
+ *   queryDocuments('users', [{ field: 'age', operator: '>=', value: 18 }, ['active', '==', true]])
+ *
  * @param {string} collectionName - Der Name der Firestore-Sammlung, die abgefragt werden soll.
- * @param {Array<Object>} [conditions=[]] - Ein Array von Bedingungsobjekten, z.B. [{ field: 'userId', operator: '==', value: 'someId' }].
+ * @param {Array<Object|Array>} [conditions=[]] - Array aus Bedingungen als Objekt oder Array/Tupel.
  * @returns {Promise<QuerySnapshot|null>} QuerySnapshot mit den passenden Dokumenten oder null bei einem Fehler.
  */
 const queryDocuments = async (collectionName, conditions = []) => {
     try {
         const collRef = collectionGroup(db, collectionName);
-        const queryConstraints = conditions.map(cond => where(cond.field, cond.operator, cond.value));
+
+        // Normalisiere Eingabe: erlaube einzelnes Objekt statt Array
+        const condArray = Array.isArray(conditions) ? conditions : [conditions];
+
+        const queryConstraints = condArray
+            .filter(Boolean)
+            .map((cond) => {
+                // Array/Tupel-Form: ['field', '==', value]
+                if (Array.isArray(cond)) {
+                    const [field, operator, value] = cond;
+                    return where(field, operator, value);
+                }
+                // Objekt-Form: { field, operator, value }
+                if (cond && typeof cond === 'object') {
+                    const { field, operator, value } = cond;
+                    return where(field, operator, value);
+                }
+                console.warn('Ungültiges Bedingungsformat, wird übersprungen:', cond);
+                return null;
+            })
+            .filter(Boolean);
+
         const q = query(collRef, ...queryConstraints);
         return await getDocs(q);
     } catch (error) {

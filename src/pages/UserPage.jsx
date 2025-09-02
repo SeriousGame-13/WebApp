@@ -6,7 +6,7 @@ import BadgeManagement from '../services/BadgeManagement.jsx';
 import FireAuthManager from '../services/firebase/FirebaseAuthenticationManager.jsx';
 import FirestoreManager from '../services/firebase/FirestoreManager.jsx';
 import { USERS_COLLECTION } from '../services/firebase/Collections.jsx';
-import ProfileImageElements from '../components/ui/ProfileImageManager.jsx';
+import ProfileImageElements from "../components/ui/ProfileImageManager.jsx";
 
 
 //TODO Refactor!!!!!!!!!!!!!!!!!!!!!!!

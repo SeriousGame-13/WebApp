@@ -1,4 +1,4 @@
-import { serverTimestamp } from '../firebase/FirebaseHelper.jsx';
+import { serverTimestamp } from "../firebase/FirebaseHelper.jsx";
 import BaseModel from "./Base.jsx";
 
 export class Exercise extends BaseModel {

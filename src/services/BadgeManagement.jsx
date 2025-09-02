@@ -12,7 +12,7 @@
  * @version 1.0.0
  */
 
-import { serverTimestamp } from '../services/firebase/FirebaseHelper.jsx';
+import { serverTimestamp } from './firebase/FirebaseHelper.jsx';
 import { BADGES_COLLECTION, BADGE_IMAGES_COLLECTION } from './firebase/Collections.jsx';
 import FirestoreManager from './firebase/FirestoreManager.jsx';
 import { Badge } from './interfaces/Badge.jsx';

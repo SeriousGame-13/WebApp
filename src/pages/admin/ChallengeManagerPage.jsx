@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Timestamp } from '../services/firebase/FirebaseHelper.jsx';
+import { Timestamp } from '../../services/firebase/FirebaseHelper.jsx';
 import BaseModel from '../../services/interfaces/Base.jsx';
 import ChallengeManagement from '../../services/ChallengeManagement.jsx';
 import GroupManagement from '../../services/GroupManagementSystem.jsx';

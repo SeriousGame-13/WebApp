@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import UserManagement from '../../services/UserManagementSystem.jsx';
-import ProfileImageElements from '../components/ui/ProfileImageManager.jsx'; 
-import '../components/styles/LayoutElements.css';
+import ProfileImageElements from '../../components/ui/ProfileImageManager.jsx';
+import '../../components/styles/LayoutElements.css';
 
 function AdminHeader({ user, onPageSelect, currentPage }) {
     const [showDropdown, setShowDropdown] = useState(false);

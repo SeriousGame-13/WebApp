@@ -17,7 +17,7 @@ import FirestoreManager from './firebase/FirestoreManager.jsx';
 import UserManagement from './UserManagementSystem.jsx';
 import { UserGoal } from './interfaces/Goal.jsx';
 import { GOALS_COLLECTION } from './firebase/Collections.jsx';
-import { serverTimestamp } from '../services/firebase/FirebaseHelper.jsx';
+import { serverTimestamp } from './firebase/FirebaseHelper.jsx';
 
 
 /**

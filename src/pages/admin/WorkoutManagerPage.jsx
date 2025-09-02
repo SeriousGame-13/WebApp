@@ -3,7 +3,7 @@ import '../../components/styles/LayoutElements.css';
 import WorkoutManager from '../../services/WorkoutManagement.jsx';
 import StationManager from '../../services/StationManagement.jsx';
 import { Workout } from '../../services/interfaces/Workout.jsx';
-import { Timestamp } from '../services/firebase/FirebaseHelper.jsx';
+import { Timestamp } from '../../services/firebase/FirebaseHelper.jsx';
 
 function localDateTimeStringToTimestamp(value) {
     const [date, time] = value.split('T');

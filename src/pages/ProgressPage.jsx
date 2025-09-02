@@ -5,9 +5,8 @@ import GoalSystem from '../services/GoalSystem.jsx';
 import GroupManagement from '../services/GroupManagementSystem.jsx';
 import StationManager from '../services/StationManagement.jsx';
 import FirestoreManager from '../services/firebase/FirestoreManager.jsx';
-import BaseModel from '../services/interfaces/Base.jsx';
 import { localDateTimeStringToTimestamp, localTime, toGermanDateLongFormat } from '../utils/DateUtils.jsx';
-import { toDate } from '../utils/DateUtils.jsx';
+import { CHALLENGE_STYLE } from '../services/interfaces/Constants.jsx';
 
 import { CheckCircle, Clock, Plus, Target, Trophy, X } from 'lucide-react';
 import '../components/styles/sphere-styles.css';
@@ -53,27 +52,7 @@ function ChallengeDetailModal({ challengeId, open, onClose, allChallenges, group
                     // Check if user is participating in this challenge
                     const participating = foundChallenge.hasParticipant(userData.uid);
                     setIsParticipating(participating);
-
-                    if (participating) {
-                        try {
-                            const participantData = await FirestoreManager.findDocumentByField(
-                                `challenges/${challengeId}/participants`,
-                                'uid',
-                                userData.uid
-                            );
-
-                            if (participantData) {
-                                setUserProgress(participantData.currentValue || 0);
-                            } else {
-                                setUserProgress(0);
-                            }
-                        } catch (error) {
-                            console.error('Failed to load user progress:', error);
-                            setUserProgress(0);
-                        }
-                    } else {
-                        setUserProgress(0);
-                    }
+                    await setProgress(challengeId, userData, foundChallenge, setUserProgress);
                 }
             } catch (error) {
                 console.error('Failed to load challenge details:', error);
@@ -105,13 +84,6 @@ function ChallengeDetailModal({ challengeId, open, onClose, allChallenges, group
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
         return new Date(dateString).toLocaleDateString();
-    };
-
-    const getStatusIcon = (challenge) => {
-        if (challenge?.isActive && challenge.isActive()) {
-            return <CheckCircle className="w-5 h-5 text-green-400" />;
-        }
-        return <Clock className="w-5 h-5 text-slate-400" />;
     };
 
     const getStatusText = (challenge) => {
@@ -242,25 +214,7 @@ function ClickableChallengeCard({ challenge, groupNames, onClick, userData }) {
                 setLoading(false);
                 return;
             }
-
-            try {
-                const participantData = await FirestoreManager.findDocumentByField(
-                    `challenges/${challenge.challengeId}/participants`,
-                    'uid',
-                    userData.uid
-                );
-
-                if (participantData) {
-                    setUserProgress(participantData.currentValue || 0);
-                } else {
-                    setUserProgress(0);
-                }
-            } catch (error) {
-                console.error('Failed to load user progress:', error);
-                setUserProgress(0);
-            } finally {
-                setLoading(false);
-            }
+            await setProgress(challenge.challengeId, userData, challenge, setUserProgress);
         };
 
         loadUserProgress();
@@ -613,7 +567,7 @@ function GoalDetailModal({ goal, open, onClose, onGoalUpdated, userData, station
                     <div className="space-y-2">
                         <div className='text-slate-400 text-sm mb-3 text-center'>
                             Progress: {goal.currentValue}/{goal.targetValue} ({progressPercentage}%)
-                        </div>                        
+                        </div>
                         <ProgressBar
                             current={goal.currentValue}
                             max={goal.targetValue}
@@ -1015,6 +969,29 @@ function ProgressPage({ data }) {
             )}
         </>
     );
+}
+
+async function setProgress(challengeId, userData, foundChallenge, setUserProgress) {
+    try {
+        const participantData = await FirestoreManager.findDocumentByField(
+            `challenges/${challengeId}/participants`,
+            'uid',
+            userData.uid
+        );
+
+        if (foundChallenge.challengeStyle == CHALLENGE_STYLE.GROUP) {
+            setUserProgress(foundChallenge.progress);
+        } else {
+            if (participantData) {
+                setUserProgress(participantData.currentValue || 0);
+            } else {
+                setUserProgress(0);
+            }
+        }
+    } catch (error) {
+        console.error('Failed to load user progress:', error);
+        setUserProgress(0);
+    }
 }
 
 export default ProgressPage;

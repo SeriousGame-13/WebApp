@@ -3,6 +3,7 @@ import BaseModel from '../../services/interfaces/Base.jsx';
 import UserManagement from '../../services/UserManagementSystem.jsx';
 import GroupManagement from '../../services/GroupManagementSystem.jsx';
 import GroupPageElements from '../GroupPage.jsx';
+import { AdminPageLayout, AdminCard } from '../../components/ui/AdminComponents.jsx';
 import '../../components/styles/sphere-styles.css';
 import ChallengeManagement from '../../services/ChallengeManagement.jsx';
 import { Users, Edit, Trash2, Plus, UserPlus, X, Search } from 'lucide-react';
@@ -726,125 +727,65 @@ function GroupManagerPage() {
         creatorNames[group.createdBy]?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const renderGroupList = () => {
-        if (isLoadingGroups) {
-            return (
-                <div className="text-center py-12">
-                    <div className="login-spinner mx-auto mb-4"></div>
-                    <p className="text-slate-400">Loading groups...</p>
-                </div>
-            );
-        }
+    const stats = [
+        { value: allGroups.length, label: 'Total Groups' },
+        { value: allGroups.filter(g => g.isPrivate).length, label: 'Private Groups' },
+        { value: allGroups.reduce((sum, group) => sum + group.getActiveMemberCount(), 0), label: 'Total Members' }
+    ];
 
-        if (filteredGroups.length === 0) {
-            return (
-                <div className="text-center py-12">
-                    <div className="text-slate-400 mb-4">
-                        {searchTerm ? 'No groups match your search.' : 'No groups found.'}
+    const renderGroupCards = () => {
+        return filteredGroups.map(group => (
+            <AdminCard
+                key={group.groupId}
+                onClick={() => setSelectedGroup(group)}
+            >
+                <div className="flex items-start gap-3">
+                    <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <Users className="w-6 h-6 text-white" />
                     </div>
-                    <button
-                        className="btn-primary"
-                        onClick={() => setShowCreateGroupPopup(true)}
-                    >
-                        Create First Group
-                    </button>
-                </div>
-            );
-        }
-
-        return (
-            <div className="grid-2 gap-6">
-                {filteredGroups.map(group => (
-                    <div
-                        key={group.groupId}
-                        className="card cursor-pointer"
-                        onClick={() => setSelectedGroup(group)}
-                    >
-                        <div className="flex items-start gap-3">
-                            <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center flex-shrink-0">
-                                <Users className="w-6 h-6 text-white" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-1">
-                                    <h3 className="font-semibold text-gradient truncate">
-                                        {group.name}
-                                    </h3>
-                                    {group.isPrivate && (
-                                        <span className="text-xs bg-yellow-500/20 text-yellow-300 px-2 py-1 rounded-full">
-                                            Private
-                                        </span>
-                                    )}
-                                </div>
-                                <p className="text-sm text-slate-300 line-clamp-2 mb-3">
-                                    {group.description || 'No description available.'}
-                                </p>
-                                <div className="flex items-center justify-between text-xs text-slate-400">
-                                    <span>{group.getActiveMemberCount()}/{group.maxMembers} members</span>
-                                    <span>by {creatorNames[group.createdBy] || 'Loading...'}</span>
-                                </div>
-                                <div className="text-xs text-slate-500 mt-1">
-                                    #{group.groupId.slice(-8)}
-                                </div>
-                            </div>
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-semibold text-gradient truncate">
+                                {group.name}
+                            </h3>
+                            {group.isPrivate && (
+                                <span className="text-xs bg-yellow-500/20 text-yellow-300 px-2 py-1 rounded-full">
+                                    Private
+                                </span>
+                            )}
+                        </div>
+                        <p className="text-sm text-slate-300 line-clamp-2 mb-3">
+                            {group.description || 'No description available.'}
+                        </p>
+                        <div className="flex items-center justify-between text-xs text-slate-400">
+                            <span>{group.getActiveMemberCount()}/{group.maxMembers} members</span>
+                            <span>by {creatorNames[group.createdBy] || 'Loading...'}</span>
+                        </div>
+                        <div className="text-xs text-slate-500 mt-1">
+                            #{group.groupId.slice(-8)}
                         </div>
                     </div>
-                ))}
-            </div>
-        );
+                </div>
+            </AdminCard>
+        ));
     };
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-gradient">Group Manager</h2>
-            </div>
-
-            {/* Stats Cards */}
-            <div className="grid-3 gap-6">
-                <div className="card text-center">
-                    <div className="text-2xl font-bold text-gradient">{allGroups.length}</div>
-                    <div className="text-sm text-slate-400">Total Groups</div>
-                </div>
-                <div className="card text-center">
-                    <div className="text-2xl font-bold text-gradient">
-                        {allGroups.filter(g => g.isPrivate).length}
-                    </div>
-                    <div className="text-sm text-slate-400">Private Groups</div>
-                </div>
-                <div className="card text-center">
-                    <div className="text-2xl font-bold text-gradient">
-                        {allGroups.reduce((sum, group) => sum + group.getActiveMemberCount(), 0)}
-                    </div>
-                    <div className="text-sm text-slate-400">Total Members</div>
-                </div>
-            </div>
-
-            {/* Search and Create */}
-            <div className="flex items-center gap-4 mt-4">
-                <div className="search-container flex-1">
-                    <Search className="search-icon" />
-                    <input
-                        type="text"
-                        placeholder="Search groups by name, description, or creator..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="search-input"
-                    />
-                </div>
-                <button
-                    className="btn-primary flex items-center gap-2"
-                    onClick={() => setShowCreateGroupPopup(true)}
-                >
-                    <Plus className="w-4 h-4" />
-                    Create Group
-                </button>
-            </div>
-
-            {/* Group List */}
-            <div className="mt-4">
-                {renderGroupList()}
-            </div>
+        <>
+            <AdminPageLayout
+                title="Group Manager"
+                stats={stats}
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                searchPlaceholder="Search groups by name, description, or creator..."
+                onCreateClick={() => setShowCreateGroupPopup(true)}
+                createButtonText="Create Group"
+                isLoading={isLoadingGroups}
+                emptyMessage="No groups found."
+                contentGridClass="grid-2 gap-6"
+            >
+                {renderGroupCards()}
+            </AdminPageLayout>
 
             {/* Modals */}
             {showCreateGroupPopup && (
@@ -862,7 +803,7 @@ function GroupManagerPage() {
                     onGroupUpdated={loadAllGroups}
                 />
             )}
-        </div>
+        </>
     );
 }
 

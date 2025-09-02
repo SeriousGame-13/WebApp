@@ -4,6 +4,7 @@ import BaseModel from '../../services/interfaces/Base.jsx';
 import ChallengeManagement from '../../services/ChallengeManagement.jsx';
 import GroupManagement from '../../services/GroupManagementSystem.jsx';
 import { CHALLENGE_TYPE, CHALLENGE_VISIBILITY } from '../../services/interfaces/Constants.jsx';
+import { AdminPageLayout, AdminCard } from '../../components/ui/AdminComponents.jsx';
 import '../../components/styles/sphere-styles.css';
 import { Plus, Target, Trophy, Calendar, X, Search, Edit, Trash2 } from 'lucide-react';
 
@@ -566,145 +567,85 @@ function ChallengeManagerPage() {
         challenge.challengeType.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const renderChallengeList = () => {
-        if (isLoadingChallenges) {
-            return (
-                <div className="text-center py-12">
-                    <div className="login-spinner mx-auto mb-4"></div>
-                    <p className="text-slate-400">Loading challenges...</p>
-                </div>
-            );
-        }
+    const stats = [
+        { value: allChallenges.length, label: 'Total Challenges' },
+        { value: allChallenges.filter(c => c.isActive()).length, label: 'Active Now' },
+        { value: allChallenges.reduce((sum, challenge) => sum + challenge.getParticipantCount(), 0), label: 'Total Participants' }
+    ];
 
-        if (filteredChallenges.length === 0) {
-            return (
-                <div className="text-center py-12">
-                    <div className="text-slate-400 mb-4">
-                        {searchTerm ? 'No challenges match your search.' : 'No challenges found.'}
+    const renderChallengeCards = () => {
+        return filteredChallenges.map(challenge => (
+            <AdminCard
+                key={challenge.challengeId}
+                onClick={() => setSelectedChallenge(challenge)}
+            >
+                <div className="flex items-start gap-3">
+                    <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <Target className="w-6 h-6 text-white" />
                     </div>
-                    <button
-                        className="btn-primary"
-                        onClick={() => setShowCreateChallengePopup(true)}
-                    >
-                        Create First Challenge
-                    </button>
-                </div>
-            );
-        }
-
-        return (
-            <div className="grid-2 gap-4">
-                {filteredChallenges.map(challenge => (
-                    <div
-                        key={challenge.challengeId}
-                        className="card cursor-pointer"
-                        onClick={() => setSelectedChallenge(challenge)}
-                    >
-                        <div className="flex items-start gap-3">
-                            <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center flex-shrink-0">
-                                <Target className="w-6 h-6 text-white" />
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-semibold text-gradient truncate">
+                                {challenge.name}
+                            </h3>
+                            <span 
+                                className="text-xs px-2 py-1 rounded-full"
+                                style={{ 
+                                    backgroundColor: `${getStatusColor(challenge)}20`,
+                                    color: getStatusColor(challenge)
+                                }}
+                            >
+                                {getStatusText(challenge)}
+                            </span>
+                        </div>
+                        <p className="text-sm text-slate-300 line-clamp-2 mb-3">
+                            {challenge.description || 'No description available.'}
+                        </p>
+                        <div className="grid-2 gap-2 text-xs text-slate-400">
+                            <div>
+                                <span className="block">Type</span>
+                                <span className="text-slate-300">{challenge.challengeType}</span>
                             </div>
-                            <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-1">
-                                    <h3 className="font-semibold text-gradient truncate">
-                                        {challenge.name}
-                                    </h3>
-                                    <span 
-                                        className="text-xs px-2 py-1 rounded-full"
-                                        style={{ 
-                                            backgroundColor: `${getStatusColor(challenge)}20`,
-                                            color: getStatusColor(challenge)
-                                        }}
-                                    >
-                                        {getStatusText(challenge)}
-                                    </span>
-                                </div>
-                                <p className="text-sm text-slate-300 line-clamp-2 mb-3">
-                                    {challenge.description || 'No description available.'}
-                                </p>
-                                <div className="grid-2 gap-2 text-xs text-slate-400">
-                                    <div>
-                                        <span className="block">Type</span>
-                                        <span className="text-slate-300">{challenge.challengeType}</span>
-                                    </div>
-                                    <div>
-                                        <span className="block">Reward</span>
-                                        <span className="text-slate-300">{challenge.rewardPoints} pts</span>
-                                    </div>
-                                    <div>
-                                        <span className="block">Participants</span>
-                                        <span className="text-slate-300">{challenge.getParticipantCount()}</span>
-                                    </div>
-                                    <div>
-                                        <span className="block">Visibility</span>
-                                        <span 
-                                            className="text-xs"
-                                            style={{ color: getVisibilityColor(challenge.visibility) }}
-                                        >
-                                            {challenge.visibility}
-                                        </span>
-                                    </div>
-                                </div>
+                            <div>
+                                <span className="block">Reward</span>
+                                <span className="text-slate-300">{challenge.rewardPoints} pts</span>
+                            </div>
+                            <div>
+                                <span className="block">Participants</span>
+                                <span className="text-slate-300">{challenge.getParticipantCount()}</span>
+                            </div>
+                            <div>
+                                <span className="block">Visibility</span>
+                                <span 
+                                    className="text-xs"
+                                    style={{ color: getVisibilityColor(challenge.visibility) }}
+                                >
+                                    {challenge.visibility}
+                                </span>
                             </div>
                         </div>
                     </div>
-                ))}
-            </div>
-        );
+                </div>
+            </AdminCard>
+        ));
     };
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-gradient">Challenge Manager</h2>
-            </div>
-
-            {/* Stats Cards */}
-            <div className="grid-3 gap-4">
-                <div className="card text-center">
-                    <div className="text-2xl font-bold text-gradient">{allChallenges.length}</div>
-                    <div className="text-sm text-slate-400">Total Challenges</div>
-                </div>
-                <div className="card text-center">
-                    <div className="text-2xl font-bold text-gradient">
-                        {allChallenges.filter(c => c.isActive()).length}
-                    </div>
-                    <div className="text-sm text-slate-400">Active Now</div>
-                </div>
-                <div className="card text-center">
-                    <div className="text-2xl font-bold text-gradient">
-                        {allChallenges.reduce((sum, challenge) => sum + challenge.getParticipantCount(), 0)}
-                    </div>
-                    <div className="text-sm text-slate-400">Total Participants</div>
-                </div>
-            </div>
-
-            {/* Search and Create */}
-            <div className="flex items-center gap-4 mt-4">
-                <div className="search-container flex-1">
-                    <Search className="search-icon" />
-                    <input
-                        type="text"
-                        placeholder="Search challenges by name, description, or type..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="search-input"
-                    />
-                </div>
-                <button
-                    className="btn-primary flex items-center gap-2"
-                    onClick={() => setShowCreateChallengePopup(true)}
-                >
-                    <Plus className="w-4 h-4" />
-                    Create Challenge
-                </button>
-            </div>
-
-            {/* Challenge List */}
-            <div className="mt-4">
-                {renderChallengeList()}
-            </div>
+        <>
+            <AdminPageLayout
+                title="Challenge Manager"
+                stats={stats}
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                searchPlaceholder="Search challenges by name, description, or type..."
+                onCreateClick={() => setShowCreateChallengePopup(true)}
+                createButtonText="Create Challenge"
+                isLoading={isLoadingChallenges}
+                emptyMessage="No challenges found."
+                contentGridClass="grid-2 gap-4"
+            >
+                {renderChallengeCards()}
+            </AdminPageLayout>
 
             {/* Modals */}
             {showCreateChallengePopup && (
@@ -722,7 +663,7 @@ function ChallengeManagerPage() {
                     onChallengeUpdated={loadAllChallenges}
                 />
             )}
-        </div>
+        </>
     );
 }
 

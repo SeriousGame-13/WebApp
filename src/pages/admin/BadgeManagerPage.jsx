@@ -3,6 +3,7 @@ import BadgeManagement from '../../services/BadgeManagement.jsx';
 import UserManagement from '../../services/UserManagementSystem.jsx';
 import { BADGE_RARITY } from '../../services/interfaces/Constants.jsx';
 import BadgeImageElements from '../../components/ui/BadgeImageManager.jsx';
+import { AdminPageLayout, AdminCard } from '../../components/ui/AdminComponents.jsx';
 import '../../components/styles/sphere-styles.css';
 import { Badge } from '../../services/interfaces/Badge.jsx';
 import RewardSystem from '../../services/RewardSystem.jsx';
@@ -647,6 +648,232 @@ function AdminBadgeDetailPopup({ badge, onClose, onBadgeUpdated }) {
     );
 }
 
+// Badge Card Image Component
+function BadgeCardImage({ badge }) {
+    const [badgeImage, setBadgeImage] = useState('');
+    const [imageLoading, setImageLoading] = useState(true);
+
+    useEffect(() => {
+        const loadBadgeImage = async () => {
+            if (!badge?.badgeId) {
+                setImageLoading(false);
+                return;
+            }
+
+            try {
+                setImageLoading(true);
+                const imageData = await BadgeManagement.getBadgeImage(badge.badgeId);
+                setBadgeImage(imageData || '');
+            } catch (error) {
+                console.error('Failed to load badge image:', error);
+                setBadgeImage('');
+            } finally {
+                setImageLoading(false);
+            }
+        };
+
+        loadBadgeImage();
+    }, [badge?.badgeId]);
+
+    return (
+        <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center flex-shrink-0 overflow-hidden">
+            {imageLoading ? (
+                <div className="w-4 h-4 border-2 border-white/20 border-t-white/60 rounded-full animate-spin"></div>
+            ) : badgeImage ? (
+                <img 
+                    className="w-full h-full object-cover rounded-xl" 
+                    src={badgeImage} 
+                    alt="Badge" 
+                />
+            ) : (
+                <span className="text-slate-400 text-xs">No Image</span>
+            )}
+        </div>
+    );
+}
+
+// User Selection Popup for Badge Awarding
+function UserSelectionPopup({ onClose, onUsersSelected }) {
+    const [allUsers, setAllUsers] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedUsers, setSelectedUsers] = useState(new Set());
+    const [isProcessing, setIsProcessing] = useState(false);
+
+    useEffect(() => {
+        loadUsers();
+    }, []);
+
+    const loadUsers = async () => {
+        try {
+            setIsLoading(true);
+            const users = await UserManagement.getAllActiveUsers();
+            setAllUsers(users);
+        } catch (error) {
+            console.error('Failed to load users:', error);
+            setAllUsers([]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleUserToggle = (userId) => {
+        setSelectedUsers(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(userId)) {
+                newSet.delete(userId);
+            } else {
+                newSet.add(userId);
+            }
+            return newSet;
+        });
+    };
+
+    const handleAwardBadges = async () => {
+        if (selectedUsers.size === 0) {
+            alert('Please select at least one user');
+            return;
+        }
+
+        setIsProcessing(true);
+        try {
+            let successCount = 0;
+            let errorCount = 0;
+
+            for (const userId of selectedUsers) {
+                try {
+                    await RewardSystem.awardBadges(userId);
+                    successCount++;
+                } catch (error) {
+                    console.error(`Failed to award badges to user ${userId}:`, error);
+                    errorCount++;
+                }
+            }
+
+            alert(`Badge awarding completed!\nSuccess: ${successCount} users\nErrors: ${errorCount} users`);
+            onUsersSelected();
+            onClose();
+        } catch (error) {
+            console.error('Failed to award badges:', error);
+            alert('Failed to award badges: ' + error.message);
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
+    const filteredUsers = allUsers.filter(user =>
+        user.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    return (
+        <div className="modal-overlay">
+            <div className="modal-backdrop" onClick={onClose}></div>
+            <div className="modal-content max-w-2xl">
+                <div className="modal-header">
+                    <h2 className="modal-title">Award Badges to Users</h2>
+                    <button className="modal-close" onClick={onClose}>
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+
+                <div className="space-y-6">
+                    <p className="text-sm text-slate-400">
+                        Select users to check and award badges based on their achievements and activities.
+                    </p>
+
+                    {/* Search Users */}
+                    <div className="flex items-center gap-4">
+                        <div className="search-container flex-1">
+                            <input
+                                type="text"
+                                placeholder="Search users by name or email..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="search-input"
+                            />
+                        </div>
+                        <button
+                            className="btn-primary flex items-center gap-2"
+                            onClick={handleAwardBadges}
+                            disabled={isProcessing || selectedUsers.size === 0}
+                        >
+                            <Award className="w-4 h-4" />
+                            {isProcessing ? 'Processing...' : `Award to ${selectedUsers.size} user(s)`}
+                        </button>
+                    </div>
+
+                    {/* User List */}
+                    <div className="card p-4">
+                        <h4 className="font-semibold mb-4">Users ({filteredUsers.length})</h4>
+                        
+                        {isLoading ? (
+                            <div className="text-center py-8">
+                                <div className="login-spinner mx-auto mb-4"></div>
+                                <p className="text-slate-400">Loading users...</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-3 max-h-96 overflow-y-auto">
+                                {filteredUsers.map(user => {
+                                    const isSelected = selectedUsers.has(user.uid);
+                                    
+                                    return (
+                                        <div
+                                            key={user.uid}
+                                            className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                                                isSelected 
+                                                    ? 'border-blue-500/50 bg-blue-500/10' 
+                                                    : 'border-white/10 hover:border-white/20'
+                                            }`}
+                                            onClick={() => handleUserToggle(user.uid)}
+                                        >
+                                            <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                                                isSelected 
+                                                    ? 'border-blue-500 bg-blue-500' 
+                                                    : 'border-white/30'
+                                            }`}>
+                                                {isSelected && <Check className="w-3 h-3 text-white" />}
+                                            </div>
+                                            
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-medium">{user.displayName || 'Anonymous'}</span>
+                                                    {user.isAdmin && (
+                                                        <span className="text-xs px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded-full">
+                                                            Admin
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <div className="text-sm text-slate-400">{user.email}</div>
+                                            </div>
+
+                                            <div className="text-xs text-slate-500">
+                                                Level {user.level || 1} • {user.points || 0} pts
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                                
+                                {filteredUsers.length === 0 && (
+                                    <div className="text-center py-8 text-slate-400">
+                                        {searchTerm ? 'No users match your search.' : 'No users found.'}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                <div className="modal-footer">
+                    <button className="btn-secondary" onClick={onClose}>
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 function BadgeManagerPage({ user }) {
     const [allBadges, setAllBadges] = useState([]);
     const [isLoadingBadges, setIsLoadingBadges] = useState(true);
@@ -654,6 +881,7 @@ function BadgeManagerPage({ user }) {
     const [showCreateBadgePopup, setShowCreateBadgePopup] = useState(false);
     const [isCreatingBadge, setIsCreatingBadge] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const [showUserSelectionPopup, setShowUserSelectionPopup] = useState(false);
 
     useEffect(() => {
         loadAllBadges();
@@ -691,10 +919,6 @@ function BadgeManagerPage({ user }) {
         }
     };
 
-    const awardBadges = async (userId) => {
-        RewardSystem.awardBadges(userId);
-    };
-
     const getRarityColor = (rarity) => {
         switch (rarity) {
             case BADGE_RARITY.COMMON: return '#9CA3AF';
@@ -712,124 +936,65 @@ function BadgeManagerPage({ user }) {
         badge.rarity.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const renderBadgeList = () => {
-        if (isLoadingBadges) {
-            return (
-                <div className="text-center py-12">
-                    <div className="login-spinner mx-auto mb-4"></div>
-                    <p className="text-slate-400">Loading badges...</p>
-                </div>
-            );
-        }
+    const stats = [
+        { value: allBadges.length, label: 'Total Badges' },
+        { value: allBadges.filter(b => b.rarity === BADGE_RARITY.LEGENDARY).length, label: 'Legendary' },
+        { value: allBadges.reduce((sum, badge) => sum + (badge.rewardPoints || 0), 0), label: 'Total Points' }
+    ];
 
-        if (filteredBadges.length === 0) {
-            return (
-                <div className="text-center py-12">
-                    <div className="text-slate-400 mb-4">
-                        {searchTerm ? 'No badges match your search.' : 'No badges found.'}
-                    </div>
-                    <button
-                        className="btn-primary"
-                        onClick={() => setShowCreateBadgePopup(true)}
-                    >
-                        Create First Badge
-                    </button>
-                </div>
-            );
+    const additionalButtons = [
+        {
+            text: 'Award Badges',
+            icon: Award,
+            onClick: () => setShowUserSelectionPopup(true),
+            className: 'btn-secondary'
         }
+    ];
 
-        return (
-            <div className="grid-2 gap-4">
-                {filteredBadges.map(badge => (
-                    <div
-                        key={badge.badgeId || `badge-${Math.random()}`}
-                        className="card cursor-pointer"
-                        onClick={() => setSelectedBadge(badge)}
-                    >
-                        <div className="flex items-start gap-3">
-                            <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center flex-shrink-0">
-                                <span className="text-xl">🏆</span>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <h3 className="font-semibold text-gradient truncate">
-                                    {badge.name}
-                                </h3>
-                                <p className="text-xs mb-2" style={{ color: getRarityColor(badge.rarity) }}>
-                                    {badge.rarity.toUpperCase()}
-                                </p>
-                                <p className="text-sm text-slate-300 line-clamp-2">
-                                    {badge.description || 'No description available.'}
-                                </p>
-                                <div className="flex items-center justify-between mt-3 text-xs text-slate-400">
-                                    <span>{badge.rewardPoints} points</span>
-                                    <span>#{badge.badgeId.slice(-6)}</span>
-                                </div>
-                            </div>
+    const renderBadgeCards = () => {
+        return filteredBadges.map(badge => (
+            <AdminCard
+                key={badge.badgeId || `badge-${Math.random()}`}
+                onClick={() => setSelectedBadge(badge)}
+            >
+                <div className="flex items-start gap-3">
+                    <BadgeCardImage badge={badge} />
+                    <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gradient truncate">
+                            {badge.name}
+                        </h3>
+                        <p className="text-xs mb-2" style={{ color: getRarityColor(badge.rarity) }}>
+                            {badge.rarity.toUpperCase()}
+                        </p>
+                        <p className="text-sm text-slate-300 line-clamp-2">
+                            {badge.description || 'No description available.'}
+                        </p>
+                        <div className="flex items-center justify-start mt-3 text-xs text-slate-400">
+                            <span>{badge.rewardPoints} points</span>
                         </div>
                     </div>
-                ))}
-            </div>
-        );
+                </div>
+            </AdminCard>
+        ));
     };
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-gradient">Badge Manager</h2>
-                <button
-                    className="btn-secondary flex items-center gap-2"
-                    onClick={() => awardBadges(user.uid)}
-                >
-                    <Award className="w-4 h-4" />
-                    Award Badges
-                </button>
-            </div>
-
-            {/* Stats Cards */}
-            <div className="grid-3 gap-4">
-                <div className="card text-center">
-                    <div className="text-2xl font-bold text-gradient">{allBadges.length}</div>
-                    <div className="text-sm text-slate-400">Total Badges</div>
-                </div>
-                <div className="card text-center">
-                    <div className="text-2xl font-bold text-gradient">
-                        {allBadges.filter(b => b.rarity === BADGE_RARITY.LEGENDARY).length}
-                    </div>
-                    <div className="text-sm text-slate-400">Legendary</div>
-                </div>
-                <div className="card text-center">
-                    <div className="text-2xl font-bold text-gradient">
-                        {allBadges.reduce((sum, badge) => sum + (badge.rewardPoints || 0), 0)}
-                    </div>
-                    <div className="text-sm text-slate-400">Total Points</div>
-                </div>
-            </div>
-
-            {/* Search and Create */}
-            <div className="flex items-center gap-4 mt-4">
-                <div className="search-container flex-1">
-                    <input
-                        type="text"
-                        placeholder="Search badges by name, description, or rarity..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="search-input"
-                    />
-                </div>
-                <button
-                    className="btn-primary flex items-center gap-2"
-                    onClick={() => setShowCreateBadgePopup(true)}
-                >
-                    <Plus className="w-4 h-4" />
-                    Create Badge
-                </button>
-            </div>
-
-            {/* Badge List */}
-            <div className="mt-4">
-                {renderBadgeList()}
-            </div>
+        <>
+            <AdminPageLayout
+                title="Badge Manager"
+                stats={stats}
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                searchPlaceholder="Search badges by name, description, or rarity..."
+                onCreateClick={() => setShowCreateBadgePopup(true)}
+                createButtonText="Create Badge"
+                additionalButtons={additionalButtons}
+                isLoading={isLoadingBadges}
+                emptyMessage="No badges found."
+                contentGridClass="grid-2 gap-4"
+            >
+                {renderBadgeCards()}
+            </AdminPageLayout>
 
             {/* Modals */}
             {showCreateBadgePopup && (
@@ -848,7 +1013,17 @@ function BadgeManagerPage({ user }) {
                     onBadgeUpdated={loadAllBadges}
                 />
             )}
-        </div>
+
+            {showUserSelectionPopup && (
+                <UserSelectionPopup
+                    onClose={() => setShowUserSelectionPopup(false)}
+                    onUsersSelected={() => {
+                        // Optional: Refresh badges or show success message
+                        console.log('Badges awarded to selected users');
+                    }}
+                />
+            )}
+        </>
     );
 }
 

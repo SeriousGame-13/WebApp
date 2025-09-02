@@ -4,7 +4,8 @@ import UserManagement from '../../services/UserManagementSystem.jsx';
 import { CHALLENGE_VISIBILITY } from '../../services/interfaces/Constants.jsx';
 import BaseModel from '../../services/interfaces/Base.jsx';
 import { localDateTimeStringToTimestamp, localTime } from '../../utils/DateUtils.jsx';
-import { Plus } from 'lucide-react';
+import { AdminPageLayout, AdminCard } from '../../components/ui/AdminComponents.jsx';
+import { Plus, Trophy, Calendar, Users, Target, X, Search, Edit, Trash2 } from 'lucide-react';
 import '../../components/styles/sphere-styles.css';
 
 
@@ -428,6 +429,7 @@ function TournamentManagerPage({ user }) {
     const [selectedTournament, setSelectedTournament] = useState(null);
     const [showCreatePopup, setShowCreatePopup] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
 
     const loadData = async () => {
         setIsLoading(true);
@@ -480,16 +482,28 @@ function TournamentManagerPage({ user }) {
         }
     };
 
-    const renderList = () => {
-        if (isLoading) {
-            return <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>Loading Tournaments...</div>;
-        }
+    const filteredTournaments = tournaments.filter(tournament =>
+        tournament.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        tournament.description?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
-        if (tournaments.length === 0) {
-            return <div style={{ color: '#A0A0A0', textAlign: 'center', padding: '20px' }}>No Tournaments Found. Create one to get started!</div>;
-        }
+    const getActiveTournaments = () => {
+        const now = new Date();
+        return tournaments.filter(tournament => {
+            const startDate = tournament.startDate?.toDate ? tournament.startDate.toDate() : null;
+            const endDate = tournament.endDate?.toDate ? tournament.endDate.toDate() : null;
+            return (!startDate || now >= startDate) && (!endDate || now <= endDate);
+        });
+    };
 
-        return tournaments.map(tournament => {
+    const stats = [
+        { value: tournaments.length, label: 'Total Tournaments' },
+        { value: getActiveTournaments().length, label: 'Active Now' },
+        { value: tournaments.reduce((sum, tournament) => sum + (tournament.participants?.length || 0), 0), label: 'Total Participants' }
+    ];
+
+    const renderTournamentCards = () => {
+        return filteredTournaments.map(tournament => {
             // Get visibility text
             let visibilityText = 'Unknown';
             if (tournament.visibility === CHALLENGE_VISIBILITY.PUBLIC) visibilityText = 'Public';
@@ -503,91 +517,64 @@ function TournamentManagerPage({ user }) {
             const isActive = (!startDate || now >= startDate) && (!endDate || now <= endDate);
 
             return (
-                <div
+                <AdminCard
                     key={tournament.uid}
-                    className="CardContainer"
                     onClick={() => setSelectedTournament(tournament)}
                 >
-                    <div className="CardHeader" style={{ color: 'var(--main-color)' }}>
-                        {tournament.name}
-                        <span style={{
-                            color: isActive ? 'var(--success-color)' : 'var(--error-color)',
-                            fontSize: '14px',
-                            marginLeft: '10px'
-                        }}>
-                            ({isActive ? 'Active' : 'Inactive'})
-                        </span>
-                    </div>
-                    <div className="CardContents">
-                        {tournament.description || 'No description available.'}
-                    </div>
-                    <div className="CardContents" style={{ fontSize: '12px', color: '#A0A0A0' }}>
-                        Visibility: {visibilityText}
-                    </div>
-                    {startDate && (
-                        <div className="CardContents" style={{ fontSize: '12px', marginTop: '5px' }}>
-                            {(() => { const bm = new BaseModel({ createdAt: tournament.startDate }); return `Starts: ${bm.getCreateAt()}`; })()}
+                    <div className="flex items-start gap-3">
+                        <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <Trophy className="w-6 h-6 text-white" />
                         </div>
-                    )}
-                    {endDate && (
-                        <div className="CardContents" style={{ fontSize: '12px', marginTop: '5px' }}>
-                            {(() => { const bm = new BaseModel({ createdAt: tournament.endDate }); return `Ends: ${bm.getCreateAt()}`; })()}
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                                <h3 className="font-semibold text-gradient truncate">
+                                    {tournament.name}
+                                </h3>
+                                <span 
+                                    className="text-xs px-2 py-1 rounded-full"
+                                    style={{ 
+                                        backgroundColor: isActive ? '#10B98120' : '#EF444420',
+                                        color: isActive ? '#10B981' : '#EF4444'
+                                    }}
+                                >
+                                    {isActive ? 'Active' : 'Inactive'}
+                                </span>
+                            </div>
+                            <p className="text-sm text-slate-300 line-clamp-2 mb-3">
+                                {tournament.description || 'No description available.'}
+                            </p>
+                            <div className="text-xs text-slate-400 space-y-1">
+                                <div>Visibility: {visibilityText}</div>
+                                {startDate && (
+                                    <div>Starts: {(() => { const bm = new BaseModel({ createdAt: tournament.startDate }); return bm.getCreateAt(); })()}</div>
+                                )}
+                                {endDate && (
+                                    <div>Ends: {(() => { const bm = new BaseModel({ createdAt: tournament.endDate }); return bm.getCreateAt(); })()}</div>
+                                )}
+                            </div>
                         </div>
-                    )}
-                </div>
+                    </div>
+                </AdminCard>
             );
         });
     };
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-gradient">Tournament Manager</h2>
-            </div>
-
-            {/* Stats Cards */}
-            <div className="grid-3 gap-6">
-                <div className="card text-center">
-                    <div className="text-2xl font-bold text-gradient">{allTournaments.length}</div>
-                    <div className="text-sm text-slate-400">Total Tournaments</div>
-                </div>
-                <div className="card text-center">
-                    <div className="text-2xl font-bold text-gradient">
-                        {allTournaments.filter(t => t.isActive && t.isActive()).length}
-                    </div>
-                    <div className="text-sm text-slate-400">Active Now</div>
-                </div>
-                <div className="card text-center">
-                    <div className="text-2xl font-bold text-gradient">
-                        {allTournaments.reduce((sum, tournament) => sum + (tournament.participants?.length || 0), 0)}
-                    </div>
-                    <div className="text-sm text-slate-400">Total Participants</div>
-                </div>
-            </div>
-
-            {/* Search and Create */}
-            <div className="flex items-center gap-4 mt-4">
-                <div className="search-container flex-1">
-                    <input
-                        type="text"
-                        placeholder="Search tournaments by name..."
-                        className="search-input"
-                    />
-                </div>
-                <button
-                    className="btn-primary flex items-center gap-2"
-                    onClick={() => setShowCreatePopup(true)}
-                >
-                    <Plus className="w-4 h-4" />
-                    Create Tournament
-                </button>
-            </div>
-
-            {/* Tournament List */}
-            <div className="mt-4">
-                {renderList()}
-            </div>
+        <>
+            <AdminPageLayout
+                title="Tournament Manager"
+                stats={stats}
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                searchPlaceholder="Search tournaments by name or description..."
+                onCreateClick={() => setShowCreatePopup(true)}
+                createButtonText="Create Tournament"
+                isLoading={isLoading}
+                emptyMessage="No tournaments found."
+                contentGridClass="grid-2 gap-6"
+            >
+                {renderTournamentCards()}
+            </AdminPageLayout>
 
             {showCreatePopup && (
                 <TournamentForm
@@ -610,7 +597,7 @@ function TournamentManagerPage({ user }) {
                     exercises={exercises}
                 />
             )}
-        </div>
+        </>
     );
 }
 

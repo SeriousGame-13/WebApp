@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { AdminPageLayout, AdminCard } from '../../components/ui/AdminComponents.jsx';
 import '../../components/styles/sphere-styles.css';
 import StationGameManager from '../../services/GameManager.jsx';
 import StationManager from '../../services/StationManagement.jsx';
@@ -343,112 +344,54 @@ function StationGamePage({ user }) {
         return station ? station.name : 'Unknown Station';
     };
 
-    const renderList = () => {
-        if (isLoading) {
-            return (
-                <div className="text-center py-12">
-                    <div className="login-spinner mx-auto mb-4"></div>
-                    <p className="text-slate-400">Loading station games...</p>
-                </div>
-            );
-        }
+    const stats = [
+        { value: objects.length, label: 'Total Games' },
+        { value: stations.length, label: 'Available Stations' },
+        { value: objects.filter(obj => obj.stationId).length, label: 'Assigned Games' }
+    ];
 
-        if (filteredObjects.length === 0) {
-            return (
-                <div className="text-center py-12">
-                    <div className="text-slate-400 mb-4">
-                        {searchTerm ? 'No station games match your search.' : 'No station games found.'}
+    const renderGameCards = () => {
+        return filteredObjects.map(obj => (
+            <AdminCard
+                key={obj.uid}
+                onClick={() => setSelectedObject(obj)}
+            >
+                <div className="flex items-start gap-3">
+                    <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-blue-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <Gamepad2 className="w-6 h-6 text-white" />
                     </div>
-                    <button
-                        className="btn-primary"
-                        onClick={() => setShowCreatePopup(true)}
-                    >
-                        Create First Station Game
-                    </button>
-                </div>
-            );
-        }
-
-        return (
-            <div className="grid-2 gap-6">
-                {filteredObjects.map(obj => (
-                    <div
-                        key={obj.uid}
-                        className="card cursor-pointer"
-                        onClick={() => setSelectedObject(obj)}
-                    >
-                        <div className="flex items-start gap-3">
-                            <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-blue-500 rounded-xl flex items-center justify-center flex-shrink-0">
-                                <Gamepad2 className="w-6 h-6 text-white" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <h3 className="font-semibold text-gradient truncate mb-1">
-                                    {obj.name}
-                                </h3>
-                                <p className="text-sm text-slate-300 mb-3">
-                                    Station: {obj.stationId ? getStationName(obj.stationId) : 'No station assigned'}
-                                </p>
-                                <div className="text-xs text-slate-500">
-                                    #{obj.uid.slice(-8)}
-                                </div>
-                            </div>
+                    <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gradient truncate mb-1">
+                            {obj.name}
+                        </h3>
+                        <p className="text-sm text-slate-300 mb-3">
+                            Station: {obj.stationId ? getStationName(obj.stationId) : 'No station assigned'}
+                        </p>
+                        <div className="text-xs text-slate-500">
+                            #{obj.uid.slice(-8)}
                         </div>
                     </div>
-                ))}
-            </div>
-        );
+                </div>
+            </AdminCard>
+        ));
     };
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-gradient">Station Game Manager</h2>
-            </div>
-
-            {/* Stats Cards */}
-            <div className="grid-3 gap-6">
-                <div className="card text-center">
-                    <div className="text-2xl font-bold text-gradient">{objects.length}</div>
-                    <div className="text-sm text-slate-400">Total Games</div>
-                </div>
-                <div className="card text-center">
-                    <div className="text-2xl font-bold text-gradient">{stations.length}</div>
-                    <div className="text-sm text-slate-400">Available Stations</div>
-                </div>
-                <div className="card text-center">
-                    <div className="text-2xl font-bold text-gradient">
-                        {objects.filter(obj => obj.stationId).length}
-                    </div>
-                    <div className="text-sm text-slate-400">Assigned Games</div>
-                </div>
-            </div>
-
-            {/* Search and Create */}
-            <div className="flex items-center gap-4 mt-4">
-                <div className="search-container flex-1">
-                    <Search className="search-icon" />
-                    <input
-                        type="text"
-                        placeholder="Search station games by name..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="search-input"
-                    />
-                </div>
-                <button
-                    className="btn-primary flex items-center gap-2"
-                    onClick={() => setShowCreatePopup(true)}
-                >
-                    <Plus className="w-4 h-4" />
-                    Create Game
-                </button>
-            </div>
-
-            {/* Game List */}
-            <div className="mt-4">
-                {renderList()}
-            </div>
+        <>
+            <AdminPageLayout
+                title="Station Game Manager"
+                stats={stats}
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                searchPlaceholder="Search station games by name..."
+                onCreateClick={() => setShowCreatePopup(true)}
+                createButtonText="Create Game"
+                isLoading={isLoading}
+                emptyMessage="No station games found."
+                contentGridClass="grid-2 gap-6"
+            >
+                {renderGameCards()}
+            </AdminPageLayout>
 
             {/* Modals */}
             {showCreatePopup && (
@@ -469,7 +412,7 @@ function StationGamePage({ user }) {
                     stations={stations}
                 />
             )}
-        </div>
+        </>
     );
 }
 

@@ -4,6 +4,7 @@ import StationManager from '../../services/StationManagement.jsx';
 import { Workout } from '../../services/interfaces/Workout.jsx';
 import { Timestamp } from '../../services/firebase/FirebaseHelper.jsx';
 import BaseModel from '../../services/interfaces/Base.jsx';
+import { AdminPageLayout, AdminCard } from '../../components/ui/AdminComponents.jsx';
 import '../../components/styles/sphere-styles.css';
 import { Plus, Dumbbell, Edit, Trash2, X, Search, Clock, Activity, Target } from 'lucide-react';
 
@@ -712,115 +713,61 @@ function WorkoutManagerPage({ user }) {
         workout.userEmail?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const renderList = () => {
-        if (isLoading) {
-            return (
-                <div className="text-center py-12">
-                    <div className="login-spinner mx-auto mb-4"></div>
-                    <p className="text-slate-400">Loading workouts...</p>
-                </div>
-            );
-        }
+    const stats = [
+        { value: workouts.length, label: 'Total Workouts' },
+        { value: new Set(workouts.map(w => w.userId)).size, label: 'Active Users' },
+        { value: workouts.reduce((sum, workout) => sum + (workout.exercises?.length || 0), 0), label: 'Total Exercises' }
+    ];
 
-        if (filteredWorkouts.length === 0) {
-            return (
-                <div className="text-center py-12">
-                    <div className="text-slate-400 mb-4">
-                        {searchTerm ? 'No workouts match your search.' : 'No workouts found in the system.'}
+    const renderWorkoutCards = () => {
+        return filteredWorkouts.map(workout => (
+            <AdminCard
+                key={workout.uid}
+                onClick={() => setSelectedWorkout(workout)}
+            >
+                <div className="flex items-start gap-3">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <Dumbbell className="w-6 h-6 text-white" />
                     </div>
-                </div>
-            );
-        }
-
-        return (
-            <div className="grid-2 gap-6">
-                {filteredWorkouts.map(workout => (
-                    <div
-                        key={workout.uid}
-                        className="card cursor-pointer"
-                        onClick={() => setSelectedWorkout(workout)}
-                    >
-                        <div className="flex items-start gap-3">
-                            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl flex items-center justify-center flex-shrink-0">
-                                <Dumbbell className="w-6 h-6 text-white" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <h3 className="font-semibold text-gradient truncate mb-1">
-                                    {workout.name}
-                                </h3>
-                                <p className="text-sm text-slate-300 mb-2 line-clamp-2">
-                                    {workout.description || 'No description available.'}
-                                </p>
-                                <div className="text-xs text-slate-400 mb-2">
-                                    <span className="font-medium">Owner:</span> {workout.userDisplayName || 'Unknown User'} ({workout.userEmail})
-                                </div>
-                                <div className="flex items-center justify-between text-xs text-slate-400">
-                                    <span className="flex items-center gap-1">
-                                        <Activity className="w-3 h-3" />
-                                        {workout.exercises?.length || 0} exercises
-                                    </span>
-                                    <span>#{workout.uid.slice(-8)}</span>
-                                </div>
-                            </div>
+                    <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gradient truncate mb-1">
+                            {workout.name}
+                        </h3>
+                        <p className="text-sm text-slate-300 mb-2 line-clamp-2">
+                            {workout.description || 'No description available.'}
+                        </p>
+                        <div className="text-xs text-slate-400 mb-2">
+                            <span className="font-medium">Owner:</span> {workout.userDisplayName || 'Unknown User'} ({workout.userEmail})
+                        </div>
+                        <div className="flex items-center justify-between text-xs text-slate-400">
+                            <span className="flex items-center gap-1">
+                                <Activity className="w-3 h-3" />
+                                {workout.exercises?.length || 0} exercises
+                            </span>
+                            <span>#{workout.uid.slice(-8)}</span>
                         </div>
                     </div>
-                ))}
-            </div>
-        );
+                </div>
+            </AdminCard>
+        ));
     };
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-gradient">Workout Manager</h2>
-            </div>
-
-            {/* Stats Cards */}
-            <div className="grid-3 gap-6">
-                <div className="card text-center">
-                    <div className="text-2xl font-bold text-gradient">{workouts.length}</div>
-                    <div className="text-sm text-slate-400">Total Workouts</div>
-                </div>
-                <div className="card text-center">
-                    <div className="text-2xl font-bold text-gradient">
-                        {new Set(workouts.map(w => w.userId)).size}
-                    </div>
-                    <div className="text-sm text-slate-400">Active Users</div>
-                </div>
-                <div className="card text-center">
-                    <div className="text-2xl font-bold text-gradient">
-                        {workouts.reduce((sum, workout) => sum + (workout.exercises?.length || 0), 0)}
-                    </div>
-                    <div className="text-sm text-slate-400">Total Exercises</div>
-                </div>
-            </div>
-
-            {/* Search and Create */}
-            <div className="flex items-center gap-4 mt-4">
-                <div className="search-container flex-1">
-                    <Search className="search-icon" />
-                    <input
-                        type="text"
-                        placeholder="Search workouts by name, description, or user..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="search-input"
-                    />
-                </div>
-                <button
-                    className="btn-primary flex items-center gap-2"
-                    onClick={() => setShowCreatePopup(true)}
-                >
-                    <Plus className="w-4 h-4" />
-                    Create Workout
-                </button>
-            </div>
-
-            {/* Workout List */}
-            <div className="mt-4">
-                {renderList()}
-            </div>
+        <>
+            <AdminPageLayout
+                title="Workout Manager"
+                stats={stats}
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                searchPlaceholder="Search workouts by name, description, or user..."
+                onCreateClick={() => setShowCreatePopup(true)}
+                createButtonText="Create Workout"
+                isLoading={isLoading}
+                emptyMessage="No workouts found in the system."
+                contentGridClass="grid-2 gap-6"
+            >
+                {renderWorkoutCards()}
+            </AdminPageLayout>
 
             {/* Modals */}
             {showCreatePopup && (
@@ -841,7 +788,7 @@ function WorkoutManagerPage({ user }) {
                     stations={stations}
                 />
             )}
-        </div>
+        </>
     );
 }
 

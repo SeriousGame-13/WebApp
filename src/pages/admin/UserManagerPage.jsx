@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import UserManagementSystem from '../../services/UserManagementSystem.jsx';
+import { AdminPageLayout, AdminCard } from '../../components/ui/AdminComponents.jsx';
 import '../../components/styles/sphere-styles.css';
 import { Users, Edit, Trash2, X, Search, Shield, UserCheck, Mail, Calendar, Crown } from 'lucide-react';
 
@@ -444,120 +445,75 @@ function UserManagerPage({ user: currentUser }) {
         user.email?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const renderUserList = () => {
-        if (isLoading) {
-            return (
-                <div className="text-center py-12">
-                    <div className="login-spinner mx-auto mb-4"></div>
-                    <p className="text-slate-400">Loading users...</p>
-                </div>
-            );
-        }
-
-        if (filteredUsers.length === 0) {
-            return (
-                <div className="text-center py-12">
-                    <div className="text-slate-400 mb-4">
-                        {searchTerm ? 'No users match your search.' : 'No users found.'}
-                    </div>
-                </div>
-            );
-        }
-
-        return (
-            <div className="grid-2 gap-6">
-                {filteredUsers.map(user => (
-                    <div
-                        key={user.uid}
-                        className="card cursor-pointer"
-                        onClick={() => setSelectedUser(user)}
-                    >
-                        <div className="flex items-start gap-3">
-                            <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center flex-shrink-0">
-                                {user.isAdmin ? (
-                                    <Crown className="w-6 h-6 text-yellow-300" />
-                                ) : (
-                                    <Users className="w-6 h-6 text-white" />
-                                )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-1">
-                                    <h3 className="font-semibold text-gradient truncate">
-                                        {user.displayName || 'No Display Name'}
-                                    </h3>
-                                    {user.isAdmin && (
-                                        <span className="bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded-full text-xs">
-                                            Admin
-                                        </span>
-                                    )}
-                                    {!user.isActive && (
-                                        <span className="bg-red-500/20 text-red-400 px-2 py-1 rounded-full text-xs">
-                                            Inactive
-                                        </span>
-                                    )}
-                                </div>
-                                <p className="text-sm text-slate-300 mb-2">{user.email}</p>
-                                <div className="flex items-center gap-4 text-xs text-slate-400 mb-2">
-                                    <span>Level {user.level || 1}</span>
-                                    <span>{user.points || 0} points</span>
-                                    <span>{user.workouts?.length || 0} workouts</span>
-                                </div>
-                                <div className="text-xs text-slate-500">
-                                    #{user.uid.slice(-8)}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                ))}
-            </div>
-        );
-    };
-
     const adminCount = users.filter(user => user.isAdmin).length;
     const regularUserCount = users.filter(user => !user.isAdmin).length;
 
+    const stats = [
+        { value: users.length, label: 'Total Users' },
+        { value: adminCount, label: 'Administrators' },
+        { value: regularUserCount, label: 'Regular Users' }
+    ];
+
+    const renderUserCards = () => {
+        return filteredUsers.map(user => (
+            <AdminCard
+                key={user.uid}
+                onClick={() => setSelectedUser(user)}
+            >
+                <div className="flex items-start gap-3">
+                    <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                        {user.isAdmin ? (
+                            <Crown className="w-6 h-6 text-yellow-300" />
+                        ) : (
+                            <Users className="w-6 h-6 text-white" />
+                        )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-semibold text-gradient truncate">
+                                {user.displayName || 'No Display Name'}
+                            </h3>
+                            {user.isAdmin && (
+                                <span className="bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded-full text-xs">
+                                    Admin
+                                </span>
+                            )}
+                            {!user.isActive && (
+                                <span className="bg-red-500/20 text-red-400 px-2 py-1 rounded-full text-xs">
+                                    Inactive
+                                </span>
+                            )}
+                        </div>
+                        <p className="text-sm text-slate-300 mb-2">{user.email}</p>
+                        <div className="flex items-center gap-4 text-xs text-slate-400 mb-2">
+                            <span>Level {user.level || 1}</span>
+                            <span>{user.points || 0} points</span>
+                            <span>{user.workouts?.length || 0} workouts</span>
+                        </div>
+                        <div className="text-xs text-slate-500">
+                            #{user.uid.slice(-8)}
+                        </div>
+                    </div>
+                </div>
+            </AdminCard>
+        ));
+    };
+
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-gradient">User Manager</h2>
-                
-            </div>
-
-            {/* Stats Cards */}
-            <div className="grid-3 gap-6">
-                <div className="card text-center">
-                    <div className="text-2xl font-bold text-gradient">{users.length}</div>
-                    <div className="text-sm text-slate-400">Total Users</div>
-                </div>
-                <div className="card text-center">
-                    <div className="text-2xl font-bold text-gradient">{adminCount}</div>
-                    <div className="text-sm text-slate-400">Administrators</div>
-                </div>
-                <div className="card text-center">
-                    <div className="text-2xl font-bold text-gradient">{regularUserCount}</div>
-                    <div className="text-sm text-slate-400">Regular Users</div>
-                </div>
-            </div>
-
-            {/* Search */}
-            <div className="flex items-center gap-4  mt-4">
-                <div className="search-container flex-1">
-                    <Search className="search-icon" />
-                    <input
-                        type="text"
-                        placeholder="Search users by name or email..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="search-input"
-                    />
-                </div>
-            </div>
-
-            {/* User List */}
-            <div className="mt-4">
-                {renderUserList()}
-            </div>
+        <>
+            <AdminPageLayout
+                title="User Manager"
+                stats={stats}
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                searchPlaceholder="Search users by name or email..."
+                showCreateButton={false}
+                isLoading={isLoading}
+                emptyMessage="No users found."
+                contentGridClass="grid-2 gap-6"
+            >
+                {renderUserCards()}
+            </AdminPageLayout>
 
             {/* Modal */}
             {selectedUser && (
@@ -567,7 +523,7 @@ function UserManagerPage({ user: currentUser }) {
                     onUserUpdated={loadUsers}
                 />
             )}
-        </div>
+        </>
     );
 }
 

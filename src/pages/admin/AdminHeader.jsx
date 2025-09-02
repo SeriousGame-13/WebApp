@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import UserManagement from '../services/firebase/UserManagementSystem';
-import DatamanagerElements from '../utils/dataManager';
+import UserManagement from '../../services/UserManagementSystem.jsx';
+import DatamanagerElements from '../../services/firebase/DataManager.jsx';
 import '../components/styles/LayoutElements.css';
 
 function AdminHeader({ user, onPageSelect, currentPage }) {

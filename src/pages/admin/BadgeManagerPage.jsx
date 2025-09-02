@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import BadgeManagement from '../services/firebase/BadgeManagement';
-import { BADGE_RARITY } from '../services/interfaces/constants';
-import BadgeImageElements from '../utils/BadgeImageUploader';
-import '../components/styles/LayoutElements.css';
-import { Badge } from '../services/interfaces/badge';
-import RewardSystem from '../services/firebase/RewardSystem';
-import BaseModel from '../services/interfaces/base.jsx';
+import BadgeManagement from '../../services/BadgeManagement.jsx';
+import { BADGE_RARITY } from '../../services/interfaces/Constants.jsx';
+import BadgeImageElements from '../../services/firebase/BadgeImageUploader.jsx';
+import '../../components/styles/LayoutElements.css';
+import { Badge } from '../../services/interfaces/Badge.jsx';
+import RewardSystem from '../../services/RewardSystem.jsx';
+import BaseModel from '../../services/interfaces/Base.jsx';
 
 // Shared Badge Form Component
 function BadgeForm({ badge = null, onSubmit, onCancel, isProcessing, submitText }) {

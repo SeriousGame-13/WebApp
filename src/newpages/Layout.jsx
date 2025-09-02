@@ -9,7 +9,7 @@ import Profile from "./ProfilePage";
 import Ranking from "./RankingPage";
 import Helper from "./Helper.jsx"
 
-import './sphere-styles.css';
+import '../components/styles/sphere-styles.css';
 
 
 

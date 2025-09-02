@@ -1,10 +1,9 @@
-import { useState, useEffect } from 'react';
-import RankingSystem from '../services/firebase/RankingSystem';
-import StationManager from '../services/firebase/StationManagement';
-import {Card, Modal, Legend, Pill, Screen, Stat, Avatar} from '../components/ui/UIComponents';
-import IconElements from '../components/ui/IconElements';
+import { useEffect, useState } from 'react';
+import { Avatar, Card, Modal, Pill, Screen } from '../components/ui/UIComponents';
+import RankingSystem from '../services/RankingSystem.jsx';
+import StationManager from '../services/StationManagement.jsx';
 
-import '../sphere-styles.css';
+import '../components/styles/sphere-styles.css';
 
 function Page({ userData }) {
   const [tab, setTab] = useState("points");

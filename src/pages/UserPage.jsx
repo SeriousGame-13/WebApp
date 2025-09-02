@@ -1,117 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { Trophy, Users, Home as HomeIcon, User, CalendarDays, Flame, Star, Moon, Settings, Search, Plus, Check, X, Dumbbell, Bike, HeartPulse, Activity, Info, Medal } from "lucide-react";
-import ProfileImageElements from '../utils/profileImageManager';
-import DatamanagerElements from '../utils/dataManager';
-import BadgeManagement from '../services/firebase/BadgeManagement';
-import FirebaseManager from '../services/firebase/FirestoreManager';
-import FireAuthManager from '../services/firebase/FirebaseAuthenticationManager';
-import { USERS_COLLECTION } from '../services/firebase/collections';
-import '../sphere-styles.css';
+import { Activity, Bike, CalendarDays, Check, Dumbbell, Flame, HeartPulse, Medal, Moon, Settings, Star, Trophy, Users, X } from "lucide-react";
+import { useEffect, useState } from 'react';
+import '../components/styles/sphere-styles.css';
+import { Avatar, Card, Modal, Screen } from '../components/ui/UIComponents';
+import BadgeManagement from '../services/BadgeManagement.jsx';
+import FireAuthManager from '../services/firebase/FirebaseAuthenticationManager.jsx';
+import FirestoreManager from '../services/firebase/FirestoreManager.jsx';
+import { USERS_COLLECTION } from '../services/firebase/Collections.jsx';
+import DatamanagerElements from '../services/firebase/DataManager.jsx';
+import ProfileImageElements from '../services/firebase/ProfileImageManager.jsx';
 
-// ------------ Helper Components ----------
-const GRADIENTS = [
-  "avatar-gradient-0",
-  "avatar-gradient-1", 
-  "avatar-gradient-2",
-  "avatar-gradient-3",
-  "avatar-gradient-4",
-  "avatar-gradient-5",
-];
-
-function initials(name = "?") {
-  const parts = name.split(new RegExp("\\s+")).filter(Boolean);
-  const letters = parts.slice(0, 2).map(p => p[0]?.toUpperCase() || "?");
-  return letters.join("");
-}
-
-// ---------- Profile Avatar Component ----------
-function ProfileAvatar({ user, size = 48 }) {
-  const [profileImage, setProfileImage] = useState(null);
-  const [imageLoading, setImageLoading] = useState(true);
-
-  useEffect(() => {
-    if (!user?.uid) return;
-
-    const loadProfileImage = async () => {
-      setImageLoading(true);
-      try {
-        // This will handle the profile image loading automatically
-        // We just need to set a state to trigger re-render when it's loaded
-        setImageLoading(false);
-      } catch (error) {
-        console.error('Profile image loading error:', error);
-        setImageLoading(false);
-      }
-    };
-
-    loadProfileImage();
-  }, [user?.uid]);
-
-  if (!user?.uid) {
-    // Fallback to Avatar component if no user
-    return <Avatar name={user?.name || user?.displayName} size={size} seed={user?.id || 'default'} />;
-  }
-
-  return (
-    <div style={{ width: size, height: size }} className="flex-shrink-0">
-      <DatamanagerElements.ProfileImageDisplay 
-        userId={user.uid} 
-        imageclass={`w-full h-full rounded-full object-cover`}
-        style={{ width: size, height: size }}
-      />
-    </div>
-  );
-}
 
 function HeartIcon() {
   return (
     <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
       <path d="M12 21s-7.5-4.35-10-8.57C-.66 7.66 2.1 3 6.6 3c2.17 0 3.76 1.1 4.4 2.17C11.64 4.1 13.23 3 15.4 3 19.9 3 22.66 7.66 22 12.43 19.5 16.65 12 21 12 21z"/>
     </svg>
-  );
-}
-
-function badgeLevelColor(level) {
-  if (level === 3) return "badge-level-3";
-  if (level === 2) return "badge-level-2";
-  return "badge-level-1";
-}
-
-function Card({ children, onClick }) {
-  const Comp = onClick ? "button" : "div";
-  return (
-    <Comp onClick={onClick} className={onClick ? "card-button" : "card"}>
-      {children}
-    </Comp>
-  );
-}
-
-function Background() {
-  return (
-    <div className="background" aria-hidden>
-      <div className="bg-gradient-1" />
-      <div className="bg-gradient-2" />
-      <div className="bg-overlay" />
-    </div>
-  );
-}
-
-function Screen({ children, title, subtitle, titleNode }) {
-  return (
-    <div className="screen">
-      <Background />
-      <header className="screen-header">
-        {titleNode ? (
-          titleNode
-        ) : (
-          <>
-            {title && <h1 className="screen-title">{title}</h1>}
-            {subtitle && <p className="screen-subtitle">{subtitle}</p>}
-          </>
-        )}
-      </header>
-      <main className="screen-main">{children}</main>
-    </div>
   );
 }
 
@@ -152,27 +55,6 @@ function Legend({ userBadgesMap, allBadges }) {
       <div className="flex items-center gap-4">
         {item("Epic", rarityCount.epic, '#a335ee')}
         {item("Legendary", rarityCount.legendary, '#ff8000')}
-      </div>
-    </div>
-  );
-}
-
-function Modal({ open, onClose, children, title, size = "md" }) {
-  if (!open) return null;
-  const maxW = size === "sm" ? "max-w-sm" : size === "lg" ? "max-w-xl" : "max-w-lg";
-  return (
-    <div className="modal-overlay">
-      <div className="modal-backdrop" onClick={onClose} />
-      <div className='centered'>
-        <div className={`modal-content card ${maxW}`}>
-          <div className="modal-header">
-            <h3 className="modal-title">{title}</h3>
-            <button onClick={onClose} className="modal-close">
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        {children}
-        </div>
       </div>
     </div>
   );
@@ -459,7 +341,7 @@ function SettingsModal({ open, onClose, user, onUserUpdated }) {
       }
 
       // Update Firestore document
-      await FirebaseManager.updateDocument(USERS_COLLECTION, user.uid, {
+      await FirestoreManager.updateDocument(USERS_COLLECTION, user.uid, {
         displayName: newName.trim()
       }, true);
       
@@ -589,7 +471,7 @@ function Page({ data, onOpenBadge, onOpenSettings, onUserUpdated }) {
         
         try {
         console.log('Loading badges for:', userData.uid);
-        const snapshot = await FirebaseManager.getAllDocuments(`${USERS_COLLECTION}/${userData.uid}/ubadges`);
+        const snapshot = await FirestoreManager.getAllDocuments(`${USERS_COLLECTION}/${userData.uid}/ubadges`);
         const badgesMap = new Map();
         
         snapshot.forEach(doc => {
@@ -684,7 +566,16 @@ function Page({ data, onOpenBadge, onOpenSettings, onUserUpdated }) {
   const header = (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-3">
-        <ProfileAvatar user={userData} size={48} />
+        <div className="relative" style={{ width: 48, height: 48 }}>
+          <DatamanagerElements.ProfileImageDisplay 
+            userId={userData.uid} 
+            imageclass="w-full h-full rounded-full object-cover"
+            style={{ width: 48, height: 48 }}
+          />
+          {!userData.uid && (
+            <Avatar name={userData.name || userData.displayName} size={48} seed={userData.id || 'default'} />
+          )}
+        </div>
         <div>
           <h1 className="screen-title">{userData.name || userData.displayName}</h1>
           <p className="screen-subtitle">Level {userData.level}</p>
@@ -758,14 +649,8 @@ function Page({ data, onOpenBadge, onOpenSettings, onUserUpdated }) {
   );
 }
 
-// ---------- Legacy newProfile component for backward compatibility ----------
-function newProfile({ onOpenBadge, onOpenSettings }) {
-  return <Page onOpenBadge={onOpenBadge} onOpenSettings={onOpenSettings} />;
-}
-
 const UserPageElements = {
   Page,
-  newProfile
 };
 
 export default UserPageElements;

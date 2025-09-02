@@ -9,10 +9,10 @@
  * @version 1.0.0
  */
 
-import FirestoreManager from './FirestoreManager.jsx';
-import { STATION_GAMES_COLLECTION } from './collections.jsx';
+import FirestoreManager from './firebase/FirestoreManager.jsx';
+import { STATION_GAMES_COLLECTION } from './firebase/Collections.jsx';
 
-import { StationGame } from '../interfaces/station.jsx';
+import { StationGame } from './interfaces/Station.jsx';
 
 const save = async (object) => {
     if (!(object instanceof StationGame)) {

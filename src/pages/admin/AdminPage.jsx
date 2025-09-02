@@ -3,7 +3,7 @@ import AdminHeader from './AdminHeader';
 import GroupManagerPage from './GroupManagerPage';
 import BadgeManagerPage from './BadgeManagerPage';
 import ChallengeManagerPage from './ChallengeManagerPage';
-import '../components/styles/LayoutElements.css';
+import '../../components/styles/LayoutElements.css';
 import WorkoutManagerPage from './WorkoutManagerPage';
 import StationManagerPage  from './StationManagerPage';
 

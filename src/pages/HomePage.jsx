@@ -12,15 +12,14 @@
  * @version 2.0.0
  */
 
-import React from 'react';
-import { Screen } from '../components/ui/UIComponents.jsx';
-import { UserHeader, LevelProgressBar } from '../components/ui/UserComponents.jsx';
-import { WorkoutSelector, WorkoutStats, WorkoutActions } from '../components/ui/WorkoutComponents.jsx';
 import { ExerciseList, ExerciseSectionHeader } from '../components/ui/ExerciseComponents.jsx';
-import { WorkoutModal, ExerciseModal, ExerciseDetailModal } from '../components/ui/ModalComponents.jsx';
+import { ExerciseDetailModal, ExerciseModal, WorkoutModal } from '../components/ui/ModalComponents.jsx';
+import { Screen } from '../components/ui/UIComponents.jsx';
+import { LevelProgressBar, UserHeader } from '../components/ui/UserComponents.jsx';
+import { WorkoutActions, WorkoutSelector, WorkoutStats } from '../components/ui/WorkoutComponents.jsx';
 import { useHomePage } from '../hooks/useHomePage.jsx';
 
-import '../sphere-styles.css';
+import '../components/styles/sphere-styles.css';
 
 /**
  * Main HomePage component with user dashboard and workout management.

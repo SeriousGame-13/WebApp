@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import BaseModel from '../services/interfaces/base.jsx';
-import UserManagement from '../services/firebase/UserManagementSystem';
-import GroupManagement from '../services/firebase/GroupManagementSystem';
-import GroupPageElements from './GroupPage';
-import '../components/styles/LayoutElements.css';
-import ChallengeManagement from '../services/firebase/ChallengeManagement';
+import BaseModel from '../../services/interfaces/Base.jsx';
+import UserManagement from '../../services/UserManagementSystem.jsx';
+import GroupManagement from '../../services/GroupManagementSystem.jsx';
+import GroupPageElements from '../GroupPage.jsx';
+import '../../components/styles/LayoutElements.css';
+import ChallengeManagement from '../../services/ChallengeManagement.jsx';
 
 function AdminGroupDetailPopup({ group, onClose, onGroupUpdated }) {
     const [isProcessing, setIsProcessing] = useState(false);

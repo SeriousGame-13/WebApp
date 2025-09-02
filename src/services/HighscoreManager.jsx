@@ -13,10 +13,10 @@
  * @version 1.0.0
  */
 
-import FirestoreManager from "./FirestoreManager";
-import { HIGHSCORE_COLLECTION } from "./collections";
-import { Highscore } from "../interfaces/highscore";
-import UserManagement from "./UserManagementSystem";
+import FirestoreManager from "./firebase/FirestoreManager.jsx";
+import { HIGHSCORE_COLLECTION } from "./firebase/Collections.jsx";
+import { Highscore } from "./interfaces/Highscore.jsx";
+import UserManagement from "./UserManagementSystem.jsx";
 
 /**
  * Creates or updates highscore records for an exercise.

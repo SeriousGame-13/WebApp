@@ -16,12 +16,16 @@ function initials(name = "?") {
   return letters.join("");
 }
 
-export function Avatar({ name, size = 48, seed }) {
+export function Avatar({  name, image, size = 48, seed }) {
   const idx = Math.abs((seed ?? name ?? "0").split("").reduce((a, c) => a + c.charCodeAt(0), 0)) % GRADIENTS.length;
   const style = { width: size, height: size };
   return (
     <div className={`avatar ${GRADIENTS[idx]}`} style={style}>
-      <span className="avatar-text">{initials(name)}</span>
+      {image ? (
+        <img src={image} alt={name} className="avatar-image" />
+      ) : (
+        <span className="avatar-text">{initials(name)}</span>
+      )}
     </div>
   );
 }
@@ -56,7 +60,7 @@ export function Card({ children, onClick }) {
   );
 }
 
-function Background() {
+export function Background() {
   return (
     <div className="background" aria-hidden>
       <div className="bg-gradient-1" />

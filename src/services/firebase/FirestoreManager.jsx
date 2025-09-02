@@ -13,19 +13,19 @@
  */
 
 import {
-    doc,
-    setDoc,
-    getDoc,
-    deleteDoc,
-    query,
-    where,
-    collection,
-    getDocs,
-    serverTimestamp,
-    getFirestore,
     addDoc,
-    limit,
+    collection,
     collectionGroup,
+    deleteDoc,
+    doc,
+    getDoc,
+    getDocs,
+    getFirestore,
+    limit,
+    query,
+    serverTimestamp,
+    setDoc,
+    where,
 } from 'firebase/firestore';
 
 import { firebaseApp } from './FirebaseAppConfiguration';

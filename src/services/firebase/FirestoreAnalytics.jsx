@@ -1,4 +1,4 @@
-import FirestoreManager from '../services/firebase/FirestoreManager';
+import FirestoreManager from './FirestoreManager';
 
 /**
  * Abstract Firestore Analytics Engine
@@ -485,5 +485,5 @@ const postsByBlog = await blogAnalytics.aggregate({
 });
 */
 
-export { FirestoreAnalytics, createWorkoutAnalytics, createCustomAnalytics };
+export { createCustomAnalytics, createWorkoutAnalytics, FirestoreAnalytics };
 export default FirestoreAnalytics;

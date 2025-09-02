@@ -1,7 +1,7 @@
-import { serverTimestamp } from 'firebase/firestore';
-import BaseModel from './base.jsx';
-import { CHALLENGE_STYLE, CHALLENGE_TYPE, CHALLENGE_STATUS, CHALLENGE_PARTICIPATION_STATUS } from './constants.jsx';
-import { CHALLENGE_VISIBILITY } from './constants.jsx';
+import { serverTimestamp } from '../firebase/FirebaseHelper.jsx';
+import BaseModel from './Base.jsx';
+import { CHALLENGE_STYLE, CHALLENGE_TYPE, CHALLENGE_STATUS, CHALLENGE_PARTICIPATION_STATUS } from './Constants.jsx';
+import { CHALLENGE_VISIBILITY } from './Constants.jsx';
 
 export class Challenge extends BaseModel {
   constructor(data = {}) {

@@ -1,6 +1,6 @@
-import BaseModel from './base.jsx';
-import { GROUP_ROLE } from './constants.jsx';
-import { serverTimestamp } from 'firebase/firestore';
+import BaseModel from './Base.jsx';
+import { GROUP_ROLE } from './Constants.jsx';
+import { serverTimestamp } from '../firebase/FirebaseHelper.jsx';
 
 export class Group extends BaseModel {
   constructor(data = {}) {

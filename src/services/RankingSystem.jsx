@@ -12,10 +12,9 @@
  * @version 1.0.0
  */
 
-import UserManagement from './UserManagementSystem.jsx'
-import StationManager from './StationManagement.jsx';
-import { HIGHSCORE_COLLECTION } from './collections.jsx';
-import FirestoreManager from './FirestoreManager.jsx';
+import UserManagement from './UserManagementSystem.jsx';
+import { HIGHSCORE_COLLECTION } from './firebase/Collections.jsx';
+import FirestoreManager from './firebase/FirestoreManager.jsx';
 
 /**
  * Retrieves the points ranking position for a specific user.

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import '../components/styles/LayoutElements.css';
-import StationGameManager from '../services/firebase/GameManager';
-import StationManager from '../services/firebase/StationManagement';
+import StationGameManager from '../services/GameManager.jsx';
+import StationManager from '../services/StationManagement.jsx';
 
 function EditForm({ object = null, onSubmit, onCancel, isProcessing, submitText, stations }) {
     const inputFields = [

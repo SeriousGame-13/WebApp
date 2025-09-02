@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
-import WorkoutManager from '../services/firebase/WorkoutManagement';
-import StationManagement from '../services/firebase/StationManagement';
+import WorkoutManager from '../services/WorkoutManagement.jsx';
+import StationManagement from '../services/StationManagement.jsx';
 
 /**
  * Custom hook for managing HomePage state and business logic.

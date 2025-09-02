@@ -19,15 +19,15 @@
  * @since 1.0.0
  */
 
-import FirestoreManager from './FirestoreManager.jsx';
-import { WORKOUT_COLLECTION, EXERCISE_COLLECTION } from './collections.jsx';
-import { Exercise } from '../interfaces/exercise.jsx';
-import { Workout } from '../interfaces/workout.jsx';
-import UserManagement from './UserManagementSystem.jsx';
-import HighscoreManager from './HighscoreManager.jsx';
-import RewardSystem from './RewardSystem.jsx';
-import GoalSystem from './GoalSystem.jsx';
 import ChallengeManagement from './ChallengeManagement.jsx';
+import { EXERCISE_COLLECTION, WORKOUT_COLLECTION } from './firebase/Collections.jsx';
+import FirestoreManager from './firebase/FirestoreManager.jsx';
+import GoalSystem from './GoalSystem.jsx';
+import HighscoreManager from './HighscoreManager.jsx';
+import { Exercise } from './interfaces/Exercise.jsx';
+import { Workout } from './interfaces/Workout.jsx';
+import RewardSystem from './RewardSystem.jsx';
+import UserManagement from './UserManagementSystem.jsx';
 
 /**
  * Creates the Firestore collection path for a user's workouts.

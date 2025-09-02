@@ -1,9 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
-
-import DatamanagerElements from './dataManager';
+import { useEffect, useRef, useState } from 'react';
 import '../components/styles/LoginPage.css';
+import BadgeManagement from '../services/firebase/BadgeManagement';
 
-// Image resizing function
 const resizeImage = (file, width = 100, height = 100, quality = 0.8) => {
   return new Promise((resolve, reject) => {
     const canvas = document.createElement('canvas');
@@ -15,7 +13,6 @@ const resizeImage = (file, width = 100, height = 100, quality = 0.8) => {
       canvas.height = height;
       ctx.drawImage(img, 0, 0, width, height);
       
-      // Convert canvas to Base64
       const base64String = canvas.toDataURL('image/jpeg', quality);
       resolve(base64String);
     };
@@ -25,42 +22,39 @@ const resizeImage = (file, width = 100, height = 100, quality = 0.8) => {
   });
 };
 
-// Image selection component
-const ImageSelector = ({ userId, onImageProcessed, onError }) => {
+const BadgeImageSelector = ({ badgeId, onImageProcessed, onError, disabled }) => {
   const [processing, setProcessing] = useState(false);
   const [previewUrl, setPreviewUrl] = useState('');
   const [existingImage, setExistingImage] = useState('');
-  const [imageLoading, setImageLoading] = useState(true);
+  const [imageLoading, setImageLoading] = useState(false);
   const fileInputRef = useRef(null);
 
-  // Load existing image when the component mounts
   useEffect(() => {
     const loadExistingImage = async () => {
-      if (!userId) {
+      if (!badgeId) {
         setImageLoading(false);
         return;
       }
       
       setImageLoading(true);
-      const existingImageBase64 = await DatamanagerElements.getExistingImage(userId);
-      setExistingImage(existingImageBase64 || '');
-      setImageLoading(false);
+      try {
+        const existingImageBase64 = await BadgeManagement.getBadgeImage(badgeId);
+        setExistingImage(existingImageBase64 || '');
+      } catch (error) {
+        console.error('Failed to load existing badge image:', error);
+        setExistingImage('');
+      } finally {
+        setImageLoading(false);
+      }
     };
 
     loadExistingImage();
-  }, [userId]); // Runs whenever userId changes
+  }, [badgeId]);
 
   const handleFileSelect = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
-    // Check user ID
-    if (!userId) {
-      onError && onError('User ID is not set.');
-      return;
-    }
-
-    // Validate file
     if (!file.type.startsWith('image/')) {
       onError && onError('Please select an image file only.');
       return;
@@ -74,23 +68,13 @@ const ImageSelector = ({ userId, onImageProcessed, onError }) => {
     setProcessing(true);
 
     try {
-      // Resize image + convert to Base64
       const resizedBase64 = await resizeImage(file, 100, 100, 0.8);
       
-      // Set preview
       setPreviewUrl(resizedBase64);
 
-      // Save to Firestore
-      const saveResult = await DatamanagerElements.saveImageToFirestore(resizedBase64, userId);
-
-      // Update existing image after saving
-      setExistingImage(resizedBase64);
-
-      // Call result callback
       onImageProcessed && onImageProcessed({
         originalFile: file,
         base64Data: resizedBase64,
-        saveResult: saveResult,
         previewUrl: resizedBase64
       });
 
@@ -103,14 +87,15 @@ const ImageSelector = ({ userId, onImageProcessed, onError }) => {
   };
 
   const handleButtonClick = () => {
-    fileInputRef.current?.click();
+    if (!disabled) {
+      fileInputRef.current?.click();
+    }
   };
 
   const displayImage = previewUrl || existingImage;
 
   return (
     <div>
-      {/* Preview */}
       <div className='EditImageContainer'>
         {imageLoading ? (
           <div className='ProfileImageAlt'>
@@ -119,7 +104,7 @@ const ImageSelector = ({ userId, onImageProcessed, onError }) => {
         ) : displayImage ? (
           <img className='ProfileImage'
             src={displayImage} 
-            alt="Profile Preview" 
+            alt="Badge Preview" 
           />
         ) : (
           <div className='ProfileImageAlt'>
@@ -128,7 +113,6 @@ const ImageSelector = ({ userId, onImageProcessed, onError }) => {
         )}
       </div>
 
-      {/* File selection input */}
       <input
         ref={fileInputRef}
         type="file"
@@ -137,15 +121,14 @@ const ImageSelector = ({ userId, onImageProcessed, onError }) => {
         style={{ display: 'none' }}
       />
 
-      {/* Selection button */}
-      <button className='ButtonSmall'
+      <button className='UploadButton'
         onClick={handleButtonClick}
-        disabled={processing || !userId || imageLoading}
+        disabled={processing || disabled || imageLoading}
       >
         {processing ? 'Processing...' : 
          imageLoading ? 'Loading...' : 
-         !userId ? 'User ID required' : 
-         existingImage ? 'Change Image' : 'Select New Image'}
+         disabled ? 'Creating badge first...' :
+         existingImage || previewUrl ? 'Change Image' : 'Select Badge Image'}
       </button>
 
       {processing && (
@@ -153,7 +136,6 @@ const ImageSelector = ({ userId, onImageProcessed, onError }) => {
             <div className='PopupContainer'>
                 <h2>...Resizing Image...</h2>
                 <h2>...Converting to Base64...</h2>
-                <h2>...Saving...</h2>
             </div>
         </div>
       )}
@@ -161,8 +143,7 @@ const ImageSelector = ({ userId, onImageProcessed, onError }) => {
   );
 };
 
-// Main component
-const ProfileImageUploader = ({ userId, onUploadComplete }) => {
+const BadgeImageUploader = ({ badgeId, onUploadComplete, disabled }) => {
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
 
@@ -170,11 +151,9 @@ const ProfileImageUploader = ({ userId, onUploadComplete }) => {
     setResult(processResult);
     setError('');
     
-    // Pass result to parent component
     onUploadComplete && onUploadComplete({
       base64Data: processResult.base64Data,
-      size: processResult.saveResult.size,
-      userId: userId
+      badgeId: badgeId
     });
   };
 
@@ -186,20 +165,25 @@ const ProfileImageUploader = ({ userId, onUploadComplete }) => {
 
   return (
     <div>
-      <ImageSelector 
-        userId={userId}
+      <BadgeImageSelector 
+        badgeId={badgeId}
         onImageProcessed={handleImageProcessed}
         onError={handleError}
+        disabled={disabled}
       />
+      {error && (
+        <div style={{ color: '#FF4757', fontSize: '12px', marginTop: '8px' }}>
+          {error}
+        </div>
+      )}
     </div>
   );
 };
 
-// Export functions
-const ProfileImageElements = { 
+const BadgeImageElements = { 
     resizeImage, 
-    ImageSelector,
-    ProfileImageUploader
+    BadgeImageSelector,
+    BadgeImageUploader
 };
 
-export default ProfileImageElements;
+export default BadgeImageElements;

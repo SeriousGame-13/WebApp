@@ -1,3 +1,11 @@
+import { serverTimestamp as fbServerTimestamp, Timestamp as fbTimestamp } from 'firebase/firestore';
+
+export const serverTimestamp = () => {
+    return fbServerTimestamp();
+};
+
+export const Timestamp = fbTimestamp;
+
 export const aggregate = (aggregates, docs) => {
     let results = {};
     aggregates.forEach(aggregation => {

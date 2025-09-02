@@ -1,18 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { 
-    getAuth, 
-    onAuthStateChanged
+import {
+  getAuth,
+  onAuthStateChanged
 } from 'firebase/auth';
-import { 
-    getFirestore, 
-    doc, 
-    setDoc, 
-    getDoc,
-    serverTimestamp 
+import {
+  doc,
+  getDoc,
+  getFirestore,
+  serverTimestamp,
+  setDoc
 } from 'firebase/firestore';
+import { useEffect, useState } from 'react';
 
-import { firebaseApp } from '../services/firebase/FirebaseAppConfiguration';
-import UserManagement from '../services/firebase/UserManagementSystem';
+import UserManagement from '../UserManagementSystem.jsx';
+import { firebaseApp } from './FirebaseAppConfiguration.jsx';
 
 const db = getFirestore(firebaseApp);
 

@@ -1,16 +1,15 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import IconElements from '../components/ui/IconElements';
-import UserManagement from '../services/firebase/UserManagementSystem';
-import GroupManagement from '../services/firebase/GroupManagementSystem';
-import ChallengeManagement from '../services/firebase/ChallengeManagement';
+import { useEffect, useMemo, useState } from 'react';
+import ChallengeManagement from '../services/ChallengeManagement.jsx';
+import GroupManagement from '../services/GroupManagementSystem.jsx';
+import UserManagement from '../services/UserManagementSystem.jsx';
 
-import { Search, Users, Plus, Trophy } from 'lucide-react';
-import { Card, Modal, Pill, Screen, Avatar } from '../components/ui/UIComponents';
-import { CHALLENGE_TYPE, CHALLENGE_VISIBILITY } from '../services/interfaces/constants';
-import { Timestamp } from 'firebase/firestore';
+import { Timestamp } from '../services/firebase/FirebaseHelper.jsx';
+import { Plus, Search, Trophy } from 'lucide-react';
+import { Avatar, Card, Modal, Screen } from '../components/ui/UIComponents';
+import { CHALLENGE_TYPE, CHALLENGE_VISIBILITY } from '../services/interfaces/Constants.jsx';
 
-import '../components/styles/LayoutElements.css'
-import '../components/styles/GroupPage.css'
+import '../components/styles/GroupPage.css';
+import '../components/styles/LayoutElements.css';
 
 function Page({ groups, setGroups, joinedIds, setJoinedIds }) {
     const [search, setSearch] = useState("");

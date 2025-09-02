@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Timestamp } from 'firebase/firestore';
-import BaseModel from '../services/interfaces/base.jsx';
-import ChallengeManagement from '../services/firebase/ChallengeManagement';
-import GroupManagement from '../services/firebase/GroupManagementSystem';
-import { CHALLENGE_TYPE, CHALLENGE_VISIBILITY } from '../services/interfaces/constants';
-import '../components/styles/LayoutElements.css';
+import { Timestamp } from '../services/firebase/FirebaseHelper.jsx';
+import BaseModel from '../../services/interfaces/Base.jsx';
+import ChallengeManagement from '../../services/ChallengeManagement.jsx';
+import GroupManagement from '../../services/GroupManagementSystem.jsx';
+import { CHALLENGE_TYPE, CHALLENGE_VISIBILITY } from '../../services/interfaces/Constants.jsx';
+import '../../components/styles/LayoutElements.css';
 
 function CreateChallengePopup({ onCreateChallenge, onCancel, isCreating }) {
     const [challengeName, setChallengeName] = useState('');

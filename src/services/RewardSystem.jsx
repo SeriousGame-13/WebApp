@@ -1,10 +1,10 @@
-import CompetitonSystem from './TournamentManagement';
-import UserManagement from './UserManagementSystem';
-import BadgeManagement from "./BadgeManagement";
-import { CHALLENGE_STATUS, CHALLENGE_STYLE } from '../interfaces/constants';
-import FirestoreManager from './FirestoreManager';
-import { aggregate, buildConditions } from '../../utils/helper';
-import ChallengeManagement from './ChallengeManagement';
+import { aggregate, buildConditions } from './firebase/FirebaseHelper.jsx';
+import BadgeManagement from "./BadgeManagement.jsx";
+import ChallengeManagement from './ChallengeManagement.jsx';
+import FirestoreManager from './firebase/FirestoreManager.jsx';
+import { CHALLENGE_STATUS, CHALLENGE_STYLE } from './interfaces/Constants.jsx';
+import CompetitonSystem from './TournamentManagement.jsx';
+import UserManagement from './UserManagementSystem.jsx';
 
 /**
  * Awards rewards to challenge participants

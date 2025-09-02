@@ -1,15 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import ExpElements from '../components/ui/ExpBar';
-import IconElements from '../components/ui/IconElements';
-import ChallengeManagement from '../services/firebase/ChallengeManagement';
-import GroupManagement from '../services/firebase/GroupManagementSystem';
-import UserManagement from '../services/firebase/UserManagementSystem';
-import FirestoreManager from '../services/firebase/FirestoreManager';
+import ChallengeManagement from '../services/ChallengeManagement.jsx';
+import GroupManagement from '../services/GroupManagementSystem.jsx';
+import UserManagement from '../services/UserManagementSystem.jsx';
+import FirestoreManager from '../services/firebase/FirestoreManager.jsx';
 
-import { X, Calendar, Target, Users, Trophy, Info, Clock, CheckCircle } from 'lucide-react';
-import { Timestamp } from 'firebase/firestore';
-import { CHALLENGE_TYPE, CHALLENGE_VISIBILITY } from '../services/interfaces/constants';
-import '../sphere-styles.css';
+import { Timestamp } from '../services/firebase/FirebaseHelper.jsx';
+import { CheckCircle, Clock, X } from 'lucide-react';
+import '../components/styles/sphere-styles.css';
+import { CHALLENGE_TYPE } from '../services/interfaces/Constants.jsx';
 
 function Modal({ open, onClose, children, title, size = "md" }) {
   if (!open) return null;

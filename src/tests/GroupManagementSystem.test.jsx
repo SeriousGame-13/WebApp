@@ -8,9 +8,9 @@
  * @author Igor, Alexander, Hyunu, Robert
  * @version 1.0.0
  */
-import { GROUP_ROLE } from '../services/interfaces/constants.jsx';
-import { GROUPS_COLLECTION, GROUP_MEMBERS_COLLECTION, USERS_COLLECTION } from '../services/firebase/collections.jsx';
-import { serverTimestamp } from 'firebase/firestore';
+import { GROUP_ROLE } from '../services/interfaces/Constants.jsx';
+import { GROUPS_COLLECTION, GROUP_MEMBERS_COLLECTION, USERS_COLLECTION } from '../services/firebase/Collections.jsx';
+import { serverTimestamp } from '../services/firebase/FirebaseHelper.jsx';
 
 // Mock Firebase configuration
 vi.mock('../services/firebase/FirebaseAppConfiguration', () => ({
@@ -142,7 +142,7 @@ vi.mock('../services/firebase/FirestoreManager', () => ({
 }));
 
 // Import the system under test
-import GroupManagementSystem from '../services/firebase/GroupManagementSystem.jsx';
+import GroupManagementSystem from '../services/GroupManagementSystem.jsx';
 
 describe('GroupManagementSystem', () => {
     beforeEach(() => {

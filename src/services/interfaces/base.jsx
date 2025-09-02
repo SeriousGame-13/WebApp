@@ -1,6 +1,6 @@
 // Base Model Klasse
 import { v4 as uuidv4 } from 'uuid';
-import { serverTimestamp, Timestamp } from 'firebase/firestore';
+import { serverTimestamp } from '../firebase/FirebaseHelper.jsx';
 
 export default class BaseModel {
   constructor(data = {}) {

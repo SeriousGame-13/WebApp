@@ -12,10 +12,10 @@
  * @version 1.0.0
  */
 
-import FirebaseManager from './FirestoreManager.jsx';
-import { Badge } from '../interfaces/badge.jsx';
-import { BADGES_COLLECTION, BADGE_IMAGES_COLLECTION } from './collections.jsx'
-import { serverTimestamp } from 'firebase/firestore';
+import { serverTimestamp } from '../services/firebase/FirebaseHelper.jsx';
+import { BADGES_COLLECTION, BADGE_IMAGES_COLLECTION } from './firebase/Collections.jsx';
+import FirestoreManager from './firebase/FirestoreManager.jsx';
+import { Badge } from './interfaces/Badge.jsx';
 
 /**
  * Creates a new badge in the database with the provided badge data.
@@ -32,7 +32,7 @@ const createBadge = async (badgeData) => {
     try {
         const badge = new Badge();
         badgeData.uid = badge.uid;
-        const docRef = await FirebaseManager.createDocument(BADGES_COLLECTION, badgeData, badge.ui);
+        const docRef = await FirestoreManager.createDocument(BADGES_COLLECTION, badgeData, badge.ui);
 
         if (!docRef || !docRef.id) {
             throw new Error('Failed to create badge document');
@@ -54,7 +54,7 @@ const createBadge = async (badgeData) => {
  */
 const getAllBadges = async () => {
     try {
-        const snapshot = await FirebaseManager.getAllDocuments(BADGES_COLLECTION);
+        const snapshot = await FirestoreManager.getAllDocuments(BADGES_COLLECTION);
         const badges = [];
 
         snapshot.forEach(doc => {
@@ -92,7 +92,7 @@ const saveBadgeImage = async (base64Data, badgeId) => {
             updatedAt: serverTimestamp(),
         };
 
-        await FirebaseManager.createDocument(BADGE_IMAGES_COLLECTION, imageData, badgeId, true);
+        await FirestoreManager.createDocument(BADGE_IMAGES_COLLECTION, imageData, badgeId, true);
 
         return {
             success: true,
@@ -113,7 +113,7 @@ const saveBadgeImage = async (base64Data, badgeId) => {
  */
 const getBadgeImage = async (badgeId) => {
     try {
-        const imageDoc = await FirebaseManager.readDocument(BADGE_IMAGES_COLLECTION, badgeId);
+        const imageDoc = await FirestoreManager.readDocument(BADGE_IMAGES_COLLECTION, badgeId);
         return imageDoc?.imageData || null;
     } catch (error) {
         console.error('Failed to get badge image:', error);
@@ -130,9 +130,9 @@ const getBadgeImage = async (badgeId) => {
  */
 const deleteBadge = async (badgeId) => {
     try {
-        await FirebaseManager.deleteDocument(BADGES_COLLECTION, badgeId);
+        await FirestoreManager.deleteDocument(BADGES_COLLECTION, badgeId);
 
-        await FirebaseManager.deleteDocument(BADGE_IMAGES_COLLECTION, badgeId);
+        await FirestoreManager.deleteDocument(BADGE_IMAGES_COLLECTION, badgeId);
 
         return true;
     } catch (error) {
@@ -155,7 +155,7 @@ const deleteBadge = async (badgeId) => {
  */
 const updateBadge = async (badgeId, badgeData) => {
     try {
-        await FirebaseManager.updateDocument(BADGES_COLLECTION, badgeId, badgeData, true);
+        await FirestoreManager.updateDocument(BADGES_COLLECTION, badgeId, badgeData, true);
         return true;
     } catch (error) {
         console.error('Failed to update badge:', error);

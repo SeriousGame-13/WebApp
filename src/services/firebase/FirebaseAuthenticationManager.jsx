@@ -13,13 +13,13 @@
  */
 
 import {
-    signOut,
-    getAuth,
     createUserWithEmailAndPassword,
+    getAuth,
+    onAuthStateChanged,
     signInWithEmailAndPassword,
-    updateProfile,
+    signOut,
     updateEmail,
-    onAuthStateChanged
+    updateProfile
 } from 'firebase/auth';
 
 import { firebaseApp } from './FirebaseAppConfiguration';

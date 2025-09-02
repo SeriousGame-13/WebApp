@@ -11,8 +11,8 @@
  */
 
 import ChallengeManagement from './ChallengeManagement.jsx';
-import { Challenge, ChallengeParticipant } from '../interfaces/challenge.jsx';
-import { CHALLENGE_STYLE, CHALLENGE_VISIBILITY } from '../interfaces/constants.jsx';
+import { Challenge, ChallengeParticipant } from './interfaces/Challenge.jsx';
+import { CHALLENGE_STYLE, CHALLENGE_VISIBILITY } from './interfaces/Constants.jsx';
 
 
 /**

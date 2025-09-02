@@ -1,4 +1,4 @@
-import { Timestamp } from 'firebase/firestore';
+import { Timestamp } from '../services/firebase/FirebaseHelper.jsx';
 
 /**
  * Wandelt einen String im Format "HH:mm" oder "YYYY-MM-DDTHH:mm"

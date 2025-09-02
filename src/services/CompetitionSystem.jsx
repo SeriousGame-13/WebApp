@@ -1,11 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
-import FirebaseManager from './FirestoreManager';
-import UserManagement from './UserManagementSystem';
-import GroupManagementSystem from './GroupManagementSystem';
-import RewardSystem from './RewardSystem';
-import { Challenge, ChallengeParticipant } from '../interfaces/challenge';
-import { CHALLENGE_STYLE, CHALLENGE_STATUS, CHALLENGE_PARTICIPATION_STATUS } from '../interfaces/constants';
-import { CHALLENGES_COLLECTION, CHALLENGE_PARTICIPANTS_SUBCOLLECTION } from './collections.jsx'
+import FirestoreManager from './firebase/FirestoreManager.jsx';
+import UserManagement from './UserManagementSystem.jsx';
+import GroupManagementSystem from './GroupManagementSystem.jsx';
+import RewardSystem from './RewardSystem.jsx';
+import { Challenge, ChallengeParticipant } from './interfaces/Challenge.jsx';
+import { CHALLENGE_STYLE, CHALLENGE_STATUS, CHALLENGE_PARTICIPATION_STATUS } from './interfaces/Constants.jsx';
+import { CHALLENGES_COLLECTION, CHALLENGE_PARTICIPANTS_SUBCOLLECTION } from './firebase/Collections.jsx'
 
 
 /**
@@ -36,7 +36,7 @@ const createChallenge = async (creatorId, challengeData) => {
             throw new Error('Invalid challenge data provided');
         }
 
-        await FirebaseManager.createDocument(CHALLENGES_COLLECTION, challenge.toJSON(), true);
+        await FirestoreManager.createDocument(CHALLENGES_COLLECTION, challenge.toJSON(), true);
         joinChallenge(challengeId, creatorId);
 
         return await getChallenge(challengeId);
@@ -53,7 +53,7 @@ const createChallenge = async (creatorId, challengeData) => {
  */
 const getChallenge = async (challengeId) => {
     try {
-        const data = await FirebaseManager.readDocument(CHALLENGES_COLLECTION, challengeId);
+        const data = await FirestoreManager.readDocument(CHALLENGES_COLLECTION, challengeId);
         if (!data) return null;
 
         return Challenge.fromJSON(data);
@@ -105,7 +105,7 @@ const updateChallenge = async (challengeId, userId, challenge) => {
             }
         }
 
-        await FirebaseManager.updateDocument(CHALLENGES_COLLECTION, challengeId, challenge, true);
+        await FirestoreManager.updateDocument(CHALLENGES_COLLECTION, challengeId, challenge, true);
 
         return await getChallenge(challengeId);
     } catch (error) {
@@ -213,10 +213,10 @@ const joinChallenge = async (challengeId, userId) => {
             throw new Error('Invalid participant data');
         }
 
-        await FirebaseManager.createDocument(CHALLENGE_PARTICIPANTS_SUBCOLLECTION, participant.toJSON(), true);
+        await FirestoreManager.createDocument(CHALLENGE_PARTICIPANTS_SUBCOLLECTION, participant.toJSON(), true);
 
         challenge.addParticipant(participant);
-        await FirebaseManager.updateDocument(CHALLENGES_COLLECTION, challengeId, {
+        await FirestoreManager.updateDocument(CHALLENGES_COLLECTION, challengeId, {
             participants: challenge.participants.map(p => p.toJSON ? p.toJSON() : p)
         }, true);
 
@@ -284,7 +284,7 @@ const withdrawFromChallenge = async (challengeId, userId) => {
             throw new Error('Cannot withdraw from a completed challenge');
         }
 
-        await FirebaseManager.updateDocument(
+        await FirestoreManager.updateDocument(
             CHALLENGE_PARTICIPANTS_SUBCOLLECTION,
             participant.participantId,
             { status: CHALLENGE_PARTICIPATION_STATUS.WITHDRAWN },
@@ -294,7 +294,7 @@ const withdrawFromChallenge = async (challengeId, userId) => {
         const challenge = await getChallenge(challengeId);
         if (challenge) {
             challenge.removeParticipant(participant.participantId);
-            await FirebaseManager.updateDocument(CHALLENGES_COLLECTION, challengeId, {
+            await FirestoreManager.updateDocument(CHALLENGES_COLLECTION, challengeId, {
                 participants: challenge.participants.map(p => p.toJSON ? p.toJSON() : p)
             }, true);
         }
@@ -342,7 +342,7 @@ const updateChallengeProgress = async (challengeId, userId, progress) => {
             })
         };
 
-        await FirebaseManager.updateDocument(
+        await FirestoreManager.updateDocument(
             CHALLENGE_PARTICIPANTS_SUBCOLLECTION,
             participant.participantId,
             updateData,
@@ -354,7 +354,7 @@ const updateChallengeProgress = async (challengeId, userId, progress) => {
             const challengeParticipant = challenge.getParticipant(userId);
             if (challengeParticipant) {
                 challengeParticipant.complete();
-                await FirebaseManager.updateDocument(CHALLENGES_COLLECTION, challengeId, {
+                await FirestoreManager.updateDocument(CHALLENGES_COLLECTION, challengeId, {
                     participants: challenge.participants.map(p => p.toJSON ? p.toJSON() : p)
                 }, true);
             }
@@ -376,7 +376,7 @@ const updateChallengeProgress = async (challengeId, userId, progress) => {
 const getChallengeParticipant = async (challengeId, userId) => {
     try {
         const participantId = `${challengeId}_${userId}`;
-        const data = await FirebaseManager.readDocument(CHALLENGE_PARTICIPANTS_SUBCOLLECTION, participantId);
+        const data = await FirestoreManager.readDocument(CHALLENGE_PARTICIPANTS_SUBCOLLECTION, participantId);
         if (!data) return null;
 
         return ChallengeParticipant.fromJSON(data);
@@ -393,7 +393,7 @@ const getChallengeParticipant = async (challengeId, userId) => {
  */
 const getChallengeParticipants = async (challengeId) => {
     try {
-        const snapshot = await FirebaseManager.queryDocumentsByFieldValue(
+        const snapshot = await FirestoreManager.queryDocumentsByFieldValue(
             CHALLENGE_PARTICIPANTS_SUBCOLLECTION,
             'challengeId',
             challengeId
@@ -481,21 +481,21 @@ const getChallenges = async (filters = {}, limit = 50) => {
         let challenges = [];
 
         if (filters.status) {
-            const snapshot = await FirebaseManager.queryDocumentsByFieldValue(
+            const snapshot = await FirestoreManager.queryDocumentsByFieldValue(
                 CHALLENGES_COLLECTION,
                 'status',
                 filters.status
             );
             snapshot.forEach(doc => challenges.push(Challenge.fromJSON(doc.data())));
         } else if (filters.creatorId) {
-            const snapshot = await FirebaseManager.queryDocumentsByFieldValue(
+            const snapshot = await FirestoreManager.queryDocumentsByFieldValue(
                 CHALLENGES_COLLECTION,
                 'creatorId',
                 filters.creatorId
             );
             snapshot.forEach(doc => challenges.push(Challenge.fromJSON(doc.data())));
         } else {
-            const snapshot = await FirebaseManager.getAllDocuments(CHALLENGES_COLLECTION);
+            const snapshot = await FirestoreManager.getAllDocuments(CHALLENGES_COLLECTION);
             snapshot.forEach(doc => challenges.push(Challenge.fromJSON(doc.data())));
         }
 
@@ -535,7 +535,7 @@ const getAvailableChallenges = async (userId) => {
  */
 const getUserChallengeHistory = async (userId) => {
     try {
-        const snapshot = await FirebaseManager.queryDocumentsByFieldValue(
+        const snapshot = await FirestoreManager.queryDocumentsByFieldValue(
             CHALLENGE_PARTICIPANTS_SUBCOLLECTION,
             'userId',
             userId

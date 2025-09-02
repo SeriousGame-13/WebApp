@@ -10,15 +10,13 @@
  * @version 1.0.0
  */
 
-import FirebaseManager from './FirestoreManager';
-import FireAuthManager from './FirebaseAuthenticationManager';
+import { BADGES_COLLECTION, BADGES_USER_COLLECTION, BLOCKS_COLLECTION, FRIENDS_COLLECTION, USERS_COLLECTION } from './firebase/Collections.jsx';
+import FireAuthManager from './firebase/FirebaseAuthenticationManager.jsx';
+import FirestoreManager from './firebase/FirestoreManager.jsx';
+import { UserBadge } from './interfaces/Badge.jsx';
+import User from './interfaces/User.jsx';
+import { Workout } from './interfaces/Workout.jsx';
 import WorkoutManager from './WorkoutManagement.jsx';
-import User from '../interfaces/user.jsx';
-import { Workout } from '../interfaces/workout.jsx';
-import { USERS_COLLECTION, FRIENDS_COLLECTION, BLOCKS_COLLECTION, BADGES_USER_COLLECTION, BADGES_COLLECTION } from './collections.jsx'
-import { UserBadge } from '../interfaces/badge.jsx';
-import FirestoreManager from './FirestoreManager';
-import BadgeManagement from './BadgeManagement.jsx';
 
 
 /**
@@ -41,7 +39,7 @@ const loginUser = async (email, password) => {
  */
 const getUser = async (uid) => {
     try {
-        const data = await FirebaseManager.readDocument(USERS_COLLECTION, uid);
+        const data = await FirestoreManager.readDocument(USERS_COLLECTION, uid);
 
         if (!data) return null;
 
@@ -97,7 +95,7 @@ const signupUser = async (nickname, email, password) => {
     // Remove arrays
     const { goals, badges, workouts, friends, ...updateData } = newUser;
 
-    await FirebaseManager.createDocument(USERS_COLLECTION, updateData, userLogin.uid);
+    await FirestoreManager.createDocument(USERS_COLLECTION, updateData, userLogin.uid);
 
     return userLogin;
 };
@@ -125,7 +123,7 @@ const updateUser = async (uid, userData) => {
         // Remove arrays
         const { goals, badges, workouts, friends, ...updateData } = userData;
 
-        await FirebaseManager.updateDocument(USERS_COLLECTION, uid, updateData, true);
+        await FirestoreManager.updateDocument(USERS_COLLECTION, uid, updateData, true);
 
         // Re-Get and return the updated user data
         return getUser(uid);
@@ -153,7 +151,7 @@ const addPoints = async (uid, points) => {
 
         const { goals, badges, workouts, friends, ...updateData } = user;
 
-        await FirebaseManager.updateDocument(USERS_COLLECTION, uid, updateData, true);
+        await FirestoreManager.updateDocument(USERS_COLLECTION, uid, updateData, true);
         return true;
     } catch (error) {
         console.error('Failed to update user:', error);
@@ -187,7 +185,7 @@ const deleteUser = async (uid) => {
         const user = getCurrentUser(uid);
 
         // Deactivate user document from Firestore, but keep it for historical/restoration purposes
-        await FirebaseManager.updateDocument(USERS_COLLECTION, uid, { isActive: false }, true);
+        await FirestoreManager.updateDocument(USERS_COLLECTION, uid, { isActive: false }, true);
 
         await user.delete();
     } catch (error) {
@@ -221,7 +219,7 @@ const addFriend = async (requesterId, recipientId) => {
             status: 'PENDING',
         };
 
-        await FirebaseManager.createDocument(FRIENDS_COLLECTION, friendshipData);
+        await FirestoreManager.createDocument(FRIENDS_COLLECTION, friendshipData);
 
         return getFriendshipData(friendshipId);
     } catch (error) {
@@ -285,7 +283,7 @@ const acceptFriendRequest = async (userId, friendId) => {
             throw new Error('Only the recipient can accept a friend request');
         }
 
-        await FirebaseManager.updateDocument(FRIENDS_COLLECTION, friendshipId, { status: 'ACCEPTED' }, true);
+        await FirestoreManager.updateDocument(FRIENDS_COLLECTION, friendshipId, { status: 'ACCEPTED' }, true);
 
         // Re-get updated friendship
         return await getFriendshipData(friendshipId);
@@ -317,7 +315,7 @@ const removeFriend = async (userId, friendId) => {
             throw new Error('You are not part of this friendship');
         }
 
-        await FirebaseManager.deleteDocument(FRIENDS_COLLECTION, friendshipId);
+        await FirestoreManager.deleteDocument(FRIENDS_COLLECTION, friendshipId);
     } catch (error) {
         console.error('Failed to remove friend:', error);
         throw error;
@@ -332,7 +330,7 @@ const removeFriend = async (userId, friendId) => {
  */
 const getFriendshipData = async (friendshipId) => {
     try {
-        return await FirebaseManager.readDocument(FRIENDS_COLLECTION, friendshipId);
+        return await FirestoreManager.readDocument(FRIENDS_COLLECTION, friendshipId);
     } catch (error) {
         console.error('Failed to get friendship:', error);
         return null;
@@ -350,8 +348,8 @@ const getUserFriendships = async (userId, status = null) => {
     try {
         const friendships = [];
 
-        const snapshot1 = await FirebaseManager.queryDocumentsByFieldValue(FRIENDS_COLLECTION, 'user1Id', userId);
-        const snapshot2 = await FirebaseManager.queryDocumentsByFieldValue(FRIENDS_COLLECTION, 'user2Id', userId);
+        const snapshot1 = await FirestoreManager.queryDocumentsByFieldValue(FRIENDS_COLLECTION, 'user1Id', userId);
+        const snapshot2 = await FirestoreManager.queryDocumentsByFieldValue(FRIENDS_COLLECTION, 'user2Id', userId);
 
         snapshot1.forEach(doc => {
             const friendship = doc.data();
@@ -405,7 +403,7 @@ const blockUser = async (userId, blockedUserId) => {
             // Ignore errors if no friendship exists
         }
 
-        await FirebaseManager.createDocument(BLOCKS_COLLECTION, blockData);
+        await FirestoreManager.createDocument(BLOCKS_COLLECTION, blockData);
 
         // Re-get the block data
         return getBlockData(blockId);
@@ -447,7 +445,7 @@ const unblockUser = async (userId, blockedUserId) => {
             throw new Error('Permission denied: Only the blocker can unblock');
         }
 
-        await FirebaseManager.deleteDocument(BLOCKS_COLLECTION, blockId);
+        await FirestoreManager.deleteDocument(BLOCKS_COLLECTION, blockId);
 
     } catch (error) {
         console.error('Failed to unblock user:', error);
@@ -463,7 +461,7 @@ const unblockUser = async (userId, blockedUserId) => {
  */
 const getBlockData = async (blockId) => {
     try {
-        return await FirebaseManager.readDocument(BLOCKS_COLLECTION, blockId);
+        return await FirestoreManager.readDocument(BLOCKS_COLLECTION, blockId);
     } catch (error) {
         console.error('Failed to get block:', error);
         return null;
@@ -493,7 +491,7 @@ const getUserBlocks = async (userId) => {
     try {
         const blocks = [];
 
-        const snapshot = await FirebaseManager.queryDocumentsByFieldValue(BLOCKS_COLLECTION, 'userId', userId);
+        const snapshot = await FirestoreManager.queryDocumentsByFieldValue(BLOCKS_COLLECTION, 'userId', userId);
 
         snapshot.forEach(doc => {
             blocks.push(doc.data());
@@ -523,7 +521,7 @@ const getUserDatabasePath = (userId) => {
  */
 const getAllActiveUsers = async () => {
     try {
-        const snapshot = await FirebaseManager.getAllDocuments(USERS_COLLECTION);
+        const snapshot = await FirestoreManager.getAllDocuments(USERS_COLLECTION);
         const users = [];
         snapshot.forEach(doc => {
             const userData = doc.data();
@@ -572,7 +570,7 @@ const awardBadge = async (userId, badgeId) => {
 
     const exisiting = await FirestoreManager.findDocumentByField(path + `${BADGES_USER_COLLECTION}`, 'badgeId', badgeId);
     if (exisiting == null)
-        await FirebaseManager.createDocument(path + `${BADGES_USER_COLLECTION}`, badge, badge.uid);
+        await FirestoreManager.createDocument(path + `${BADGES_USER_COLLECTION}`, badge, badge.uid);
 };
 
 const getBadges = async (userId) => {

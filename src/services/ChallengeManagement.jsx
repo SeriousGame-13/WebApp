@@ -12,16 +12,14 @@
  * @version 1.0.0
  */
 
-import FirebaseManager from './FirestoreManager.jsx';
-import { Challenge, ChallengeParticipant } from '../interfaces/challenge.jsx';
-import { CHALLENGE_STATUS, CHALLENGE_VISIBILITY } from '../interfaces/constants.jsx';
-import UserManagement from './UserManagementSystem.jsx';
+import { aggregate, buildConditions, serverTimestamp, Timestamp } from './firebase/FirebaseHelper.jsx';
+import { CHALLENGE_PARTICIPANTS_SUBCOLLECTION, CHALLENGES_COLLECTION } from './firebase/Collections.jsx';
+import FirestoreManager from './firebase/FirestoreManager.jsx';
 import GroupManagement from './GroupManagementSystem.jsx';
-import { CHALLENGES_COLLECTION, CHALLENGE_PARTICIPANTS_SUBCOLLECTION } from './collections';
-import { serverTimestamp, Timestamp } from 'firebase/firestore';
-import FirestoreManager from './FirestoreManager.jsx';
-import { aggregate, buildConditions } from '../../utils/helper.jsx';
+import { Challenge, ChallengeParticipant } from './interfaces/Challenge.jsx';
+import { CHALLENGE_STATUS, CHALLENGE_VISIBILITY } from './interfaces/Constants.jsx';
 import RewardSystem from './RewardSystem.jsx';
+import UserManagement from './UserManagementSystem.jsx';
 /**
  * Creates a new challenge in the database with the provided challenge data.
  * Automatically assigns participants based on challenge visibility and type.
@@ -46,7 +44,7 @@ const createChallenge = async (challengeData) => {
 
         const { challengeId, participants, creator, targetExercise, ...challengeDataForFirebase } = challenge;
 
-        const docRef = await FirebaseManager.createDocument(CHALLENGES_COLLECTION, challengeDataForFirebase, challenge.uid);
+        const docRef = await FirestoreManager.createDocument(CHALLENGES_COLLECTION, challengeDataForFirebase, challenge.uid);
 
         if (!docRef || !docRef.id) {
             throw new Error('Failed to create challenge document');
@@ -158,7 +156,7 @@ const addNewUserToChallenges = async (userId) => {
  */
 const getAllChallenges = async () => {
     try {
-        const snapshot = await FirebaseManager.getAllDocuments(CHALLENGES_COLLECTION);
+        const snapshot = await FirestoreManager.getAllDocuments(CHALLENGES_COLLECTION);
         const challenges = [];
 
         for (const doc of snapshot.docs) {
@@ -186,7 +184,7 @@ const getAllChallenges = async () => {
  */
 const getPublicChallenges = async () => {
     try {
-        const snapshot = await FirebaseManager.queryDocuments(
+        const snapshot = await FirestoreManager.queryDocuments(
             CHALLENGES_COLLECTION,
             [['visibility', '==', CHALLENGE_VISIBILITY.PUBLIC]]
         );
@@ -242,7 +240,7 @@ const getGroupChallenges = async (groupId) => {
  */
 const updateChallenge = async (challengeId, challengeData) => {
     try {
-        await FirebaseManager.updateDocument(CHALLENGES_COLLECTION, challengeId, challengeData, true);
+        await FirestoreManager.updateDocument(CHALLENGES_COLLECTION, challengeId, challengeData, true);
         return true;
     } catch (error) {
         console.error('Failed to update challenge:', error);
@@ -259,18 +257,18 @@ const updateChallenge = async (challengeId, challengeData) => {
  */
 const deleteChallenge = async (challengeId) => {
     try {
-        const participantsSnapshot = await FirebaseManager.getAllDocuments(
+        const participantsSnapshot = await FirestoreManager.getAllDocuments(
             `${CHALLENGES_COLLECTION}/${challengeId}/${CHALLENGE_PARTICIPANTS_SUBCOLLECTION}`
         );
 
         for (const doc of participantsSnapshot.docs) {
-            await FirebaseManager.deleteDocument(
+            await FirestoreManager.deleteDocument(
                 `${CHALLENGES_COLLECTION}/${challengeId}/${CHALLENGE_PARTICIPANTS_SUBCOLLECTION}`,
                 doc.id
             );
         }
 
-        await FirebaseManager.deleteDocument(CHALLENGES_COLLECTION, challengeId);
+        await FirestoreManager.deleteDocument(CHALLENGES_COLLECTION, challengeId);
 
         return true;
     } catch (error) {
@@ -299,7 +297,7 @@ const joinChallenge = async (challengeId, userId) => {
             // user: userData.displayName || 'Unknown User'
         });
 
-        await FirebaseManager.createDocument(`${CHALLENGES_COLLECTION}/${challengeId}/${CHALLENGE_PARTICIPANTS_SUBCOLLECTION}`, participant, participant.uid);
+        await FirestoreManager.createDocument(`${CHALLENGES_COLLECTION}/${challengeId}/${CHALLENGE_PARTICIPANTS_SUBCOLLECTION}`, participant, participant.uid);
 
         return participant;
     } catch (error) {
@@ -318,7 +316,7 @@ const joinChallenge = async (challengeId, userId) => {
  */
 const leaveChallenge = async (challengeId, userId) => {
     try {
-        await FirebaseManager.deleteDocument(
+        await FirestoreManager.deleteDocument(
             `${CHALLENGES_COLLECTION}/${challengeId}/${CHALLENGE_PARTICIPANTS_SUBCOLLECTION}`,
             userId
         );
@@ -338,7 +336,7 @@ const leaveChallenge = async (challengeId, userId) => {
  */
 const getChallengeParticipants = async (challengeId) => {
     try {
-        const snapshot = await FirebaseManager.getAllDocuments(
+        const snapshot = await FirestoreManager.getAllDocuments(
             `${CHALLENGES_COLLECTION}/${challengeId}/${CHALLENGE_PARTICIPANTS_SUBCOLLECTION}`
         );
 
@@ -380,7 +378,7 @@ const loadChallengeParticipants = async (challenge) => {
  */
 const getChallenge = async (challengeId) => {
     try {
-        const challengeDoc = await FirebaseManager.readDocument(CHALLENGES_COLLECTION, challengeId);
+        const challengeDoc = await FirestoreManager.readDocument(CHALLENGES_COLLECTION, challengeId);
 
         if (!challengeDoc) {
             throw new Error('Challenge not found');
@@ -431,7 +429,7 @@ const getUserChallenges = async (userId) => {
  */
 const completeChallengeForUser = async (challengeId, userId) => {
     try {
-        const participant = await FirebaseManager.readDocument(
+        const participant = await FirestoreManager.readDocument(
             `${CHALLENGES_COLLECTION}/${challengeId}/${CHALLENGE_PARTICIPANTS_SUBCOLLECTION}`,
             userId
         );
@@ -440,7 +438,7 @@ const completeChallengeForUser = async (challengeId, userId) => {
             throw new Error('Participant not found');
         }
 
-        await FirebaseManager.updateDocument(
+        await FirestoreManager.updateDocument(
             `${CHALLENGES_COLLECTION}/${challengeId}/${CHALLENGE_PARTICIPANTS_SUBCOLLECTION}`,
             userId,
             { completedAt: serverTimestamp() },

@@ -1,6 +1,6 @@
-import BaseModel from './base.jsx';
-import { BADGE_RARITY } from './constants.jsx';
-import { serverTimestamp } from 'firebase/firestore';
+import BaseModel from './Base.jsx';
+import { BADGE_RARITY } from './Constants.jsx';
+import { serverTimestamp } from '../firebase/FirebaseHelper.jsx';
 
 export class Badge extends BaseModel {
   constructor(data = {}) {

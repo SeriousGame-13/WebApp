@@ -13,11 +13,11 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import FirebaseManager from './FirestoreManager';
-import UserManagement from './UserManagementSystem';
-import { UserGoal } from '../interfaces/goal';
-import { GOALS_COLLECTION } from './collections';
-import { serverTimestamp } from 'firebase/firestore';
+import FirestoreManager from './firebase/FirestoreManager.jsx';
+import UserManagement from './UserManagementSystem.jsx';
+import { UserGoal } from './interfaces/Goal.jsx';
+import { GOALS_COLLECTION } from './firebase/Collections.jsx';
+import { serverTimestamp } from '../services/firebase/FirebaseHelper.jsx';
 
 
 /**
@@ -51,7 +51,7 @@ const createGoal = async (userId, goalData) => {
             throw new Error('Invalid goal data provided');
         }
 
-        await FirebaseManager.createDocument(GOALS_COLLECTION, goal.toJSON(), goal.uid, true);
+        await FirestoreManager.createDocument(GOALS_COLLECTION, goal.toJSON(), goal.uid, true);
 
         return await getGoal(goal.uid);
     } catch (error) {
@@ -68,7 +68,7 @@ const createGoal = async (userId, goalData) => {
  */
 const getGoal = async (goalId) => {
     try {
-        const data = await FirebaseManager.readDocument(GOALS_COLLECTION, goalId);
+        const data = await FirestoreManager.readDocument(GOALS_COLLECTION, goalId);
         if (!data) return null;
 
         return UserGoal.fromJSON(data);
@@ -103,7 +103,7 @@ const updateGoal = async (goalId, userId, updates) => {
             throw new Error('Permission denied: Only the goal owner can modify this goal');
         }
 
-        await FirebaseManager.updateDocument(GOALS_COLLECTION, goalId, updates, true);
+        await FirestoreManager.updateDocument(GOALS_COLLECTION, goalId, updates, true);
 
         return await getGoal(goalId);
     } catch (error) {
@@ -150,7 +150,7 @@ const updateGoalProgress = async (goalId, userId, progressValue) => {
             })
         };
 
-        await FirebaseManager.updateDocument(GOALS_COLLECTION, goalId, updateData, true);
+        await FirestoreManager.updateDocument(GOALS_COLLECTION, goalId, updateData, true);
 
         if (isCompleted && !goal.isCompleted) {
             await awardGoalCompletion(userId, goal);
@@ -204,7 +204,7 @@ const deleteGoal = async (goalId, userId) => {
             throw new Error('Permission denied: Only the goal owner can delete this goal');
         }
 
-        await FirebaseManager.deleteDocument(GOALS_COLLECTION, goalId);
+        await FirestoreManager.deleteDocument(GOALS_COLLECTION, goalId);
     } catch (error) {
         console.error('Failed to delete goal:', error);
         throw error;
@@ -224,7 +224,7 @@ const deleteGoal = async (goalId, userId) => {
  */
 const getUserGoals = async (userId, filters = {}) => {
     try {
-        const snapshot = await FirebaseManager.queryDocumentsByFieldValue(
+        const snapshot = await FirestoreManager.queryDocumentsByFieldValue(
             GOALS_COLLECTION,
             'userId',
             userId

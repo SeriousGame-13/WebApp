@@ -9,11 +9,10 @@
  * @version 1.0.0
  */
 
-import FirestoreManager from './FirestoreManager.jsx';
-import { HIGHSCORE_COLLECTION, STATION_COLLECTION } from './collections.jsx';
+import { STATION_COLLECTION } from './firebase/Collections.jsx';
+import FirestoreManager from './firebase/FirestoreManager.jsx';
 
-import { Station } from '../interfaces/station.jsx';
-import HighscoreManager from './HighscoreManager.jsx';
+import { Station } from './interfaces/Station.jsx';
 
 /**
  * Saves a new station to the database.

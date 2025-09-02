@@ -1,5 +1,5 @@
-import BaseModel from './base.jsx';
-import { serverTimestamp } from 'firebase/firestore';
+import BaseModel from './Base.jsx';
+
 export class UserGoal extends BaseModel {
   constructor(data = {}) {
     super({

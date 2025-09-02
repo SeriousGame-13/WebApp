@@ -1,4 +1,4 @@
-import BaseModel from "./base";
+import BaseModel from "./Base.jsx";
 
 export class Station extends BaseModel {
     constructor(data = {}) {

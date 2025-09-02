@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import '../components/styles/LayoutElements.css';
-import GoalSystem from '../services/firebase/GoalSystem';
-import StationManager from '../services/firebase/StationManagement';
-import { localDateTimeStringToTimestamp, localTime } from '../utils/DateUtils';
-import BaseModel from '../services/interfaces/base.jsx';
+import '../../components/styles/LayoutElements.css';
+import GoalSystem from '../../services/GoalSystem.jsx';
+import StationManager from '../../services/StationManagement.jsx';
+import { localDateTimeStringToTimestamp, localTime } from '../../utils/DateUtils.jsx';
+import BaseModel from '../../services/interfaces/Base.jsx';
 
 
 function FormBase({

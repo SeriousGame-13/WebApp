@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import '../components/styles/LayoutElements.css';
-import TournamentManagement from '../services/firebase/TournamentManagement';
-import UserManagement from '../services/firebase/UserManagementSystem';
-import { CHALLENGE_VISIBILITY } from '../services/interfaces/constants';
-import BaseModel from '../services/interfaces/base.jsx';
-import { localDateTimeStringToTimestamp, localTime } from '../utils/DateUtils';
+import '../../components/styles/LayoutElements.css';
+import TournamentManagement from '../../services/TournamentManagement.jsx';
+import UserManagement from '../../services/UserManagementSystem.jsx';
+import { CHALLENGE_VISIBILITY } from '../../services/interfaces/Constants.jsx';
+import BaseModel from '../../services/interfaces/Base.jsx';
+import { localDateTimeStringToTimestamp, localTime } from '../../utils/DateUtils.jsx';
 
 
 function FormBase({

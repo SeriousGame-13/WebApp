@@ -1,16 +1,14 @@
 import { useState } from 'react';
 
-import IconElements from '../components/ui/IconElements';
-import LoginPage from '../pages/LoginPage';
-import UserManagement from '../services/firebase/UserManagementSystem';
-import DatamanagerElements from '../utils/dataManager';
-import ChallengePageElements from '../pages/ChallengePage';
-import GroupPageElements from '../pages/GroupPage';
-import HomePageElements from '../pages/HomePage';
-import RankingPage from '../pages/RankingPage';
-import UserPageElements from '../pages/UserPage';
+import LoginPage from '../pages/LoginPage.jsx';
+import DatamanagerElements from '../services/firebase/DataManager.jsx';
+import ChallengePageElements from '../pages/ChallengePage.jsx';
+import GroupPageElements from '../pages/GroupPage.jsx';
+import HomePageElements from '../pages/HomePage.jsx';
+import RankingPage from '../pages/RankingPage.jsx';
+import UserPageElements from '../pages/UserPage.jsx';
 import '../components/styles/LayoutElements.css'
-import MainFooter from './MainFooter';
+import MainFooter from './MainFooter.jsx';
 
 function AppLayout() {
     const { currentUser, userData, loading } = DatamanagerElements.useAuth();

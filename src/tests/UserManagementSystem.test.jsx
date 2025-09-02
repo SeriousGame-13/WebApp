@@ -458,11 +458,11 @@ vi.mock('../services/firebase/collections.jsx', () => ({
 }));
 
 // Import after mocks are set up
-import UserManagement from '../services/firebase/UserManagementSystem';
+import UserManagement from '../services/UserManagementSystem.jsx';
 
 describe('UserManagementSystem', () => {
     // Access to mocked modules
-    let FirebaseManager;
+    let FirestoreManager;
     let FireAuthManager;
     let WorkoutManager;
     let User;
@@ -478,10 +478,10 @@ describe('UserManagementSystem', () => {
         }
         
         // Get references to mocked modules
-        FirebaseManager = await import('../services/firebase/FirestoreManager');
-        FireAuthManager = await import('../services/firebase/FirebaseAuthenticationManager');
-        WorkoutManager = await import('../services/firebase/WorkoutManagement.jsx');
-        User = await import('../services/interfaces/user.jsx');
+        FirestoreManager = await import('../services/firebase/FirestoreManager.jsx');
+        FireAuthManager = await import('../services/firebase/FirebaseAuthenticationManager.jsx');
+        WorkoutManager = await import('../services/WorkoutManagement.jsx');
+        User = await import('../services/interfaces/User.jsx');
         
         // Mock console methods to suppress logs in tests
         console.error = vi.fn();
@@ -513,7 +513,7 @@ describe('UserManagementSystem', () => {
             
             expect(FireAuthManager.default.createUser).toHaveBeenCalledWith('new@example.com', 'password123');
             expect(FireAuthManager.default.updateUserProfile).toHaveBeenCalled();
-            expect(FirebaseManager.default.createDocument).toHaveBeenCalled();
+            expect(FirestoreManager.default.createDocument).toHaveBeenCalled();
             expect(result).toHaveProperty('uid');
         });
     });
@@ -522,13 +522,13 @@ describe('UserManagementSystem', () => {
         test('getUser should retrieve user data with workouts', async () => {
             const result = await UserManagement.getUser('test-uid-123');
             
-            expect(FirebaseManager.default.readDocument).toHaveBeenCalledWith('users', 'test-uid-123');
+            expect(FirestoreManager.default.readDocument).toHaveBeenCalledWith('users', 'test-uid-123');
             expect(WorkoutManager.default.loadWorkouts).toHaveBeenCalledWith('test-uid-123');
             expect(result).toBeTruthy();
         });
 
         test('getUser should return null for non-existent user', async () => {
-            FirebaseManager.default.readDocument.mockResolvedValueOnce(null);
+            FirestoreManager.default.readDocument.mockResolvedValueOnce(null);
             
             const result = await UserManagement.getUser('non-existent-uid');
             
@@ -545,13 +545,13 @@ describe('UserManagementSystem', () => {
             
             expect(FireAuthManager.default.updateUserProfile).toHaveBeenCalled();
             expect(FireAuthManager.default.updateEmail).toHaveBeenCalled();
-            expect(FirebaseManager.default.updateDocument).toHaveBeenCalled();
+            expect(FirestoreManager.default.updateDocument).toHaveBeenCalled();
         });
 
         test('addPoints should add points and update level progression', async () => {
             const result = await UserManagement.addPoints('test-uid-123', 50);
             
-            expect(FirebaseManager.default.updateDocument).toHaveBeenCalled();
+            expect(FirestoreManager.default.updateDocument).toHaveBeenCalled();
             expect(result).toBeTruthy();
         });
 
@@ -565,7 +565,7 @@ describe('UserManagementSystem', () => {
         test('getAllActiveUsers should get all active users', async () => {
             const result = await UserManagement.getAllActiveUsers();
             
-            expect(FirebaseManager.default.getAllDocuments).toHaveBeenCalledWith('users');
+            expect(FirestoreManager.default.getAllDocuments).toHaveBeenCalledWith('users');
             expect(result).toHaveLength(2);
         });
 
@@ -586,14 +586,14 @@ describe('UserManagementSystem', () => {
             // Use a different user pair to avoid "already exists" error
             const result = await UserManagement.addFriend('user1', 'user3');
             
-            expect(FirebaseManager.default.createDocument).toHaveBeenCalled();
+            expect(FirestoreManager.default.createDocument).toHaveBeenCalled();
             expect(result).toHaveProperty('friendshipId');
         });
 
         test('acceptFriendRequest should update friendship status', async () => {
             const result = await UserManagement.acceptFriendRequest('user2', 'user1');
             
-            expect(FirebaseManager.default.updateDocument).toHaveBeenCalled();
+            expect(FirestoreManager.default.updateDocument).toHaveBeenCalled();
             expect(result).toEqual({
                 friendshipId: 'user1_user2',
                 user1Id: 'user1',
@@ -605,7 +605,7 @@ describe('UserManagementSystem', () => {
         test('removeFriend should delete friendship', async () => {
             await UserManagement.removeFriend('user1', 'user2');
             
-            expect(FirebaseManager.default.deleteDocument).toHaveBeenCalled();
+            expect(FirestoreManager.default.deleteDocument).toHaveBeenCalled();
         });
 
         test('getUserFriendships should get all user friendships', async () => {
@@ -645,27 +645,27 @@ describe('UserManagementSystem', () => {
             // Use a different user to avoid "already blocked" error
             const result = await UserManagement.blockUser('user1', 'user3');
             
-            expect(FirebaseManager.default.createDocument).toHaveBeenCalled();
+            expect(FirestoreManager.default.createDocument).toHaveBeenCalled();
             expect(result).toHaveProperty('blockId');
         });
 
         test('unblockUser should remove block relationship', async () => {
             await UserManagement.unblockUser('user1', 'user2');
             
-            expect(FirebaseManager.default.deleteDocument).toHaveBeenCalled();
+            expect(FirestoreManager.default.deleteDocument).toHaveBeenCalled();
         });
 
         test('isUserBlocked should check if block exists', async () => {
             const result = await UserManagement.isUserBlocked('user1', 'user2');
             
-            expect(FirebaseManager.default.readDocument).toHaveBeenCalled();
+            expect(FirestoreManager.default.readDocument).toHaveBeenCalled();
             expect(result).toBe(true);
         });
 
         test('getUserBlocks should get all user blocks', async () => {
             const result = await UserManagement.getUserBlocks('user1');
             
-            expect(FirebaseManager.default.queryDocumentsByFieldValue).toHaveBeenCalled();
+            expect(FirestoreManager.default.queryDocumentsByFieldValue).toHaveBeenCalled();
             expect(result).toHaveLength(2);
         });
     });
@@ -680,7 +680,7 @@ describe('UserManagementSystem', () => {
         });
 
         test('should handle errors in getUser', async () => {
-            FirebaseManager.default.readDocument.mockRejectedValueOnce(new Error('Database error'));
+            FirestoreManager.default.readDocument.mockRejectedValueOnce(new Error('Database error'));
             
             const result = await UserManagement.getUser('test-uid-123');
             
@@ -689,7 +689,7 @@ describe('UserManagementSystem', () => {
         });
 
         test('should handle errors in friendship functions', async () => {
-            FirebaseManager.default.readDocument.mockRejectedValueOnce(new Error('Friendship error'));
+            FirestoreManager.default.readDocument.mockRejectedValueOnce(new Error('Friendship error'));
             
             await expect(
                 UserManagement.acceptFriendRequest('user2', 'user1')
@@ -719,7 +719,7 @@ describe('UserManagementSystem', () => {
             
             // Add points
             await UserManagement.addPoints(user.uid, 50);
-            expect(FirebaseManager.default.updateDocument).toHaveBeenCalled();
+            expect(FirestoreManager.default.updateDocument).toHaveBeenCalled();
             
             // Log out
             await UserManagement.logoutUser();
@@ -733,7 +733,7 @@ describe('UserManagementSystem', () => {
             
             // Accept friend request
             await UserManagement.acceptFriendRequest('user2', 'user1');
-            expect(FirebaseManager.default.updateDocument).toHaveBeenCalled();
+            expect(FirestoreManager.default.updateDocument).toHaveBeenCalled();
             
             // Get friendships
             const friendships = await UserManagement.getUserFriendships('user1', 'ACCEPTED');
@@ -751,7 +751,7 @@ describe('UserManagementSystem', () => {
             
             // Unblock user
             await UserManagement.unblockUser('user1', 'user2');
-            expect(FirebaseManager.default.deleteDocument).toHaveBeenCalled();
+            expect(FirestoreManager.default.deleteDocument).toHaveBeenCalled();
         });
     });
 });

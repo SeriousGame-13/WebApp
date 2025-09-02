@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import '../components/styles/LayoutElements.css';
-import StationManager from '../services/firebase/StationManagement';
-import HighscoreManager from '../services/firebase/HighscoreManager';
+import '../../components/styles/LayoutElements.css';
+import StationManager from '../../services/StationManagement.jsx';
+import HighscoreManager from '../../services/HighscoreManager.jsx';
 
 
 function EditStationForm({ station = null, onSubmit, onCancel, isProcessing, submitText }) {

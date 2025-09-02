@@ -13,12 +13,12 @@
  * @version 1.0.0
  */
 
-import FirebaseManager from './FirestoreManager.jsx';
-import FireAuthManager from './FirebaseAuthenticationManager.jsx';
-import { Group, GroupMember } from '../interfaces/group.jsx';
-import { GROUP_ROLE } from '../interfaces/constants.jsx';
-import { GROUPS_COLLECTION, GROUP_MEMBERS_COLLECTION, USERS_COLLECTION } from './collections.jsx'
-import { serverTimestamp } from 'firebase/firestore';
+import FirestoreManager from './firebase/FirestoreManager.jsx';
+import FireAuthManager from './firebase/FirebaseAuthenticationManager.jsx';
+import { Group, GroupMember } from './interfaces/Group.jsx';
+import { GROUP_ROLE } from './interfaces/Constants.jsx';
+import { GROUPS_COLLECTION, GROUP_MEMBERS_COLLECTION, USERS_COLLECTION } from './firebase/Collections.jsx'
+import { serverTimestamp } from '../services/firebase/FirebaseHelper.jsx';
 
 const GROUP_IMAGES_COLLECTION = 'groupimages';
 
@@ -38,7 +38,7 @@ const generateUniqueGroupId = async () => {
         const paddedNumber = counter.toString().padStart(6, '0');
         groupId = `OG${paddedNumber}`;
 
-        const existingGroup = await FirebaseManager.readDocument(GROUPS_COLLECTION, groupId);
+        const existingGroup = await FirestoreManager.readDocument(GROUPS_COLLECTION, groupId);
         if (!existingGroup) {
             isUnique = true;
         } else {
@@ -80,7 +80,7 @@ const createGroup = async (userId, name, description, maxMembers = 50, isPrivate
         });
 
         const { members, ...groupDataForFirebase } = group;
-        await FirebaseManager.createDocument(GROUPS_COLLECTION, groupDataForFirebase, groupId, true);
+        await FirestoreManager.createDocument(GROUPS_COLLECTION, groupDataForFirebase, groupId, true);
 
         await addGroupMember(groupId, userId, GROUP_ROLE.ADMIN);
 
@@ -99,7 +99,7 @@ const createGroup = async (userId, name, description, maxMembers = 50, isPrivate
  */
 const getGroupData = async (groupId) => {
     try {
-        const data = await FirebaseManager.readDocument(GROUPS_COLLECTION, groupId);
+        const data = await FirestoreManager.readDocument(GROUPS_COLLECTION, groupId);
         if (!data) {
             return null;
         } else {
@@ -177,7 +177,7 @@ const saveGroupImage = async (base64Data, groupId) => {
             updatedAt: serverTimestamp()
         };
 
-        await FirebaseManager.createDocument(GROUP_IMAGES_COLLECTION, imageData, groupId, true);
+        await FirestoreManager.createDocument(GROUP_IMAGES_COLLECTION, imageData, groupId, true);
 
         return {
             success: true,
@@ -197,7 +197,7 @@ const saveGroupImage = async (base64Data, groupId) => {
  */
 const getGroupImage = async (groupId) => {
     try {
-        const imageDoc = await FirebaseManager.readDocument(GROUP_IMAGES_COLLECTION, groupId);
+        const imageDoc = await FirestoreManager.readDocument(GROUP_IMAGES_COLLECTION, groupId);
         return imageDoc?.imageData || null;
     } catch (error) {
         console.error('Failed to get group image:', error);
@@ -232,7 +232,7 @@ const updateGroup = async (groupId, requesterId, groupData, skipPermissionCheck 
             }
         }
 
-        await FirebaseManager.updateDocument(GROUPS_COLLECTION, groupId, groupData, true);
+        await FirestoreManager.updateDocument(GROUPS_COLLECTION, groupId, groupData, true);
         return true;
     } catch (error) {
         console.error('Failed to update group:', error);
@@ -259,13 +259,13 @@ const deleteGroup = async (groupId, userId) => {
         const memberships = await getGroupMembers(groupId);
 
         for (const member of memberships) {
-            await FirebaseManager.deleteDocument(GROUP_MEMBERS_COLLECTION, member.membershipId);
+            await FirestoreManager.deleteDocument(GROUP_MEMBERS_COLLECTION, member.membershipId);
         }
 
         // 그룹과 함께 이미지도 삭제
-        await FirebaseManager.deleteDocument(GROUP_IMAGES_COLLECTION, groupId);
+        await FirestoreManager.deleteDocument(GROUP_IMAGES_COLLECTION, groupId);
 
-        await FirebaseManager.deleteDocument(GROUPS_COLLECTION, groupId);
+        await FirestoreManager.deleteDocument(GROUPS_COLLECTION, groupId);
     } catch (error) {
         console.error('Failed to delete group:', error);
         throw error;
@@ -280,7 +280,7 @@ const deleteGroup = async (groupId, userId) => {
  */
 const getAllGroups = async (limit = 50) => {
     try {
-        const snapshot = await FirebaseManager.getAllDocuments(GROUPS_COLLECTION);
+        const snapshot = await FirestoreManager.getAllDocuments(GROUPS_COLLECTION);
 
         const groups = [];
         const promises = [];
@@ -318,7 +318,7 @@ const getAllGroups = async (limit = 50) => {
  */
 const getUserGroups = async (userId) => {
     try {
-        const snapshot = await FirebaseManager.queryDocumentsByFieldValue(
+        const snapshot = await FirestoreManager.queryDocumentsByFieldValue(
             GROUP_MEMBERS_COLLECTION,
             'userId',
             userId
@@ -379,7 +379,7 @@ const addGroupMember = async (groupId, userId, role = GROUP_ROLE.MEMBER) => {
             joinedAt: serverTimestamp()
         });
 
-        await FirebaseManager.createDocument(GROUP_MEMBERS_COLLECTION, membership, membershipId, true);
+        await FirestoreManager.createDocument(GROUP_MEMBERS_COLLECTION, membership, membershipId, true);
 
         return membership;
     } catch (error) {
@@ -412,7 +412,7 @@ const updateMemberRole = async (groupId, adminId, targetUserId, newRole) => {
 
         targetMember.role = newRole;
 
-        await FirebaseManager.updateDocument(
+        await FirestoreManager.updateDocument(
             GROUP_MEMBERS_COLLECTION,
             targetMember.membershipId,
             { role: newRole },
@@ -470,7 +470,7 @@ const removeGroupMember = async (groupId, userId, targetUserId) => {
 
         if (isSelf) {
             targetMember.leave();
-            await FirebaseManager.updateDocument(
+            await FirestoreManager.updateDocument(
                 GROUP_MEMBERS_COLLECTION,
                 targetMember.membershipId,
                 { leftAt: serverTimestamp() },
@@ -487,14 +487,14 @@ const removeGroupMember = async (groupId, userId, targetUserId) => {
                         current.joinedAt < oldest.joinedAt ? current : oldest
                     );
 
-                    await FirebaseManager.updateDocument(
+                    await FirestoreManager.updateDocument(
                         GROUP_MEMBERS_COLLECTION,
                         oldestMember.membershipId,
                         { role: GROUP_ROLE.ADMIN },
                         true
                     );
 
-                    await FirebaseManager.updateDocument(
+                    await FirestoreManager.updateDocument(
                         GROUPS_COLLECTION,
                         groupId,
                         { createdBy: oldestMember.userId },
@@ -509,7 +509,7 @@ const removeGroupMember = async (groupId, userId, targetUserId) => {
             }
         } else {
             targetMember.leave();
-            await FirebaseManager.updateDocument(
+            await FirestoreManager.updateDocument(
                 GROUP_MEMBERS_COLLECTION,
                 targetMember.membershipId,
                 { leftAt: serverTimestamp() },
@@ -530,7 +530,7 @@ const removeGroupMember = async (groupId, userId, targetUserId) => {
  */
 const getGroupMembers = async (groupId) => {
     try {
-        const snapshot = await FirebaseManager.queryDocumentsByFieldValue(
+        const snapshot = await FirestoreManager.queryDocumentsByFieldValue(
             GROUP_MEMBERS_COLLECTION,
             'groupId',
             groupId
@@ -544,7 +544,7 @@ const getGroupMembers = async (groupId) => {
             const member = GroupMember.fromJSON(memberData);
 
             // Get user data for each member
-            const userPromise = FirebaseManager.readDocument(USERS_COLLECTION, member.userId)
+            const userPromise = FirestoreManager.readDocument(USERS_COLLECTION, member.userId)
                 .then(userData => {
                     if (userData) {
                         member.user = userData;
@@ -604,7 +604,7 @@ const canUserJoinGroup = async (groupId, userId) => {
 const getMembershipData = async (groupId, userId) => {
     try {
         const membershipId = `${groupId}_${userId}`;
-        const data = await FirebaseManager.readDocument(GROUP_MEMBERS_COLLECTION, membershipId);
+        const data = await FirestoreManager.readDocument(GROUP_MEMBERS_COLLECTION, membershipId);
 
         if (!data) {
             return null;
@@ -634,7 +634,7 @@ const rejoinGroup = async (groupId, userId) => {
         }
 
         const membershipId = `${groupId}_${userId}`;
-        const membershipData = await FirebaseManager.readDocument(GROUP_MEMBERS_COLLECTION, membershipId);
+        const membershipData = await FirestoreManager.readDocument(GROUP_MEMBERS_COLLECTION, membershipId);
 
         if (!membershipData) {
             throw new Error('No previous membership found');
@@ -648,7 +648,7 @@ const rejoinGroup = async (groupId, userId) => {
 
         membership.rejoin();
 
-        await FirebaseManager.updateDocument(
+        await FirestoreManager.updateDocument(
             GROUP_MEMBERS_COLLECTION,
             membershipId,
             {
@@ -693,7 +693,7 @@ const changeGroupAdmin = async (groupId, currentAdminId, newAdminId) => {
         }
 
         const newAdminMembershipId = `${groupId}_${newAdminId}`;
-        await FirebaseManager.updateDocument(
+        await FirestoreManager.updateDocument(
             GROUP_MEMBERS_COLLECTION,
             newAdminMembershipId,
             { role: GROUP_ROLE.ADMIN },
@@ -701,14 +701,14 @@ const changeGroupAdmin = async (groupId, currentAdminId, newAdminId) => {
         );
 
         const currentAdminMembershipId = `${groupId}_${currentAdminId}`;
-        await FirebaseManager.updateDocument(
+        await FirestoreManager.updateDocument(
             GROUP_MEMBERS_COLLECTION,
             currentAdminMembershipId,
             { role: GROUP_ROLE.MEMBER },
             true
         );
 
-        await FirebaseManager.updateDocument(
+        await FirestoreManager.updateDocument(
             GROUPS_COLLECTION,
             groupId,
             { createdBy: newAdminId },
@@ -724,7 +724,7 @@ const changeGroupAdmin = async (groupId, currentAdminId, newAdminId) => {
 
 const getPublicGroups = async () => {
     try {
-        const snapshot = await FirebaseManager.queryDocumentsByFieldValue(
+        const snapshot = await FirestoreManager.queryDocumentsByFieldValue(
             GROUPS_COLLECTION,
             'isPrivate',
             false

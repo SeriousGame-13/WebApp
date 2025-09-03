@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import '../../components/styles/LoginPage.css';
 import { ImageSelector } from './ImageComponents.jsx';
 import FirestoreManager from '../../services/firebase/FirestoreManager.jsx'
 

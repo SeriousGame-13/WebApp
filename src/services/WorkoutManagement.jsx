@@ -167,6 +167,47 @@ const loadWorkouts = async (userId) => {
 }
 
 /**
+ * Loads all workouts from all users in the system.
+ * Retrieves complete workout data with exercises for admin management.
+ * @async
+ * @function loadAllWorkouts
+ * @returns {Promise<Array<Workout>>} Array of all workout objects with user information
+ * @throws {Error} When database access fails or data cannot be processed
+ * 
+ * @example
+ * const allWorkouts = await loadAllWorkouts();
+ * console.log(`Found ${allWorkouts.length} total workouts across all users`);
+ */
+const loadAllWorkouts = async () => {
+    try {
+        // First get all users
+        const allUsers = await UserManagement.getAllActiveUsers();
+        const allWorkouts = [];
+
+        // Load workouts for each user
+        for (const user of allUsers) {
+            try {
+                const userWorkouts = await loadWorkouts(user.uid);
+                // Add user information to each workout
+                userWorkouts.forEach(workout => {
+                    workout.userDisplayName = user.displayName || 'Unknown User';
+                    workout.userEmail = user.email;
+                });
+                allWorkouts.push(...userWorkouts);
+            } catch (error) {
+                console.error(`Error loading workouts for user ${user.uid}:`, error);
+                // Continue with other users even if one fails
+            }
+        }
+
+        return allWorkouts;
+    } catch (error) {
+        console.error('Error loading all workouts:', error);
+        throw error;
+    }
+}
+
+/**
  * Loads a specific workout by ID including all its exercises.
  * Retrieves complete workout data with full exercise details.
  * @param {string} userId - The user ID who owns the workout
@@ -401,6 +442,7 @@ const WorkoutManager = {
     saveWorkout,
     loadWorkoutById,
     loadWorkouts,
+    loadAllWorkouts,
     deleteWorkout,
     update,
     addExercise,

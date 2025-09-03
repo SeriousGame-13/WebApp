@@ -182,12 +182,12 @@ const getCurrentUser = async () => {
  */
 const deleteUser = async (uid) => {
     try {
-        const user = getCurrentUser(uid);
+        const user = await getCurrentUser(uid);
 
         // Deactivate user document from Firestore, but keep it for historical/restoration purposes
         await FirestoreManager.updateDocument(USERS_COLLECTION, uid, { isActive: false }, true);
 
-        await user.delete();
+        user.deactivate();
     } catch (error) {
         console.error('Failed to delete user:', error);
         throw error;
@@ -591,6 +591,21 @@ const getBadges = async (userId) => {
     return badges;
 }
 
+const removeBadge = async (userId, badgeId) => {
+    const path = getUserDatabasePath(userId) + `${BADGES_USER_COLLECTION}`;
+    const userBadges = await FirestoreManager.getAllDocuments(path);
+    
+    for (let index = 0; index < userBadges.docs.length; index++) {
+        const doc = userBadges.docs[index];
+        const element = doc.data();
+        
+        if (element.badgeId === badgeId) {
+            await FirestoreManager.deleteDocument(path, doc.id);
+            break;
+        }
+    }
+};
+
 /**
  * @namespace UserManagement
  * @description Firebase service module for comprehensive user management functionality.
@@ -622,7 +637,8 @@ const UserManagement = {
     getBlockData,
     addPoints,
     awardBadge,
-    getBadges
+    getBadges,
+    removeBadge
 }
 
 export default UserManagement;

@@ -1,4 +1,3 @@
-import '../styles/ExpBar.css';
 import { Card } from './UIComponents.jsx';
 
 

@@ -10,13 +10,13 @@ const GRADIENTS = [
   "avatar-gradient-5",
 ];
 
-export function initials(name = "?") {
+function initials(name = "?") {
   const parts = name.split(new RegExp("\\s+")).filter(Boolean);
   const letters = parts.slice(0, 2).map(p => p[0]?.toUpperCase() || "?");
   return letters.join("");
 }
 
-export function badgeLevelColor(level) {
+function badgeLevelColor(level) {
   if (level === 3) return "badge-level-3";
   if (level === 2) return "badge-level-2";
   return "badge-level-1";
@@ -58,10 +58,12 @@ export function Modal({ open, onClose, children, title, size = "md" }) {
   );
 }
 
-export function Card({ children, onClick }) {
+export function Card({ children, onClick, className = "" }) {
   const Comp = onClick ? "button" : "div";
+  const base = onClick ? "card-button" : "card";
+  const cls = `${base}${className ? ` ${className}` : ""}`;
   return (
-    <Comp onClick={onClick} className={onClick ? "card-button" : "card"}>
+    <Comp onClick={onClick} className={cls}>
       {children}
     </Comp>
   );

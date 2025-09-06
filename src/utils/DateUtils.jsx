@@ -39,16 +39,26 @@ export function localDateTimeStringToTimestamp(value) {
 export function localTime(date) {
     date = date.toDate();
     const pad = (n) => n.toString().padStart(2, '0');
-    const y = date.getFullYear();
-    const m = pad(date.getMonth() + 1);
-    const d = pad(date.getDate());
     const h = pad(date.getHours());
     const min = pad(date.getMinutes());
     return `${h}:${min}`;
 };
 
 export function toDateTime(date) {
-    date = date.toDate();
+    // Handle Firebase Timestamp objects by converting them to Date objects
+    if (date?.toDate && typeof date.toDate === 'function') {
+        date = date.toDate();
+    } else if (!(date instanceof Date)) {
+        // If it's not a Timestamp or a Date object, try to parse it
+        const parsedDate = new Date(date);
+        if (isNaN(parsedDate.getTime())) {
+            console.error('Invalid date value for toDateTime:', date);
+            // Return a default or empty value to avoid crashing
+            return ''; 
+        }
+        date = parsedDate;
+    }
+
     const pad = (n) => n.toString().padStart(2, '0');
     const y = date.getFullYear();
     const m = pad(date.getMonth() + 1);

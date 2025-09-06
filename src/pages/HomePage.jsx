@@ -68,11 +68,10 @@ function HomePage({ userData }) {
 
       {/* Workout Selection Section */}
       <div className="mt-4">
-        <WorkoutSelector 
+  <WorkoutSelector 
           workouts={allWorkouts}
           selectedWorkoutId={selectedWorkoutId}
           onWorkoutSelect={handleWorkoutSelection}
-          helpers={helpers}
           isLoading={isLoadingLastWorkout}
         />
       </div>

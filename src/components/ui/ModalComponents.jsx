@@ -1,5 +1,5 @@
 import { Modal } from './UIComponents';
-import { toGermanDateLongFormat } from '../../utils/DateUtils';
+import { toGermanDateLongFormat, toDateTime } from '../../utils/DateUtils';
 
 /**
  * Modal for creating or editing a workout.
@@ -131,7 +131,7 @@ return (
           <div className="text-sm text-slate-300 mb-1">Start Time</div>
           <input 
             type="datetime-local" 
-            value={formData.exerciseStartTime.toISOString().slice(0, 16)} 
+            value={toDateTime(formData.exerciseStartTime)} 
             onChange={e => handleChange('exerciseStartTime', new Date(e.target.value))} 
             className="form-input w-full" 
           />
@@ -140,7 +140,7 @@ return (
           <div className="text-sm text-slate-300 mb-1">End Time</div>
           <input 
             type="datetime-local" 
-            value={formData.exerciseEndTime.toISOString().slice(0, 16)} 
+            value={toDateTime(formData.exerciseEndTime)} 
             onChange={e => handleChange('exerciseEndTime', new Date(e.target.value))} 
             className="form-input w-full" 
           />

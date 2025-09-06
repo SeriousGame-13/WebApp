@@ -76,6 +76,10 @@ export function useHomePage(userData) {
     getStationNameById: (stationId) => {
       const station = dataState.stations.find(s => s.uid === stationId);
       return station ? station.name : 'Unknown Station';
+    },
+    getGameNameById: (gameId) => {
+      const game = dataState.games.find(g => g.uid === gameId);
+      return game ? game.name : '';
     }
   };
 

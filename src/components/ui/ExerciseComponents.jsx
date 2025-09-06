@@ -11,7 +11,6 @@ import { Plus } from 'lucide-react';
  * @returns {JSX.Element} Exercise list component
  */
 export function ExerciseList({ exercises, helpers, onExerciseClick }) {
-  const { getStationNameById, getDateFromTimestamp } = helpers;
   
   if (!exercises || exercises.length === 0) {
     return (
@@ -47,21 +46,22 @@ export function ExerciseList({ exercises, helpers, onExerciseClick }) {
  * @returns {JSX.Element} Exercise card component
  */
 export function ExerciseCard({ exercise, helpers, onClick }) {
-  const { getStationNameById, getDateFromTimestamp } = helpers;
+  const { getStationNameById, getDateFromTimestamp, getGameNameById } = helpers;
   
   return (
     <Card className="exercise-card" onClick={onClick}>
-      <div className="flex justify-between items-center mb-1">
-        <div className="text-s text-slate-500">
+      <div className="exercise-card-header mb-1">
+        <div className="exercise-title">
           {exercise.name || getStationNameById(exercise.stationId)}
         </div>
-        <div className="text-s text-slate-500">
-          {getStationNameById(exercise.stationId)}
+        <div className="exercise-meta">
+          <div className="exercise-meta-primary">{getGameNameById(exercise.gameId) || getStationNameById(exercise.stationId)}</div>
+          {getGameNameById(exercise.gameId) && <div className="exercise-meta-secondary">{getStationNameById(exercise.stationId)}</div>}
         </div>
       </div>
       <div className="flex justify-between items-center mb-1">
         <div className="text-xs text-slate-400">
-          {((exercise.endTime - exercise.startTime) / 60)} min
+          {parseFloat((exercise.endTime - exercise.startTime) / 60).toFixed(1)} min
         </div>
         {exercise.startTime && exercise.endTime && (
           <div className="text-xs text-slate-400">

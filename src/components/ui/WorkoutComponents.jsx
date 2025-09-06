@@ -12,7 +12,7 @@ import { Card, Stat } from './UIComponents';
  * @param {boolean} props.isLoading - Loading state indicator
  * @returns {JSX.Element} Workout selector component
  */
-export function WorkoutSelector({ workouts, selectedWorkoutId, onWorkoutSelect, helpers, isLoading }) {
+export function WorkoutSelector({ workouts, selectedWorkoutId, onWorkoutSelect, isLoading }) {
   if (isLoading) {
     return (
         <Card>
@@ -79,7 +79,20 @@ export function WorkoutStats({ lastWorkout }) {
     
   return (
     <div className="grid-2 mt-4">
-      <Card><Stat label="DURATION" value={lastWorkout.getDurationFormatted()} /></Card>
+      <Card>
+        <Stat 
+          label="DURATION" 
+          value={
+            <div className="flex flex-col leading-tight">
+              <div className="flex gap-4 text-base">
+                <span><span className="text-slate-400">Active</span> {lastWorkout.getActiveTimeFormatted()}</span>
+                <span><span className="text-slate-400">Idle</span> {lastWorkout.getIdleTimeFormatted()}</span>
+              </div>
+              <span className="text-xs text-slate-400 mt-1">Total {lastWorkout.getDurationFormatted()}</span>
+            </div>
+          }
+        />
+      </Card>
       <Card><Stat label="POINTS" value={lastWorkout.points} /></Card>
       <Card><Stat label="CALORIES" value={<>{lastWorkout.calories} kcal</>} /></Card>
       <Card><Stat label="AVG HEART RATE" value={<>{lastWorkout.heartRateAvg || '--'} bpm</>} /></Card>

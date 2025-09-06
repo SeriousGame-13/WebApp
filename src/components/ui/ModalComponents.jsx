@@ -126,7 +126,7 @@ return (
         </select>
       </div>
       
-      <div className="grid-2 gap-4">  
+  <div className="flex flex-col gap-4">  
         <div>
           <div className="text-sm text-slate-300 mb-1">Start Time</div>
           <input 
@@ -232,7 +232,7 @@ export function ExerciseDetailModal({
 }) {
   if (!exercise) return null;
   
-  const { getStationNameById } = helpers;
+  const { getStationNameById, getGameNameById } = helpers;
 
   return (
     <Modal 
@@ -257,7 +257,14 @@ export function ExerciseDetailModal({
           </div>
         </div>
 
-        <div className="grid-2 gap-4">
+        <div>
+          <div className="text-sm text-slate-300 mb-1">Game</div>
+          <div className="form-input w-full bg-slate-700 text-slate-200">
+            {getGameNameById(exercise.gameId) || '—'}
+          </div>
+        </div>
+
+  <div className="flex flex-col gap-4">
           <div>
             <div className="text-sm text-slate-300 mb-1">Start Time</div>
             <div className="form-input w-full bg-slate-700 text-slate-200">

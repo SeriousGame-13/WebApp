@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import ChallengeManagement from '../services/ChallengeManagement.jsx';
 import GroupManagement from '../services/GroupManagementSystem.jsx';
 import UserManagement from '../services/UserManagementSystem.jsx';
@@ -41,7 +41,25 @@ function GroupPage({ groups, setGroups, joinedIds, setJoinedIds }) {
         [groups, search]
     );
 
-    const loadUserGroups = async () => {
+    // Sort: own groups first (owner), then joined groups, then others by name
+    const sorted = useMemo(() => {
+        const uid = currentUser?.uid;
+        const isOwner = (g) => uid && g.createdBy === uid;
+        const isMember = (g) => !!uid && (isOwner(g) || (g.memberIds || []).includes(uid) || joinedIds.includes(g.id));
+        return [...filtered].sort((a, b) => {
+            const aOwner = isOwner(a) ? 1 : 0;
+            const bOwner = isOwner(b) ? 1 : 0;
+            if (aOwner !== bOwner) return bOwner - aOwner; // owners first
+
+            const aJoined = isMember(a) ? 1 : 0;
+            const bJoined = isMember(b) ? 1 : 0;
+            if (aJoined !== bJoined) return bJoined - aJoined; // joined next
+
+            return a.name.localeCompare(b.name);
+        });
+    }, [filtered, joinedIds, currentUser]);
+
+    const loadUserGroups = useCallback(async () => {
         try {
             const user = await UserManagement.getCurrentUser();
             setCurrentUser(user);
@@ -68,11 +86,11 @@ function GroupPage({ groups, setGroups, joinedIds, setJoinedIds }) {
             console.error('Failed to load group list:', error);
             setGroups([]);
         }
-    };
+    }, [setGroups]);
 
     useEffect(() => {
         loadUserGroups();
-    }, []);
+    }, [loadUserGroups]);
 
     const current = opened ? groups.find(g => g.id === opened) : null;
 
@@ -114,8 +132,8 @@ function GroupPage({ groups, setGroups, joinedIds, setJoinedIds }) {
             return;
         }
         const userId = currentUser.uid;
-        const isJoined = joinedIds.includes(gid);
         const group = groups.find(g => g.id === gid);
+        const isJoined = joinedIds.includes(gid) || (group?.memberIds || []).includes(userId) || group?.createdBy === userId;
 
         try {
             if (isJoined) {
@@ -133,7 +151,7 @@ function GroupPage({ groups, setGroups, joinedIds, setJoinedIds }) {
             // Update joinedIds state
             const newJoinedIds = isJoined
                 ? joinedIds.filter(id => id !== gid)
-                : [...joinedIds, gid];
+                : [...new Set([...joinedIds, gid])];
             setJoinedIds(newJoinedIds);
 
             // Update groups state for member count and member list
@@ -142,7 +160,7 @@ function GroupPage({ groups, setGroups, joinedIds, setJoinedIds }) {
                     const newMembersCount = g.members + (isJoined ? -1 : 1);
                     const newMemberIds = isJoined
                         ? (g.memberIds || []).filter(id => id !== userId)
-                        : [...(g.memberIds || []), userId];
+                        : [...new Set([...(g.memberIds || []), userId])];
                     return { ...g, members: newMembersCount, memberIds: newMemberIds };
                 }
                 return g;
@@ -210,7 +228,7 @@ function GroupPage({ groups, setGroups, joinedIds, setJoinedIds }) {
     }, [current, opened, groups, joinedIds]);
 
     return (
-        <Screen title="Groups" subtitle={opened ? current?.name : "My Groups"}>
+        <Screen title={opened ? current?.name : "Groups"}>
             {!opened && (
                 <>
                     <div className="mb-4 flex items-center gap-2">
@@ -238,8 +256,8 @@ function GroupPage({ groups, setGroups, joinedIds, setJoinedIds }) {
                     </div>
 
                     <div className="space-y-3">
-                        {filtered.map(g => (
-                            <Card key={g.id}>
+                        {sorted.map(g => (
+                            <Card key={g.id} onClick={() => setOpened(g.id)}>
                                 <div className="flex items-center gap-4">
                                     <div className="flex-shrink-0">
                                         <Avatar 
@@ -254,22 +272,11 @@ function GroupPage({ groups, setGroups, joinedIds, setJoinedIds }) {
                                         <p className="text-slate-400 text-sm">{g.members} members</p>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <button
-                                            onClick={() => setOpened(g.id)}
-                                            className="btn-secondary"
-                                        >
-                                            Open
-                                        </button>
-                                        {currentUser && g.createdBy === currentUser.uid && (
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    deleteGroup(g.id);
-                                                }}
-                                                className="btn-secondary"
-                                            >
-                                                Delete
-                                            </button>
+                                        {/* Membership indicator */}
+                                        {currentUser && (g.createdBy === currentUser.uid || (g.memberIds || []).includes(currentUser.uid) || joinedIds.includes(g.id)) && (
+                                            <span className="pill pill-inactive text-xs py-2 px-3" onClick={(e) => e.stopPropagation()}>
+                                                {g.createdBy === currentUser.uid ? 'Owner' : 'Member'}
+                                            </span>
                                         )}
                                     </div>
                                 </div>
@@ -425,7 +432,7 @@ function GroupPage({ groups, setGroups, joinedIds, setJoinedIds }) {
                     </div>
 
                     <div className="flex gap-2 mt-4">
-                        {joinedIds.includes(current.id) ? (
+                        {(currentUser && ((current.memberIds || []).includes(currentUser.uid) || current.createdBy === currentUser.uid || joinedIds.includes(current.id))) ? (
                             <button
                                 onClick={() => toggleJoin(current.id)}
                                 className="btn-secondary"

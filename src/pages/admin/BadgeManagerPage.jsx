@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import BadgeManagement from '../../services/BadgeManagement.jsx';
 import UserManagement from '../../services/UserManagementSystem.jsx';
 import { BADGE_RARITY } from '../../services/interfaces/Constants.jsx';
@@ -8,7 +8,7 @@ import '../../components/styles/sphere-styles.css';
 import { Badge } from '../../services/interfaces/Badge.jsx';
 import RewardSystem from '../../services/RewardSystem.jsx';
 import BaseModel from '../../services/interfaces/Base.jsx';
-import { Plus, Edit, Trash2, Award, X, Users, Check } from 'lucide-react';
+import { Plus, Edit, Trash2, Award, X, Users, Check, Download, Upload, Layers } from 'lucide-react';
 
 // Shared Badge Form Component
 function BadgeForm({ badge = null, onSubmit, onCancel, isProcessing, submitText }) {
@@ -62,16 +62,7 @@ function BadgeForm({ badge = null, onSubmit, onCancel, isProcessing, submitText 
         );
     }
 
-    const inputFields = [
-        { key: 'name', label: 'Badge Name', type: 'text', maxLength: 50, placeholder: 'Enter badge name' },
-        { key: 'description', label: 'Description', type: 'text', maxLength: 200, placeholder: 'Enter badge description' },
-        { key: 'rewardPoints', label: 'Reward Points', type: 'number', min: 0, placeholder: 'Points awarded when earned' },
-        { key: 'collection', label: 'Collection', type: 'text', placeholder: 'e.g., exercises' },
-        { key: 'aggregate', label: 'Aggregate', type: 'text', placeholder: 'e.g., sum, count' },
-        { key: 'field', label: 'Field to Aggregate', type: 'text', placeholder: 'e.g., points' },
-        { key: 'valueToReach', label: 'Value to Reach', type: 'text', placeholder: 'e.g., 1000' },
-        { key: 'conditions', label: 'Conditions', type: 'textarea', rows: 4, placeholder: 'field:userId,operator:==,value:{user.uid}' }
-    ];
+    // Note: Individual inputs are rendered explicitly; previously defined inputFields were unused.
 
     return (
         <div className="modal-overlay">
@@ -241,18 +232,12 @@ function BadgeAssignmentManager({ badge, onClose, onAssignmentsUpdated }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedUsers, setSelectedUsers] = useState(new Set());
 
-    useEffect(() => {
-        loadUsersAndBadges();
-    }, [badge.badgeId]);
-
-    const loadUsersAndBadges = async () => {
+    const loadUsersAndBadges = useCallback(async () => {
         try {
             setIsLoading(true);
-            
             // Load all users
             const users = await UserManagement.getAllActiveUsers();
             setAllUsers(users);
-
             // Load badge assignments for each user
             const badgeMap = new Map();
             for (const user of users) {
@@ -272,7 +257,11 @@ function BadgeAssignmentManager({ badge, onClose, onAssignmentsUpdated }) {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [badge.badgeId]);
+
+    useEffect(() => {
+        loadUsersAndBadges();
+    }, [badge.badgeId, loadUsersAndBadges]);
 
     const handleUserToggle = (userId) => {
         setSelectedUsers(prev => {
@@ -468,11 +457,7 @@ function AdminBadgeDetailPopup({ badge, onClose, onBadgeUpdated }) {
     const [badgeImage, setBadgeImage] = useState('');
     const [imageLoading, setImageLoading] = useState(true);
 
-    useEffect(() => {
-        loadBadgeImage();
-    }, [badge.badgeId]);
-
-    const loadBadgeImage = async () => {
+    const loadBadgeImage = useCallback(async () => {
         try {
             setImageLoading(true);
             const imageData = await BadgeManagement.getBadgeImage(badge.badgeId);
@@ -483,7 +468,11 @@ function AdminBadgeDetailPopup({ badge, onClose, onBadgeUpdated }) {
         } finally {
             setImageLoading(false);
         }
-    };
+    }, [badge.badgeId]);
+
+    useEffect(() => {
+        loadBadgeImage();
+    }, [badge.badgeId, loadBadgeImage]);
 
     const handleDeleteBadge = async () => {
         const confirmDelete = confirm(`Are you sure you want to delete the badge "${badge.name}"? This action cannot be undone.`);
@@ -939,7 +928,7 @@ function UserSelectionPopup({ onClose, onUsersSelected }) {
     );
 }
 
-function BadgeManagerPage({ user }) {
+function BadgeManagerPage() {
     const [allBadges, setAllBadges] = useState([]);
     const [isLoadingBadges, setIsLoadingBadges] = useState(true);
     const [selectedBadge, setSelectedBadge] = useState(null);
@@ -947,6 +936,10 @@ function BadgeManagerPage({ user }) {
     const [isCreatingBadge, setIsCreatingBadge] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [showUserSelectionPopup, setShowUserSelectionPopup] = useState(false);
+    const [showImportPopup, setShowImportPopup] = useState(false);
+    const [importText, setImportText] = useState('');
+    const [isImporting, setIsImporting] = useState(false);
+    const [importSummary, setImportSummary] = useState(null);
 
     useEffect(() => {
         loadAllBadges();
@@ -962,6 +955,58 @@ function BadgeManagerPage({ user }) {
             setAllBadges([]);
         } finally {
             setIsLoadingBadges(false);
+        }
+    };
+
+    const exportBadges = async () => {
+        try {
+            let badges = allBadges;
+            if (!badges || badges.length === 0) {
+                // Ensure we have fresh data
+                const fresh = await BadgeManagement.getAllBadges();
+                badges = fresh || [];
+            }
+
+            const plain = badges.map(b => ({
+                badgeId: b.badgeId,
+                name: b.name,
+                description: b.description,
+                rarity: b.rarity,
+                rewardPoints: b.rewardPoints,
+                collection: b.collection,
+                aggregate: b.aggregate,
+                field: b.field,
+                valueToReach: b.valueToReach,
+                conditions: b.conditions,
+                createdAt: b.createdAt,
+                updatedAt: b.updatedAt,
+            }));
+
+            const json = JSON.stringify({ count: plain.length, badges: plain }, null, 2);
+
+            // Download file
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const date = new Date().toISOString().slice(0, 10);
+            a.href = url;
+            a.download = `badges-export-${date}.json`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+
+            // Copy to clipboard as convenience
+            try {
+                await navigator.clipboard.writeText(json);
+                alert(`Exported ${plain.length} badges. JSON copied to clipboard.`);
+            } catch {
+                // Clipboard might be blocked; still consider export successful
+                alert(`Exported ${plain.length} badges. Download started.`);
+            }
+        } catch (error) {
+            console.error('Failed to export badges:', error);
+            alert('Failed to export badges: ' + error.message);
         }
     };
 
@@ -995,6 +1040,216 @@ function BadgeManagerPage({ user }) {
         }
     };
 
+    // Smart import: create or update badges without duplicates (match by name or semantic key)
+    const importBadgesSmart = async (incoming) => {
+        setIsImporting(true);
+        try {
+            const existing = await BadgeManagement.getAllBadges();
+            const byName = new Map(existing.map(b => [String(b.name || '').trim().toLowerCase(), b]));
+            const keyOf = (b) => [b.collection||'', b.aggregate||'', b.field||'', String(b.valueToReach||'').trim(), String(b.conditions||'').trim()].join('|').toLowerCase();
+            const byKey = new Map(existing.map(b => [keyOf(b), b]));
+
+            let created = 0, updated = 0, skipped = 0;
+
+            for (const raw of incoming) {
+                const b = {
+                    name: raw.name?.trim() || 'Unnamed Badge',
+                    description: raw.description ?? '',
+                    rarity: (raw.rarity || BADGE_RARITY.COMMON).toLowerCase(),
+                    rewardPoints: Number(raw.rewardPoints ?? 0),
+                    collection: raw.collection || 'exercises',
+                    aggregate: raw.aggregate || 'sum',
+                    field: raw.field || 'points',
+                    valueToReach: String(raw.valueToReach ?? ''),
+                    conditions: raw.conditions || 'field:userId,operator:==,value:{user.uid}\n',
+                    imageData: raw.imageData || null,
+                };
+
+                const nameHit = byName.get(b.name.toLowerCase());
+                const keyHit = byKey.get(keyOf(b));
+                const hit = nameHit || keyHit;
+
+                try {
+                    if (hit?.badgeId) {
+                        // Update existing
+                        await BadgeManagement.updateBadge(hit.badgeId, {
+                            name: b.name,
+                            description: b.description,
+                            rarity: b.rarity,
+                            rewardPoints: b.rewardPoints,
+                            collection: b.collection,
+                            aggregate: b.aggregate,
+                            field: b.field,
+                            valueToReach: b.valueToReach,
+                            conditions: b.conditions,
+                        });
+                        if (b.imageData) {
+                            await BadgeManagement.saveBadgeImage(b.imageData, hit.badgeId);
+                        }
+                        updated++;
+                    } else {
+                        // Create new
+                        const createdBadge = await BadgeManagement.createBadge(b);
+                        if (b.imageData) {
+                            await BadgeManagement.saveBadgeImage(b.imageData, createdBadge.badgeId);
+                        }
+                        created++;
+                    }
+                } catch (e) {
+                    console.error('Import item failed', b, e);
+                    skipped++;
+                }
+            }
+
+            setImportSummary({ created, updated, skipped, total: incoming.length });
+            await loadAllBadges();
+        } finally {
+            setIsImporting(false);
+        }
+    };
+
+    // Generate Level badges (1–50) with scaling that matches existing Level 5 = 250 pts
+    const generateLevelBadges = () => {
+        const levels = Array.from({ length: 50 }, (_, i) => i + 1);
+        const levelBadges = levels.map(level => {
+            // Reward scaling: 50 pts per level (Level 5 -> 250 matches existing)
+            const rewardPoints = level * 50;
+            // Rarity tiering
+            const rarity = level >= 40 ? BADGE_RARITY.LEGENDARY
+                : level >= 30 ? BADGE_RARITY.EPIC
+                : level >= 20 ? BADGE_RARITY.RARE
+                : level >= 10 ? BADGE_RARITY.UNCOMMON
+                : BADGE_RARITY.COMMON;
+            return {
+                name: `Level ${level}`,
+                description: `Achieve Level ${level}`,
+                rarity,
+                rewardPoints,
+                collection: 'users',
+                aggregate: 'sum',
+                field: 'level',
+                valueToReach: String(level),
+                conditions: 'field:uid,operator:==,value:{user.uid}\n',
+            };
+        });
+        return levelBadges;
+    };
+
+    const handleGenerateLevelsAndImport = async () => {
+        const generated = generateLevelBadges();
+        await importBadgesSmart(generated);
+        alert('Level badges generated and imported.');
+    };
+
+    // Generate non-level badges across rarities with scaling
+    const generateNonLevelBadges = () => {
+        const out = [];
+
+        // 1) Calories burned (sum calories) – keep ratio ~0.25 pts per calorie like existing 1000 => 250
+        const caloriesPlan = [
+            { rarity: BADGE_RARITY.COMMON, thresholds: [2500] },
+            { rarity: BADGE_RARITY.UNCOMMON, thresholds: [5000] },
+            { rarity: BADGE_RARITY.RARE, thresholds: [10000] },
+            { rarity: BADGE_RARITY.EPIC, thresholds: [20000] },
+            { rarity: BADGE_RARITY.LEGENDARY, thresholds: [50000] },
+        ];
+        for (const { rarity, thresholds } of caloriesPlan) {
+            for (const t of thresholds) {
+                out.push({
+                    name: `Calories Burned ${t}`,
+                    description: `Burn a total of ${t} calories`,
+                    rarity,
+                    rewardPoints: Math.round(t * 0.25),
+                    collection: 'exercises',
+                    aggregate: 'sum',
+                    field: 'calories',
+                    valueToReach: String(t),
+                    conditions: 'field:userId,operator:==,value:{user.uid}\n',
+                });
+            }
+        }
+
+        // 2) Training sessions overall (count) – 50 pts per session
+        const sessionsPlan = [
+            { rarity: BADGE_RARITY.COMMON, thresholds: [10, 20] },
+            { rarity: BADGE_RARITY.UNCOMMON, thresholds: [30, 40] },
+            { rarity: BADGE_RARITY.RARE, thresholds: [50] },
+            { rarity: BADGE_RARITY.EPIC, thresholds: [75] },
+            { rarity: BADGE_RARITY.LEGENDARY, thresholds: [100] },
+        ];
+        for (const { rarity, thresholds } of sessionsPlan) {
+            for (const t of thresholds) {
+                out.push({
+                    name: `Training Sessions ${t}x`,
+                    description: `Train for a total of ${t} sessions`,
+                    rarity,
+                    rewardPoints: t * 50,
+                    collection: 'exercises',
+                    aggregate: 'count',
+                    field: 'points',
+                    valueToReach: String(t),
+                    conditions: 'field:userId,operator:==,value:{user.uid}\n',
+                });
+            }
+        }
+
+        // 3) Total points (sum) – 0.05 pts per point collected
+        const totalPointsPlan = [
+            { rarity: BADGE_RARITY.COMMON, thresholds: [5000] },
+            { rarity: BADGE_RARITY.UNCOMMON, thresholds: [10000] },
+            { rarity: BADGE_RARITY.RARE, thresholds: [25000] },
+            { rarity: BADGE_RARITY.EPIC, thresholds: [50000] },
+            { rarity: BADGE_RARITY.LEGENDARY, thresholds: [100000] },
+        ];
+        for (const { rarity, thresholds } of totalPointsPlan) {
+            for (const t of thresholds) {
+                out.push({
+                    name: `Total Points ${t}`,
+                    description: `Achieve a total of ${t} points`,
+                    rarity,
+                    rewardPoints: Math.round(t * 0.05),
+                    collection: 'exercises',
+                    aggregate: 'sum',
+                    field: 'points',
+                    valueToReach: String(t),
+                    conditions: 'field:userId,operator:==,value:{user.uid}\n',
+                });
+            }
+        }
+
+        // 4) Community groups joined (count) – 50 pts per group
+        const groupsPlan = [
+            { rarity: BADGE_RARITY.COMMON, thresholds: [5] },
+            { rarity: BADGE_RARITY.UNCOMMON, thresholds: [10] },
+            { rarity: BADGE_RARITY.RARE, thresholds: [20] },
+            { rarity: BADGE_RARITY.EPIC, thresholds: [30] },
+            { rarity: BADGE_RARITY.LEGENDARY, thresholds: [50] },
+        ];
+        for (const { rarity, thresholds } of groupsPlan) {
+            for (const t of thresholds) {
+                out.push({
+                    name: `Community Player ${t}`,
+                    description: `Join ${t} groups`,
+                    rarity,
+                    rewardPoints: t * 50,
+                    collection: 'user_group_members',
+                    aggregate: 'count',
+                    field: 'groupId',
+                    valueToReach: String(t),
+                    conditions: 'field:userId,operator:==,value:{user.uid}\n',
+                });
+            }
+        }
+
+        return out;
+    };
+
+    const handleGenerateNonLevelAndImport = async () => {
+        const generated = generateNonLevelBadges();
+        await importBadgesSmart(generated);
+        alert('Non-level badges generated and imported.');
+    };
+
     const filteredBadges = allBadges.filter(badge =>
         badge.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         badge.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -1009,9 +1264,33 @@ function BadgeManagerPage({ user }) {
 
     const additionalButtons = [
         {
+            text: 'Import Badges',
+            icon: Upload,
+            onClick: () => setShowImportPopup(true),
+            className: 'btn-secondary'
+        },
+        {
+            text: 'Export Badges',
+            icon: Download,
+            onClick: exportBadges,
+            className: 'btn-secondary'
+        },
+        {
             text: 'Award Badges',
             icon: Award,
             onClick: () => setShowUserSelectionPopup(true),
+            className: 'btn-secondary'
+        },
+        {
+            text: 'Generate Level Badges',
+            icon: Layers,
+            onClick: handleGenerateLevelsAndImport,
+            className: 'btn-secondary'
+        },
+        {
+            text: 'Generate Non-Level Badges',
+            icon: Layers,
+            onClick: handleGenerateNonLevelAndImport,
             className: 'btn-secondary'
         }
     ];
@@ -1070,6 +1349,56 @@ function BadgeManagerPage({ user }) {
                     isProcessing={isCreatingBadge}
                     submitText="Create Badge"
                 />
+            )}
+
+            {showImportPopup && (
+                <div className="modal-overlay">
+                    <div className="modal-backdrop" onClick={() => setShowImportPopup(false)}></div>
+                    <div className="modal-content max-w-xl">
+                        <div className="modal-header">
+                            <h2 className="modal-title">Import Badges (JSON)</h2>
+                            <button className="modal-close" onClick={() => setShowImportPopup(false)}>
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <div className="space-y-3">
+                            <textarea
+                                className="form-textarea"
+                                rows={12}
+                                placeholder='Paste JSON here (array of badges or {"badges": [...]})'
+                                value={importText}
+                                onChange={(e) => setImportText(e.target.value)}
+                            />
+                            {importSummary && (
+                                <div className="text-sm text-slate-300">
+                                    Imported: {importSummary.total} • Created: {importSummary.created} • Updated: {importSummary.updated} • Skipped: {importSummary.skipped}
+                                </div>
+                            )}
+                            <div className="flex justify-end gap-2">
+                                <button className="btn-secondary" onClick={() => setShowImportPopup(false)}>Close</button>
+                                <button
+                                    className="btn-primary"
+                                    disabled={isImporting || !importText.trim()}
+                                    onClick={async () => {
+                                        try {
+                                            const parsed = JSON.parse(importText);
+                                            const list = Array.isArray(parsed) ? parsed : Array.isArray(parsed.badges) ? parsed.badges : [];
+                                            if (list.length === 0) {
+                                                alert('No badges found in JSON.');
+                                                return;
+                                            }
+                                            await importBadgesSmart(list);
+                                        } catch (e) {
+                                            alert('Invalid JSON: ' + e.message);
+                                        }
+                                    }}
+                                >
+                                    {isImporting ? 'Importing...' : 'Import'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             )}
 
             {selectedBadge && (

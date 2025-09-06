@@ -13,9 +13,9 @@ import { HIGHSCORE_COLLECTION } from '../../services/firebase/Collections.jsx';
 import { Highscore } from '../../services/interfaces/Highscore.jsx';
 
 // Mock dependencies
-vi.mock('../services/firebase/FirestoreManager.jsx');
-vi.mock('../services/UserManagementSystem.jsx');
-vi.mock('../services/interfaces/Highscore.jsx');
+vi.mock('../../services/firebase/FirestoreManager.jsx');
+vi.mock('../../services/UserManagementSystem.jsx');
+vi.mock('../../services/interfaces/Highscore.jsx');
 
 describe('HighscoreManager', () => {
     beforeEach(() => {

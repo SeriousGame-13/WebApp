@@ -5,7 +5,7 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 
 // Mock Firebase configuration first
-vi.mock('../services/firebase/FirebaseAppConfiguration', () => ({
+vi.mock('../../services/firebase/FirebaseAppConfiguration', () => ({
     firebaseApp: {}
 }));
 
@@ -31,7 +31,7 @@ vi.mock('firebase/firestore', () => ({
 }));
 
 // Mock all services
-vi.mock('../services/firebase/FirestoreManager', () => ({
+vi.mock('../../services/firebase/FirestoreManager', () => ({
     default: {
         createDocument: vi.fn(),
         readDocument: vi.fn(),
@@ -41,7 +41,7 @@ vi.mock('../services/firebase/FirestoreManager', () => ({
     }
 }));
 
-vi.mock('../services/UserManagementSystem', () => ({
+vi.mock('../../services/UserManagementSystem', () => ({
     default: {
         getUserDatabasePath: vi.fn((userId) => `users/${userId}/`),
         addPoints: vi.fn(),
@@ -49,38 +49,38 @@ vi.mock('../services/UserManagementSystem', () => ({
     }
 }));
 
-vi.mock('../services/ChallengeManagement', () => ({
+vi.mock('../../services/ChallengeManagement', () => ({
     default: {
         getUserChallenges: vi.fn(),
         updateProgress: vi.fn()
     }
 }));
 
-vi.mock('../services/GoalSystem', () => ({
+vi.mock('../../services/GoalSystem', () => ({
     default: {
         updateGoalsFromWorkout: vi.fn()
     }
 }));
 
-vi.mock('../services/HighscoreManager', () => ({
+vi.mock('../../services/HighscoreManager', () => ({
     default: {
         create: vi.fn()
     }
 }));
 
-vi.mock('../services/RewardSystem', () => ({
+vi.mock('../../services/RewardSystem', () => ({
     default: {
         awardBadges: vi.fn()
     }
 }));
 
-vi.mock('../services/firebase/Collections', () => ({
+vi.mock('../../services/firebase/Collections', () => ({
     WORKOUT_COLLECTION: 'workouts/',
     EXERCISE_COLLECTION: 'exercises/'
 }));
 
 // Mock interfaces
-vi.mock('../services/interfaces/Workout', () => ({
+vi.mock('../../services/interfaces/Workout', () => ({
     Workout: vi.fn().mockImplementation((data = {}) => ({
         uid: data.uid || 'mock-workout-id',
         userId: data.userId || 'mock-user-id',
@@ -92,7 +92,7 @@ vi.mock('../services/interfaces/Workout', () => ({
     }))
 }));
 
-vi.mock('../services/interfaces/Exercise', () => {
+vi.mock('../../services/interfaces/Exercise', () => {
     const ExerciseMock = vi.fn().mockImplementation((data = {}) => ({
         uid: data.uid || 'mock-exercise-id',
         userId: data.userId || 'mock-user-id',

@@ -12,7 +12,7 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 
 // Mock Firebase configuration first
-vi.mock('../services/firebase/FirebaseAppConfiguration', () => ({
+vi.mock('../../services/firebase/FirebaseAppConfiguration', () => ({
     firebaseApp: {}
 }));
 
@@ -38,12 +38,12 @@ vi.mock('firebase/firestore', () => ({
 }));
 
 // Mock FirebaseHelper
-vi.mock('../services/firebase/FirebaseHelper', () => ({
+vi.mock('../../services/firebase/FirebaseHelper', () => ({
     serverTimestamp: vi.fn(() => ({ type: 'server_timestamp' }))
 }));
 
 // Mock FirestoreManager
-vi.mock('../services/firebase/FirestoreManager', () => ({
+vi.mock('../../services/firebase/FirestoreManager', () => ({
     default: {
         createDocument: vi.fn(),
         readDocument: vi.fn(),
@@ -54,13 +54,13 @@ vi.mock('../services/firebase/FirestoreManager', () => ({
 }));
 
 // Mock Collections
-vi.mock('../services/firebase/Collections', () => ({
+vi.mock('../../services/firebase/Collections', () => ({
     BADGES_COLLECTION: 'badges',
     BADGE_IMAGES_COLLECTION: 'badgeimages'
 }));
 
 // Mock Badge interface
-vi.mock('../services/interfaces/Badge', () => {
+vi.mock('../../services/interfaces/Badge', () => {
     const BadgeMock = vi.fn().mockImplementation((data = {}) => ({
         uid: data.uid || 'mock-badge-uid',
         badgeId: data.badgeId || null,

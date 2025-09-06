@@ -12,7 +12,7 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 
 // Mock Firebase configuration first
-vi.mock('../services/firebase/FirebaseAppConfiguration', () => ({
+vi.mock('../../services/firebase/FirebaseAppConfiguration', () => ({
     firebaseApp: {}
 }));
 
@@ -44,7 +44,7 @@ vi.mock('firebase/firestore', () => ({
 }));
 
 // Mock FirebaseHelper
-vi.mock('../services/firebase/FirebaseHelper', () => ({
+vi.mock('../../services/firebase/FirebaseHelper', () => ({
     serverTimestamp: vi.fn(() => ({ type: 'server_timestamp' })),
     Timestamp: {
         fromMillis: vi.fn((millis) => ({ 
@@ -62,7 +62,7 @@ vi.mock('../services/firebase/FirebaseHelper', () => ({
 }));
 
 // Mock FirestoreManager
-vi.mock('../services/firebase/FirestoreManager', () => ({
+vi.mock('../../services/firebase/FirestoreManager', () => ({
     default: {
         createDocument: vi.fn(),
         readDocument: vi.fn(),
@@ -74,13 +74,13 @@ vi.mock('../services/firebase/FirestoreManager', () => ({
 }));
 
 // Mock Collections
-vi.mock('../services/firebase/Collections', () => ({
+vi.mock('../../services/firebase/Collections', () => ({
     CHALLENGES_COLLECTION: 'challenges',
     CHALLENGE_PARTICIPANTS_SUBCOLLECTION: 'participants'
 }));
 
 // Mock UserManagementSystem
-vi.mock('../services/UserManagementSystem', () => ({
+vi.mock('../../services/UserManagementSystem', () => ({
     default: {
         getAllActiveUsers: vi.fn(),
         getUser: vi.fn()
@@ -88,21 +88,21 @@ vi.mock('../services/UserManagementSystem', () => ({
 }));
 
 // Mock GroupManagementSystem  
-vi.mock('../services/GroupManagementSystem', () => ({
+vi.mock('../../services/GroupManagementSystem', () => ({
     default: {
         getGroup: vi.fn()
     }
 }));
 
 // Mock RewardSystem
-vi.mock('../services/RewardSystem', () => ({
+vi.mock('../../services/RewardSystem', () => ({
     default: {
         awardChallengeRewards: vi.fn()
     }
 }));
 
 // Mock Challenge interfaces
-vi.mock('../services/interfaces/Challenge', () => {
+vi.mock('../../services/interfaces/Challenge', () => {
     const ChallengeMock = vi.fn().mockImplementation((data = {}) => ({
         uid: data.uid || 'mock-challenge-uid',
         challengeId: data.challengeId || null,
@@ -146,7 +146,7 @@ vi.mock('../services/interfaces/Challenge', () => {
 });
 
 // Mock Constants
-vi.mock('../services/interfaces/Constants', () => ({
+vi.mock('../../services/interfaces/Constants', () => ({
     CHALLENGE_VISIBILITY: {
         PUBLIC: 'PUBLIC',
         HIDDEN: 'HIDDEN',

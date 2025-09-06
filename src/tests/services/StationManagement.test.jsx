@@ -12,8 +12,8 @@ import { Station } from '../../services/interfaces/Station.jsx';
 import { STATION_COLLECTION } from '../../services/firebase/Collections.jsx';
 
 // Mock dependencies
-vi.mock('../services/firebase/FirestoreManager.jsx');
-vi.mock('../services/interfaces/Station.jsx');
+vi.mock('../../services/firebase/FirestoreManager.jsx');
+vi.mock('../../services/interfaces/Station.jsx');
 
 describe('StationManagement', () => {
     beforeEach(() => {

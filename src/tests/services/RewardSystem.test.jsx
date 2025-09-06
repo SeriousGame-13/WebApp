@@ -16,12 +16,12 @@ import { aggregate, buildConditions } from '../../services/firebase/FirebaseHelp
 import { CHALLENGE_STATUS, CHALLENGE_STYLE } from '../../services/interfaces/Constants.jsx';
 
 // Mock dependencies
-vi.mock('../services/ChallengeManagement.jsx');
-vi.mock('../services/TournamentManagement.jsx');
-vi.mock('../services/UserManagementSystem.jsx');
-vi.mock('../services/BadgeManagement.jsx');
-vi.mock('../services/firebase/FirestoreManager.jsx');
-vi.mock('../services/firebase/FirebaseHelper.jsx');
+vi.mock('../../services/ChallengeManagement.jsx');
+vi.mock('../../services/TournamentManagement.jsx');
+vi.mock('../../services/UserManagementSystem.jsx');
+vi.mock('../../services/BadgeManagement.jsx');
+vi.mock('../../services/firebase/FirestoreManager.jsx');
+vi.mock('../../services/firebase/FirebaseHelper.jsx');
 
 describe('RewardSystem', () => {
     beforeEach(() => {

@@ -12,8 +12,8 @@ import FirestoreManager from '../../services/firebase/FirestoreManager.jsx';
 import { HIGHSCORE_COLLECTION } from '../../services/firebase/Collections.jsx';
 
 // Mock dependencies
-vi.mock('../services/UserManagementSystem.jsx');
-vi.mock('../services/firebase/FirestoreManager.jsx');
+vi.mock('../../services/UserManagementSystem.jsx');
+vi.mock('../../services/firebase/FirestoreManager.jsx');
 
 describe('RankingSystem', () => {
     beforeEach(() => {

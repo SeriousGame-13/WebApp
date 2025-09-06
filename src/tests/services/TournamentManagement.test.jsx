@@ -12,7 +12,7 @@ import { Challenge, ChallengeParticipant } from '../../services/interfaces/Chall
 import { CHALLENGE_STYLE, CHALLENGE_VISIBILITY } from '../../services/interfaces/Constants.jsx';
 
 // Mock dependencies
-vi.mock('../services/ChallengeManagement.jsx');
+vi.mock('../../services/ChallengeManagement.jsx');
 
 describe('TournamentManagement', () => {
     beforeEach(() => {

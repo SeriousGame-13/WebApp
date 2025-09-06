@@ -13,12 +13,12 @@ import { GROUPS_COLLECTION, GROUP_MEMBERS_COLLECTION, USERS_COLLECTION } from '.
 import { serverTimestamp } from '../../services/firebase/FirebaseHelper.jsx';
 
 // Mock Firebase configuration
-vi.mock('../services/firebase/FirebaseAppConfiguration', () => ({
+vi.mock('../../services/firebase/FirebaseAppConfiguration', () => ({
     firebaseApp: {}
 }));
 
 // Mock FirebaseAuthenticationManager
-vi.mock('../services/firebase/FirebaseAuthenticationManager', () => {
+vi.mock('../../services/firebase/FirebaseAuthenticationManager', () => {
     const mockUser = {
         uid: 'test-user-id',
         email: 'test@example.com',
@@ -58,7 +58,7 @@ const mockedDocuments = {
 
 let documentIdCounter = 1;
 
-vi.mock('../services/firebase/FirestoreManager', () => ({
+vi.mock('../../services/firebase/FirestoreManager', () => ({
     default: {
         createDocument: vi.fn((collection, data, id, overwrite = false) => {
             if (!mockedDocuments[collection]) {

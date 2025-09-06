@@ -12,10 +12,10 @@ import { STATION_GAMES_COLLECTION } from '../../services/firebase/Collections.js
 import { StationGame } from '../../services/interfaces/Station.jsx';
 
 // Mock FirestoreManager
-vi.mock('../services/firebase/FirestoreManager.jsx');
+vi.mock('../../services/firebase/FirestoreManager.jsx');
 
 // Mock StationGame
-vi.mock('../services/interfaces/Station.jsx', () => ({
+vi.mock('../../services/interfaces/Station.jsx', () => ({
     StationGame: vi.fn().mockImplementation((data) => ({
         ...data,
         uid: data?.uid || 'station-game-123'

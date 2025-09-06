@@ -14,10 +14,10 @@ import { GOALS_COLLECTION } from '../../services/firebase/Collections.jsx';
 import { serverTimestamp } from '../../services/firebase/FirebaseHelper.jsx';
 
 // Mock dependencies
-vi.mock('../services/firebase/FirestoreManager.jsx');
-vi.mock('../services/UserManagementSystem.jsx');
-vi.mock('../services/interfaces/Goal.jsx');
-vi.mock('../services/firebase/FirebaseHelper.jsx');
+vi.mock('../../services/firebase/FirestoreManager.jsx');
+vi.mock('../../services/UserManagementSystem.jsx');
+vi.mock('../../services/interfaces/Goal.jsx');
+vi.mock('../../services/firebase/FirebaseHelper.jsx');
 
 describe('GoalSystem', () => {
     beforeEach(() => {

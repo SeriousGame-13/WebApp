@@ -71,10 +71,14 @@ export function WorkoutModal({ open, onClose, formData, onChange, onSave, onDele
  * @param {Function} props.onDelete - Callback to delete exercise
  * @returns {JSX.Element} Exercise modal component
  */
-export function ExerciseModal({ open, onClose, formData, onChange, stations, isEditing, onSave, onDelete}) {
+export function ExerciseModal({ open, onClose, formData, onChange, stations, games, isEditing, onSave, onDelete}) {
   const handleChange = (field, value) => {
     onChange({ ...formData, [field]: value });
   };
+
+  const availableGames = formData.selectedStation && Array.isArray(games)
+    ? games.filter(game => game.stationId === formData.selectedStation)
+    : [];
   
 return (
   <Modal open={open} onClose={onClose} title={isEditing ? "Edit Exercise" : "Add Exercise"} size="md">
@@ -103,6 +107,23 @@ return (
             ))}
           </select>
         </div>
+      </div>
+      
+      <div>
+        <div className="text-sm text-slate-300 mb-1">Game (Optional)</div>
+        <select
+          value={formData.gameId || ''}
+          onChange={e => handleChange('gameId', e.target.value)}
+          className="form-input w-full"
+          disabled={!formData.selectedStation}
+        >
+          <option value="">No Game</option>
+          {availableGames.map(game => (
+            <option key={game.uid} value={game.uid}>
+              {game.name}
+            </option>
+          ))}
+        </select>
       </div>
       
       <div className="grid-2 gap-4">  
@@ -211,7 +232,7 @@ export function ExerciseDetailModal({
 }) {
   if (!exercise) return null;
   
-  const { getStationNameById, getDateFromTimestamp } = helpers;
+  const { getStationNameById } = helpers;
 
   return (
     <Modal 

@@ -56,6 +56,11 @@ vi.mock('firebase/firestore', () => {
         collection: vi.fn(() => 'mock-collection'),
         getDocs: vi.fn(() => Promise.resolve(mockQuerySnapshot)),
         serverTimestamp: vi.fn(() => mockTimestamp),
+        Timestamp: {
+            now: vi.fn(() => mockTimestamp),
+            fromDate: vi.fn((date) => ({ ...mockTimestamp, date })),
+            toDate: vi.fn(() => new Date())
+        },
         addDoc: vi.fn(() => Promise.resolve({
             id: 'auto-generated-id',
             path: 'collection/auto-generated-id'
@@ -71,7 +76,7 @@ vi.mock('firebase/firestore', () => {
 });
 
 // Import after mocks are set up
-import FirestoreManager from '../services/firebase/FirestoreManager';
+import FirestoreManager from '../../../services/firebase/FirestoreManager';
 
 describe('FirestoreManager', () => {
     // Test-local mock data that we'll use for assertions

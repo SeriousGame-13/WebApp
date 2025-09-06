@@ -3,7 +3,7 @@ import BadgeManagement from "./BadgeManagement.jsx";
 import ChallengeManagement from './ChallengeManagement.jsx';
 import FirestoreManager from './firebase/FirestoreManager.jsx';
 import { CHALLENGE_STATUS, CHALLENGE_STYLE } from './interfaces/Constants.jsx';
-import CompetitonSystem from './TournamentManagement.jsx';
+import TournamentManagement from './TournamentManagement.jsx';
 import UserManagement from './UserManagementSystem.jsx';
 
 /**
@@ -33,7 +33,7 @@ const awardChallengeRewards = async (challengeId) => {
                     }
                     break;
                 case CHALLENGE_STYLE.TOURNAMENT:
-                    console.error("Implement !!!");
+                    await awardTournamentRewards(challengeId);
                     break;
             }
         }
@@ -48,33 +48,44 @@ const awardChallengeRewards = async (challengeId) => {
 
 /**
  * Awards rewards to tournament winners. TOP 5 participants receive multiplied points based on their rank.
- * @param {string} challengeId - ID of the tournament
+ * @param {string} tournamentId - ID of the tournament
  * @returns {Promise<void>}
  */
-const awardTournamentRewards = async (challengeId) => {
+const awardTournamentRewards = async (tournamentId) => {
     try {
-        const challenge = await CompetitonSystem.getChallenge(challengeId);
-        if (!challenge || challenge.challengeType !== CHALLENGE_STYLE.TOURNAMENT) {
+        const tournament = await TournamentManagement.getTournament(tournamentId);
+        if (!tournament || tournament.challengeType !== CHALLENGE_STYLE.TOURNAMENT) {
             return;
         }
 
-        const results = await CompetitonSystem.getChallengeResults(challengeId);
+        const participants = await TournamentManagement.getTournamentParticipants(tournamentId);
+        
+        // Sort participants by their progress/score (assuming higher is better)
+        const sortedParticipants = participants
+            .filter(p => p.completed) // Only include completed participants
+            .sort((a, b) => (b.progress || 0) - (a.progress || 0));
 
-        // TODO: Award different points based on ranking?
+        // Award different points based on ranking
         const rewardStructure = {
-            1: challenge.rewardPoints * 5,
-            2: challenge.rewardPoints * 4,
-            3: challenge.rewardPoints * 3,
-            4: challenge.rewardPoints * 2,
-            5: challenge.rewardPoints * 1.5,
+            1: tournament.rewardPoints * 5,
+            2: tournament.rewardPoints * 4,
+            3: tournament.rewardPoints * 3,
+            4: tournament.rewardPoints * 2,
+            5: tournament.rewardPoints * 1.5,
         };
 
-        for (const result of results) {
-            const reward = rewardStructure[result.rank] || challenge.rewardPoints;
+        for (let i = 0; i < sortedParticipants.length && i < 5; i++) {
+            const participant = sortedParticipants[i];
+            const rank = i + 1;
+            const reward = rewardStructure[rank] || tournament.rewardPoints;
+            
             if (reward > 0) {
-                await UserManagement.addPoints(result.userId, Math.floor(reward));
+                await UserManagement.addPoints(participant.userId, Math.floor(reward));
             }
         }
+
+        // Mark tournament as finished after awarding rewards
+        await ChallengeManagement.updateChallenge(tournamentId, { status: CHALLENGE_STATUS.FINISHED });
     } catch (error) {
         console.error('Failed to award tournament rewards:', error);
     }

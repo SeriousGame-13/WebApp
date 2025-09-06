@@ -110,7 +110,7 @@ const signupUser = async (nickname, email, password) => {
  */
 const updateUser = async (uid, userData) => {
     try {
-        const user = await getCurrentUser(uid);
+        const user = await getUser(uid);
 
         // Update Authentication profile if needed
         if (userData.displayName) {
@@ -143,7 +143,7 @@ const updateUser = async (uid, userData) => {
  */
 const addPoints = async (uid, points) => {
     try {
-        const user = await getCurrentUser(uid);
+        const user = await getUser(uid);
 
         user.addPoints(points);
 
@@ -182,7 +182,7 @@ const getCurrentUser = async () => {
  */
 const deleteUser = async (uid) => {
     try {
-        const user = await getCurrentUser(uid);
+        const user = await getUser(uid);
 
         // Deactivate user document from Firestore, but keep it for historical/restoration purposes
         await FirestoreManager.updateDocument(USERS_COLLECTION, uid, { isActive: false }, true);

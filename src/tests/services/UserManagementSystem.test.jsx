@@ -399,7 +399,7 @@ vi.mock('../services/firebase/FirestoreManager', () => {
 });
 
 // Mock WorkoutManagement
-vi.mock('../services/firebase/WorkoutManagement.jsx', () => ({
+vi.mock('../services/WorkoutManagement.jsx', () => ({
     loadWorkouts: vi.fn(() => Promise.resolve([])),
     default: {
         loadWorkouts: vi.fn(() => Promise.resolve([]))
@@ -458,7 +458,7 @@ vi.mock('../services/firebase/collections.jsx', () => ({
 }));
 
 // Import after mocks are set up
-import UserManagement from '../services/UserManagementSystem.jsx';
+import UserManagement from '../../services/UserManagementSystem.jsx';
 
 describe('UserManagementSystem', () => {
     // Access to mocked modules
@@ -478,10 +478,10 @@ describe('UserManagementSystem', () => {
         }
         
         // Get references to mocked modules
-        FirestoreManager = await import('../services/firebase/FirestoreManager.jsx');
-        FireAuthManager = await import('../services/firebase/FirebaseAuthenticationManager.jsx');
-        WorkoutManager = await import('../services/WorkoutManagement.jsx');
-        User = await import('../services/interfaces/User.jsx');
+        FirestoreManager = await import('../../services/firebase/FirestoreManager.jsx');
+        FireAuthManager = await import('../../services/firebase/FirebaseAuthenticationManager.jsx');
+        WorkoutManager = await import('../../services/WorkoutManagement.jsx');
+        User = await import('../../services/interfaces/User.jsx');
         
         // Mock console methods to suppress logs in tests
         console.error = vi.fn();

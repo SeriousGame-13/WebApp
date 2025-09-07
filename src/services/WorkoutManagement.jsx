@@ -167,6 +167,47 @@ const loadWorkouts = async (userId) => {
 }
 
 /**
+ * Loads all workouts from all users in the system.
+ * Retrieves complete workout data with exercises for admin management.
+ * @async
+ * @function loadAllWorkouts
+ * @returns {Promise<Array<Workout>>} Array of all workout objects with user information
+ * @throws {Error} When database access fails or data cannot be processed
+ * 
+ * @example
+ * const allWorkouts = await loadAllWorkouts();
+ * console.log(`Found ${allWorkouts.length} total workouts across all users`);
+ */
+const loadAllWorkouts = async () => {
+    try {
+        // First get all users
+        const allUsers = await UserManagement.getAllActiveUsers();
+        const allWorkouts = [];
+
+        // Load workouts for each user
+        for (const user of allUsers) {
+            try {
+                const userWorkouts = await loadWorkouts(user.uid);
+                // Add user information to each workout
+                userWorkouts.forEach(workout => {
+                    workout.userDisplayName = user.displayName || 'Unknown User';
+                    workout.userEmail = user.email;
+                });
+                allWorkouts.push(...userWorkouts);
+            } catch (error) {
+                console.error(`Error loading workouts for user ${user.uid}:`, error);
+                // Continue with other users even if one fails
+            }
+        }
+
+        return allWorkouts;
+    } catch (error) {
+        console.error('Error loading all workouts:', error);
+        throw error;
+    }
+}
+
+/**
  * Loads a specific workout by ID including all its exercises.
  * Retrieves complete workout data with full exercise details.
  * @param {string} userId - The user ID who owns the workout
@@ -239,8 +280,14 @@ const update = async (workout) => {
  */
 const addExercise = async (userId, workoutId, exerciseData) => {
     try {
-        const exercise = new Exercise({ ...exerciseData, userId });
-        await FirestoreManager.createDocument(
+        // Firestore does not accept `undefined` values; drop gameId if it's undefined
+        const sanitizedData = { ...exerciseData };
+        if (sanitizedData.gameId === undefined) {
+            delete sanitizedData.gameId;
+        }
+
+    const exercise = new Exercise({ ...sanitizedData, userId });
+    await FirestoreManager.createDocument(
             `${createPath(userId)}/${workoutId}/${EXERCISE_COLLECTION}`,
             exercise,
             exercise.uid
@@ -270,6 +317,10 @@ const updateExercise = async (userId, workoutId, exerciseData) => {
     try {
         const exercisePath = `${createPath(userId)}/${workoutId}/${EXERCISE_COLLECTION}`;
         const dataToUpdate = { ...exerciseData };
+        // Firestore does not accept `undefined` values; drop gameId if it's undefined
+        if (dataToUpdate.gameId === undefined) {
+            delete dataToUpdate.gameId;
+        }
         const oldExer = await FirestoreManager.readDocument(exercisePath, exerciseData.uid);
 
         if (dataToUpdate.points)
@@ -401,6 +452,7 @@ const WorkoutManager = {
     saveWorkout,
     loadWorkoutById,
     loadWorkouts,
+    loadAllWorkouts,
     deleteWorkout,
     update,
     addExercise,

@@ -12,7 +12,7 @@ import { Card, Stat } from './UIComponents';
  * @param {boolean} props.isLoading - Loading state indicator
  * @returns {JSX.Element} Workout selector component
  */
-export function WorkoutSelector({ workouts, selectedWorkoutId, onWorkoutSelect, helpers, isLoading }) {
+export function WorkoutSelector({ workouts, selectedWorkoutId, onWorkoutSelect, isLoading }) {
   if (isLoading) {
     return (
         <Card>
@@ -76,15 +76,46 @@ export function WorkoutSelector({ workouts, selectedWorkoutId, onWorkoutSelect, 
  */
 export function WorkoutStats({ lastWorkout }) {
   if (!lastWorkout) return null;
+  const fmtMin = (ms) => {
+    if (!ms || ms <= 0) return '00:00';
+    const totalMinutes = Math.floor(ms / 60000);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+  };
     
   return (
     <div className="grid-2 mt-4">
-      <Card><Stat label="DURATION" value={lastWorkout.getDurationFormatted()} /></Card>
-      <Card><Stat label="POINTS" value={lastWorkout.points} /></Card>
-      <Card><Stat label="CALORIES" value={<>{lastWorkout.calories} kcal</>} /></Card>
-      <Card><Stat label="AVG HEART RATE" value={<>{lastWorkout.heartRateAvg || '--'} bpm</>} /></Card>
-      <Card><Stat label="MIN HEART RATE" value={<>{lastWorkout.heartRateMin || '--'} bpm</>} /></Card>
-      <Card><Stat label="MAX HEART RATE" value={<>{lastWorkout.heartRateMax || '--'} bpm</>} /></Card>
+  <Card><Stat label="POINTS" value={lastWorkout.points} /></Card>
+  <Card><Stat label="CALORIES" value={<>{lastWorkout.calories} kcal</>} /></Card>
+      <Card>
+        <Stat 
+          label="DURATION (HH:MM)" 
+          value={
+            <div className="flex flex-col items-center leading-tight text-center">
+              <div className="flex gap-4 text-base justify-center">
+                <span><span className="text-slate-400">Active</span> {fmtMin(lastWorkout.getActiveTimeMs())}</span>
+                <span><span className="text-slate-400">Idle</span> {fmtMin(lastWorkout.getIdleTimeMs())}</span>
+              </div>
+              <span className="text-xs text-slate-400 mt-1">Total {fmtMin(lastWorkout.getDuration())}</span>
+            </div>
+          }
+        />
+      </Card>
+      <Card>
+        <Stat 
+          label="HEART RATE (bpm)" 
+          value={
+            <div className="flex flex-col items-center leading-tight text-center">
+              <div className="flex gap-4 text-base justify-center">
+                <span><span className="text-slate-400">Min</span> {lastWorkout.heartRateMin || '--'} bpm</span>
+                <span><span className="text-slate-400">Max</span> {lastWorkout.heartRateMax || '--'} bpm</span>
+              </div>
+              <span className="text-xs text-slate-400 mt-1">Avg {lastWorkout.heartRateAvg || '--'} bpm</span>
+            </div>
+          }
+        />
+      </Card>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { Modal } from './UIComponents';
-import { toGermanDateLongFormat } from '../../utils/DateUtils';
+import { toGermanDateLongFormat, toDateTime } from '../../utils/DateUtils';
 
 /**
  * Modal for creating or editing a workout.
@@ -71,10 +71,14 @@ export function WorkoutModal({ open, onClose, formData, onChange, onSave, onDele
  * @param {Function} props.onDelete - Callback to delete exercise
  * @returns {JSX.Element} Exercise modal component
  */
-export function ExerciseModal({ open, onClose, formData, onChange, stations, isEditing, onSave, onDelete}) {
+export function ExerciseModal({ open, onClose, formData, onChange, stations, games, isEditing, onSave, onDelete}) {
   const handleChange = (field, value) => {
     onChange({ ...formData, [field]: value });
   };
+
+  const availableGames = formData.selectedStation && Array.isArray(games)
+    ? games.filter(game => game.stationId === formData.selectedStation)
+    : [];
   
 return (
   <Modal open={open} onClose={onClose} title={isEditing ? "Edit Exercise" : "Add Exercise"} size="md">
@@ -105,12 +109,29 @@ return (
         </div>
       </div>
       
-      <div className="grid-2 gap-4">  
+      <div>
+        <div className="text-sm text-slate-300 mb-1">Game (Optional)</div>
+        <select
+          value={formData.gameId || ''}
+          onChange={e => handleChange('gameId', e.target.value)}
+          className="form-input w-full"
+          disabled={!formData.selectedStation}
+        >
+          <option value="">No Game</option>
+          {availableGames.map(game => (
+            <option key={game.uid} value={game.uid}>
+              {game.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      
+  <div className="flex flex-col gap-4">  
         <div>
           <div className="text-sm text-slate-300 mb-1">Start Time</div>
           <input 
             type="datetime-local" 
-            value={formData.exerciseStartTime.toISOString().slice(0, 16)} 
+            value={toDateTime(formData.exerciseStartTime)} 
             onChange={e => handleChange('exerciseStartTime', new Date(e.target.value))} 
             className="form-input w-full" 
           />
@@ -119,7 +140,7 @@ return (
           <div className="text-sm text-slate-300 mb-1">End Time</div>
           <input 
             type="datetime-local" 
-            value={formData.exerciseEndTime.toISOString().slice(0, 16)} 
+            value={toDateTime(formData.exerciseEndTime)} 
             onChange={e => handleChange('exerciseEndTime', new Date(e.target.value))} 
             className="form-input w-full" 
           />
@@ -211,7 +232,7 @@ export function ExerciseDetailModal({
 }) {
   if (!exercise) return null;
   
-  const { getStationNameById, getDateFromTimestamp } = helpers;
+  const { getStationNameById, getGameNameById } = helpers;
 
   return (
     <Modal 
@@ -236,7 +257,14 @@ export function ExerciseDetailModal({
           </div>
         </div>
 
-        <div className="grid-2 gap-4">
+        <div>
+          <div className="text-sm text-slate-300 mb-1">Game</div>
+          <div className="form-input w-full bg-slate-700 text-slate-200">
+            {getGameNameById(exercise.gameId) || '—'}
+          </div>
+        </div>
+
+  <div className="flex flex-col gap-4">
           <div>
             <div className="text-sm text-slate-300 mb-1">Start Time</div>
             <div className="form-input w-full bg-slate-700 text-slate-200">

@@ -11,11 +11,23 @@ html {
   background-color: #0a0a0a;
   color: #e2e8f0;
   line-height: 1.5;
+  height: 100%;
+  overflow: hidden;
+}
+
+#root {
+  height: 100%;
+  overflow: hidden;
+}
+
+.App {
+  height: 100%;
+  overflow: hidden;
 }
 
 .app-container {
   position: relative;
-  min-height: 100vh;
+  height: 100vh;
   width: 100%;
   background-color: #0a0a0a;
   color: #e2e8f0;
@@ -159,6 +171,56 @@ html {
 
 .card-button:hover {
   background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Exercise card tidy layout */
+.exercise-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.exercise-card-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.exercise-title {
+  font-size: 0.95rem;
+  color: #94a3b8; /* slate-400/500 mix */
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap; /* keep title on one line */
+}
+
+.exercise-meta {
+  text-align: right;
+  color: #94a3b8;
+  max-width: 55%;
+}
+
+.exercise-meta-primary {
+  font-size: 0.85rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.exercise-meta-secondary {
+  font-size: 0.7rem;
+  color: #64748b; /* slate-500/600 */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Prevent ugly word wrapping inside cards */
+.card, .card-button, .exercise-card, .exercise-card * {
+  word-break: keep-all;
+  overflow-wrap: anywhere; /* break long tokens if needed */
 }
 
 /* Buttons */
@@ -1368,4 +1430,41 @@ select.form-input option:checked {
 
 .mix-blend-soft-light {
   mix-blend-mode: soft-light;
+}
+
+/* Custom Scrollbar Styles */
+/* Webkit scrollbar for Chrome, Safari, Edge */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c4b5fd;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(240, 171, 252, 0.3);
+  box-shadow: 0 0 4px rgba(196, 181, 253, 0.4);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #f0abfc;
+  border: 1px solid rgba(253, 164, 175, 0.5);
+  box-shadow: 0 0 6px rgba(240, 171, 252, 0.6);
+  transform: scale(1.05);
+}
+
+::-webkit-scrollbar-corner {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #f0abfc rgba(255, 255, 255, 0.05);
 }

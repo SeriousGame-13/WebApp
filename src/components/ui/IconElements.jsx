@@ -1,4 +1,4 @@
-import '../styles/IconElements.css'
+import '../styles/sphere-styles.css'
 
 /**
  * I'll store SVG images in this file. Please modify them so that colors can be changed using variables. 

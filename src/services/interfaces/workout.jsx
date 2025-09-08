@@ -196,7 +196,19 @@ export class Workout extends BaseModel {
    */
   getDurationFormatted() {
     const durationMs = this.getDuration();
-    if (durationMs <= 0) return "00:00:00";
+    return this.formatDurationMs(durationMs);
+  }
+
+  /**
+   * Format a duration in milliseconds to HH:MM:SS.
+   *
+   * @method formatDurationMs
+   * @param {number} durationMs - Duration in milliseconds
+   * @returns {string} Formatted duration string
+   * @private
+   */
+  formatDurationMs(durationMs) {
+    if (!durationMs || durationMs <= 0) return "00:00:00";
 
     const totalSeconds = Math.floor(durationMs / 1000);
     const hours = Math.floor(totalSeconds / 3600);
@@ -204,6 +216,83 @@ export class Workout extends BaseModel {
     const seconds = totalSeconds % 60;
 
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  }
+
+  /**
+   * Get total active time based on summed exercise durations.
+   * Overlaps are not de-duplicated. If there are gaps between exercises,
+   * they will be considered idle time.
+   *
+   * @method getActiveTimeMs
+   * @returns {number} Active time in milliseconds
+   */
+  getActiveTimeMs() {
+    if (!Array.isArray(this.exercises) || this.exercises.length === 0) return 0;
+
+    // Build list of valid intervals [startMs, endMs]
+    const intervals = this.exercises
+      .map(ex => {
+        const s = this.safeTimestampToDate(ex.startTime).getTime();
+        const e = this.safeTimestampToDate(ex.endTime).getTime();
+        return [Math.min(s, e), Math.max(s, e)];
+      })
+      .filter(([s, e]) => isFinite(s) && isFinite(e) && e > s)
+      .sort((a, b) => a[0] - b[0]);
+
+    if (intervals.length === 0) return 0;
+
+    // Merge overlapping intervals
+    const merged = [];
+    let [curS, curE] = intervals[0];
+    for (let i = 1; i < intervals.length; i++) {
+      const [s, e] = intervals[i];
+      if (s <= curE) {
+        // overlap: extend current
+        curE = Math.max(curE, e);
+      } else {
+        merged.push([curS, curE]);
+        [curS, curE] = [s, e];
+      }
+    }
+    merged.push([curS, curE]);
+
+    // Sum merged durations
+    const total = merged.reduce((acc, [s, e]) => acc + (e - s), 0);
+    return Math.max(0, total);
+  }
+
+  /**
+   * Get idle time as the difference between total workout window and active time.
+   *
+   * @method getIdleTimeMs
+   * @returns {number} Idle time in milliseconds (clamped to [0, total])
+   */
+  getIdleTimeMs() {
+    const total = this.getDuration();
+    const active = this.getActiveTimeMs();
+    const idle = total - active;
+    // Clamp to [0, total] to avoid negatives due to overlapping exercises
+    return Math.max(0, Math.min(total, idle));
+  }
+
+  /**
+   * Get formatted active time.
+   *
+   * @method getActiveTimeFormatted
+   * @returns {string}
+   */
+  getActiveTimeFormatted() {
+    return this.formatDurationMs(this.getActiveTimeMs());
+  }
+
+  /**
+   * Get formatted idle time.
+   *
+   * @method getIdleTimeFormatted
+   * @returns {string}
+   */
+  getIdleTimeFormatted() {
+    return this.formatDurationMs(this.getIdleTimeMs());
   }
 
   /**

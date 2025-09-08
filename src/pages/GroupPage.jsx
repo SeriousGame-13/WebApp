@@ -1,16 +1,18 @@
-import { useEffect, useMemo, useState } from 'react';
-import ChallengeManagement from '../services/ChallengeManagement.jsx';
-import GroupManagement from '../services/GroupManagementSystem.jsx';
-import UserManagement from '../services/UserManagementSystem.jsx';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import IconElements from '../components/ui/IconElements';
+import UserManagement from '../services/firebase/UserManagementSystem';
+import GroupManagement from '../services/firebase/GroupManagementSystem';
+import ChallengeManagement from '../services/firebase/ChallengeManagement';
 
-import { Timestamp } from '../services/firebase/FirebaseHelper.jsx';
-import { Plus, Search, Trophy } from 'lucide-react';
-import { Avatar, Card, Modal, Screen } from '../components/ui/UIComponents';
-import ProfileAvatar from '../components/ui/ProfileAvatar.jsx';
-import { CHALLENGE_TYPE, CHALLENGE_VISIBILITY } from '../services/interfaces/Constants.jsx';
-import { ImageSelector } from '../components/ui/ImageComponents.jsx';
+import { Search, Users, Plus, Trophy } from 'lucide-react';
+import { Card, Modal, Pill, Screen, Avatar } from '../components/ui/UIComponents';
+import { CHALLENGE_TYPE, CHALLENGE_VISIBILITY } from '../services/interfaces/constants';
+import { Timestamp } from 'firebase/firestore';
 
-function GroupPage({ groups, setGroups, joinedIds, setJoinedIds }) {
+import '../components/styles/LayoutElements.css'
+import '../components/styles/GroupPage.css'
+
+function Page({ groups, setGroups, joinedIds, setJoinedIds }) {
     const [search, setSearch] = useState("");
     const [opened, setOpened] = useState(null);
     const [createOpen, setCreateOpen] = useState(false);
@@ -57,7 +59,7 @@ function GroupPage({ groups, setGroups, joinedIds, setJoinedIds }) {
                     name: group.name,
                     description: group.description,
                     members: group.getActiveMemberCount(),
-                    memberIds: group.members.filter(m => m.isActive()).map(m => m.userId),
+                    memberIds: group.members.map(m => m.userId),
                     isPrivate: group.isPrivate,
                     image: image,
                     createdBy: group.createdBy,
@@ -241,13 +243,8 @@ function GroupPage({ groups, setGroups, joinedIds, setJoinedIds }) {
                         {filtered.map(g => (
                             <Card key={g.id}>
                                 <div className="flex items-center gap-4">
-                                    <div className="flex-shrink-0">
-                                        <Avatar 
-                                            name={g.name} 
-                                            image={g.image} 
-                                            size={40} 
-                                            seed={g.id} 
-                                        />
+                                    <div className="w-10 h-10 rounded-full bg-white/10 flex-shrink-0">
+                                        <img src={g.image} alt={g.name} className="w-full h-full rounded-full object-cover" />
                                     </div>
                                     <div className="flex-1">
                                         <p className="text-lg font-semibold">{g.name}</p>
@@ -285,27 +282,66 @@ function GroupPage({ groups, setGroups, joinedIds, setJoinedIds }) {
                                 <div className="form-group">
                                     <div className="text-center mb-4">
                                         <div className="text-slate-300 mb-4">Group Image</div>
-                                        <ImageSelector
-                                            id="new-group"
-                                            onImageProcessed={(result) => {
-                                                handleInputChange('imageData', result.base64Data);
-                                            }}
-                                            onError={(error) => {
-                                                console.error('Image selection error:', error);
-                                                alert(error);
-                                            }}
-                                            disabled={false}
-                                            loadExistingImage={() => Promise.resolve(newGroupData.imageData)}
-                                            altText="Group Preview"
-                                            buttonClassName="btn-secondary"
-                                            buttonText={{
-                                                processing: 'Processing...',
-                                                loading: 'Loading...',
-                                                disabled: 'Disabled',
-                                                noImage: 'Upload Image',
-                                                hasImage: 'Change Image'
-                                            }}
-                                        />
+                                        <div className="text-center">
+                                            {newGroupData.imageData ? (
+                                                <img
+                                                    src={newGroupData.imageData}
+                                                    alt="Group Preview"
+                                                    style={{
+                                                        width: '150px',
+                                                        height: '150px',
+                                                        objectFit: 'cover',
+                                                        borderRadius: '8px',
+                                                        border: '2px solid var(--main-color)'
+                                                    }}
+                                                />
+                                            ) : (
+                                                <div style={{
+                                                    width: '150px',
+                                                    height: '150px',
+                                                    border: '2px dashed #A0A0A0',
+                                                    borderRadius: '8px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    color: '#A0A0A0',
+                                                    margin: '0 auto'
+                                                }}>
+                                                    No Image
+                                                </div>
+                                            )}
+                                            <input
+                                                type="file"
+                                                id="group-image-upload"
+                                                accept="image/*"
+                                                style={{ display: 'none' }}
+                                                onChange={async (e) => {
+                                                    const file = e.target.files[0];
+                                                    if (!file) return;
+                                                    if (!file.type.startsWith('image/')) {
+                                                        alert('Please select an image file only.');
+                                                        return;
+                                                    }
+                                                    if (file.size > 10 * 1024 * 1024) {
+                                                        alert('File size must be less than 10MB.');
+                                                        return;
+                                                    }
+                                                    try {
+                                                        const resizedBase64 = await resizeImage(file, 150, 150, 0.8);
+                                                        handleInputChange('imageData', resizedBase64);
+                                                    } catch (error) {
+                                                        console.error('Image processing failed:', error);
+                                                        alert(`Image processing failed: ${error.message}`);
+                                                    }
+                                                }}
+                                            />
+                                            <button
+                                                className='btn-secondary mt-2'
+                                                onClick={() => document.getElementById('group-image-upload').click()}
+                                            >
+                                                {newGroupData.imageData ? 'Change Image' : 'Upload Image'}
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                                 {/* Name & Description */}
@@ -413,7 +449,7 @@ function GroupPage({ groups, setGroups, joinedIds, setJoinedIds }) {
                             {members.map((member) => (
                                 <Card key={member.uid}>
                                     <div className="flex items-center gap-3">
-                                        <ProfileAvatar name={member.displayName} size={36} seed={member.uid} userId={member.uid} />
+                                        <Avatar name={member.displayName} size={36} seed={member.uid} />
                                         <span className="font-medium">{member.displayName}</span>
                                     </div>
                                 </Card>
@@ -466,6 +502,26 @@ function GroupPage({ groups, setGroups, joinedIds, setJoinedIds }) {
     );
 }
 
+
+const resizeImage = (file, width = 150, height = 150, quality = 0.8) => {
+    return new Promise((resolve, reject) => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+
+        img.onload = () => {
+            canvas.width = width;
+            canvas.height = height;
+            ctx.drawImage(img, 0, 0, width, height);
+
+            const base64String = canvas.toDataURL('image/jpeg', quality);
+            resolve(base64String);
+        };
+
+        img.onerror = () => reject(new Error('Image loading failed'));
+        img.src = URL.createObjectURL(file);
+    });
+};
 
 function CreateGroupChallengePopup({ group, onClose, onCreate }) {
     const [challengeData, setChallengeData] = useState({
@@ -631,4 +687,8 @@ function CreateGroupChallengePopup({ group, onClose, onCreate }) {
     );
 }
 
-export default GroupPage;
+const GroupPageElements = {
+    Page,
+};
+
+export default GroupPageElements;

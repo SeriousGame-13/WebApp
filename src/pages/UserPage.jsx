@@ -497,6 +497,8 @@ function UserPage({ data, onOpenBadge, onOpenSettings, onUserUpdated }) {
   const [showSettings, setShowSettings] = useState(false);
   const [imageRefreshTrigger, setImageRefreshTrigger] = useState(0);
   const [displayName, setDisplayName] = useState('');
+  const [nextOnly, setNextOnly] = useState(true);
+  const [ownedOnly, setOwnedOnly] = useState(false);
 
   console.log('UserPage executing with data:', data);
 
@@ -663,6 +665,160 @@ function UserPage({ data, onOpenBadge, onOpenSettings, onUserUpdated }) {
     </div>
   );
 
+  // --- Grouping helpers ---
+  const GROUP_ORDER = [
+    { key: 'level', title: 'Level' },
+    { key: 'calories', title: 'Kalorien' },
+    { key: 'sessions', title: 'Trainings' },
+    { key: 'points', title: 'Punkte' },
+    { key: 'community', title: 'Community' },
+    { key: 'other', title: 'Andere' },
+  ];
+
+  const getBadgeGroupKey = (badge) => {
+    const name = String(badge?.name || '').toLowerCase();
+    const field = String(badge?.field || '').toLowerCase();
+    const agg = String(badge?.aggregate || '').toLowerCase();
+    const coll = String(badge?.collection || '').toLowerCase();
+    const id = String(badge?.id || badge?.uid || '').toLowerCase();
+
+    if (name.startsWith('level ') || field === 'level' || coll === 'users') return 'level';
+    if (name.startsWith('calories') || field === 'calories' || id === 'calories') return 'calories';
+    if (
+      name.startsWith('training sessions') ||
+      name.includes('training') ||
+      name.includes('trainings') ||
+      (agg === 'count' && coll === 'exercises')
+    ) return 'sessions';
+    if (name.startsWith('total points') || name.includes('point') || (field === 'points' && agg === 'sum')) return 'points';
+    if (name.startsWith('community') || coll === 'user_group_members') return 'community';
+    return 'other';
+  };
+
+  const groupedBadges = (() => {
+    const groups = new Map(GROUP_ORDER.map(g => [g.key, []]));
+    // Keep owned first within each group, then by name
+    for (const badge of allBadges) {
+      const key = getBadgeGroupKey(badge);
+      const badgeId = badge.id || badge.uid;
+      const owned = userBadgesMap.has(badgeId);
+      groups.get(key).push({ badge, owned });
+    }
+    GROUP_ORDER.forEach(g => {
+      const arr = groups.get(g.key);
+      arr.sort((a, b) => {
+        if (a.owned && !b.owned) return -1;
+        if (!a.owned && b.owned) return 1;
+        return (a.badge.name || '').localeCompare(b.badge.name || '');
+      });
+    });
+    return groups;
+  })();
+
+  // Compute "next" items per logical series
+  const rarityWeight = (rarity) => {
+    const r = String(rarity || '').toLowerCase();
+    if (r === 'legendary') return 5;
+    if (r === 'epic') return 4;
+    if (r === 'rare') return 3;
+    if (r === 'uncommon') return 2;
+    return 1; // common or unknown
+  };
+
+  const parseNumericTarget = (b) => {
+    // Prefer valueToReach, else first number in name
+    const v = Number(b?.valueToReach);
+    if (!Number.isNaN(v) && v > 0) return v;
+  const m = String(b?.name || '').match(/(\d+(?:[.,]?\d*)?)/);
+    if (m) return Number(m[1].replace(',', '.'));
+    return NaN;
+  };
+
+  const getSeriesKey = (b) => {
+    const raw = String(b?.name || '').toLowerCase().trim();
+    if (raw) {
+      let base = raw
+        // remove explicit rarity markers in or out of parentheses
+        .replace(/\((?:common|uncommon|rare|epic|legendary)\)/g, '')
+        .replace(/\b(?:common|uncommon|rare|epic|legendary)\b/g, '')
+        // normalize "level 10" or "lvl 10" to just "level"
+        .replace(/\b(?:level|lvl)\s*\d+\b/g, 'level')
+        // drop numeric suffixes like " 5000", " 10x", " 2.5k"
+        .replace(/\s*\d+(?:[.,]?\d*)?[kKmM]?x?\s*$/g, '')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
+      if (!base) base = raw;
+      return `name:${base}`;
+    }
+    // Fallback to technical signature if name missing
+    const coll = String(b?.collection || '').toLowerCase();
+    const agg = String(b?.aggregate || '').toLowerCase();
+    const field = String(b?.field || '').toLowerCase();
+    return `${coll}|${agg}|${field}`;
+  };
+
+  const nextGroupedBadges = (() => {
+    const out = new Map(GROUP_ORDER.map(g => [g.key, []]));
+    GROUP_ORDER.forEach(g => {
+      const items = groupedBadges.get(g.key) || [];
+      const series = new Map();
+      // Build series buckets
+      for (const it of items) {
+        const k = getSeriesKey(it.badge);
+        if (!series.has(k)) series.set(k, []);
+        series.get(k).push(it);
+      }
+      // For each series, pick the next target
+      for (const [, arr] of series) {
+        // Determine ordering metric
+        const enriched = arr.map(it => ({
+          ...it,
+          num: parseNumericTarget(it.badge),
+          rW: rarityWeight(it.badge?.rarity)
+        }));
+
+        // Prefer numeric progression; else rarity progression
+        const hasNumeric = enriched.some(e => !Number.isNaN(e.num));
+        const ordered = enriched.sort((a, b) => {
+          if (hasNumeric) {
+            const an = Number.isNaN(a.num) ? Infinity : a.num;
+            const bn = Number.isNaN(b.num) ? Infinity : b.num;
+            if (an !== bn) return an - bn;
+          } else {
+            if (a.rW !== b.rW) return a.rW - b.rW;
+          }
+          return (a.badge.name || '').localeCompare(b.badge.name || '');
+        });
+
+        // Highest owned value
+        let maxOwnedMetric = -Infinity;
+        for (const e of ordered) {
+          const metric = hasNumeric ? (Number.isNaN(e.num) ? -Infinity : e.num) : e.rW;
+          if (e.owned && metric > maxOwnedMetric) maxOwnedMetric = metric;
+        }
+
+        // Find first greater than maxOwnedMetric
+        const next = ordered.find(e => {
+          const metric = hasNumeric ? (Number.isNaN(e.num) ? Infinity : e.num) : e.rW;
+          return metric > maxOwnedMetric;
+        }) || null;
+
+        if (next) out.get(g.key).push({ badge: next.badge, owned: next.owned });
+        // If user owns none, ensure we still surface the first target
+        if (!next && ordered.length > 0 && maxOwnedMetric === -Infinity) {
+          out.get(g.key).push({ badge: ordered[0].badge, owned: ordered[0].owned });
+        }
+      }
+      // Sort selected next items: owned first (rare, usually false), then by name
+      out.get(g.key).sort((a, b) => {
+        if (a.owned && !b.owned) return -1;
+        if (!a.owned && b.owned) return 1;
+        return (a.badge.name || '').localeCompare(b.badge.name || '');
+      });
+    });
+    return out;
+  })();
+
   return (
     <>
       <Screen titleNode={header}>
@@ -672,32 +828,58 @@ function UserPage({ data, onOpenBadge, onOpenSettings, onUserUpdated }) {
               <p className="text-slate-300 text-sm">Badges gesammelt</p>
               <p className="text-xl font-semibold">{ownedCount} / {total}</p>
             </div>
-            <Legend userBadgesMap={userBadgesMap} allBadges={allBadges} />
+            <div className="flex flex-col items-end gap-2">
+              <Legend userBadgesMap={userBadgesMap} allBadges={allBadges} />
+              <div className="flex gap-2">
+                <button
+                  className="btn-secondary text-xs"
+                  onClick={() => setNextOnly(v => !v)}
+                  title="Nur das nächste Ziel anzeigen"
+                  disabled={ownedOnly}
+                  style={ownedOnly ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
+                >
+                  {nextOnly ? 'Nur Nächstes: AN' : 'Nur Nächstes: AUS'}
+                </button>
+                <button
+                  className="btn-secondary text-xs"
+                  onClick={() => setOwnedOnly(v => !v)}
+                  title="Nur erhaltene Badges anzeigen"
+                >
+                  {ownedOnly ? 'Nur Erhaltene: AN' : 'Nur Erhaltene: AUS'}
+                </button>
+              </div>
+            </div>
           </div>
         </Card>
 
-        <div className="mt-4 mb-2 text-slate-400 text-xs">Badges</div>
-
         {isLoadingBadges ? (
-          <div className="text-center text-slate-400 py-4">
-            Loading badges...
-          </div>
+          <div className="text-center text-slate-400 py-4">Loading badges...</div>
         ) : (
-          <div className="grid-3">
-            {allBadges.map((badge) => {
-              const badgeId = badge.id || badge.uid;
-              const userBadgeLevel = userBadgesMap.get(badgeId);
-              
-              return (
-                <BadgeItem
-                  key={badgeId}
-                  badge={badge}
-                  userBadgeLevel={userBadgeLevel}
-                  onClick={handleBadgeClick}
-                />
-              );
-            })}
-          </div>
+          GROUP_ORDER.map(({ key, title }) => {
+            const source = ownedOnly ? groupedBadges : (nextOnly ? nextGroupedBadges : groupedBadges);
+            let items = source.get(key) || [];
+            if (ownedOnly) items = items.filter(it => it.owned);
+            if (items.length === 0) return null;
+            return (
+              <div key={key} className="mt-4">
+                <div className="mb-2 text-slate-400 text-xs">{title}</div>
+                <div className="grid-3">
+                  {items.map(({ badge }) => {
+                    const badgeId = badge.id || badge.uid;
+                    const userBadgeLevel = userBadgesMap.get(badgeId);
+                    return (
+                      <BadgeItem
+                        key={badgeId}
+                        badge={badge}
+                        userBadgeLevel={userBadgeLevel}
+                        onClick={handleBadgeClick}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })
         )}
       </Screen>
 

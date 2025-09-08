@@ -41,7 +41,7 @@ vi.mock('firebase/auth', () => {
     };
 });
 
-import FirebaseAuthenticationManager from '../services/firebase/FirebaseAuthenticationManager';
+import FirebaseAuthenticationManager from '../../../services/firebase/FirebaseAuthenticationManager';
 
 describe('FirebaseAuthenticationManager', () => {
     // Standard credential response for Firebase auth operations

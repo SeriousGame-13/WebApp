@@ -1,13 +1,13 @@
 import { Activity, Bike, CalendarDays, Check, Dumbbell, Flame, HeartPulse, Medal, Moon, Settings, Star, Trophy, Users, X } from "lucide-react";
 import { useEffect, useState } from 'react';
 import '../components/styles/sphere-styles.css';
-import { Avatar, Card, Modal, Screen } from '../components/ui/UIComponents';
 import ProfileAvatar from '../components/ui/ProfileAvatar.jsx';
+import ProfileImageElements from "../components/ui/ProfileImageManager.jsx";
+import { Card, Modal, Screen } from '../components/ui/UIComponents';
 import BadgeManagement from '../services/BadgeManagement.jsx';
+import { USERS_COLLECTION } from '../services/firebase/Collections.jsx';
 import FireAuthManager from '../services/firebase/FirebaseAuthenticationManager.jsx';
 import FirestoreManager from '../services/firebase/FirestoreManager.jsx';
-import { USERS_COLLECTION } from '../services/firebase/Collections.jsx';
-import ProfileImageElements from "../components/ui/ProfileImageManager.jsx";
 
 
 //TODO Refactor!!!!!!!!!!!!!!!!!!!!!!!

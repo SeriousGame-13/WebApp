@@ -1,16 +1,12 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import IconElements from '../components/ui/IconElements';
-import UserManagement from '../services/firebase/UserManagementSystem';
-import GroupManagement from '../services/firebase/GroupManagementSystem';
-import ChallengeManagement from '../services/firebase/ChallengeManagement';
+import UserManagement from '../services/UserManagementSystem';
+import GroupManagement from '../services/GroupManagementSystem';
+import ChallengeManagement from '../services/ChallengeManagement';
 
 import { Search, Users, Plus, Trophy } from 'lucide-react';
 import { Card, Modal, Pill, Screen, Avatar } from '../components/ui/UIComponents';
-import { CHALLENGE_TYPE, CHALLENGE_VISIBILITY } from '../services/interfaces/constants';
+import { CHALLENGE_TYPE, CHALLENGE_VISIBILITY } from '../services/interfaces/Constants';
 import { Timestamp } from 'firebase/firestore';
-
-import '../components/styles/LayoutElements.css'
-import '../components/styles/GroupPage.css'
 
 function Page({ groups, setGroups, joinedIds, setJoinedIds }) {
     const [search, setSearch] = useState("");

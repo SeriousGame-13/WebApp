@@ -8,18 +8,18 @@
  * for improved maintainability and reusability.
  * 
  * @module HomePage
- * @author Team
+ * @author Igor, Alexander, Hyunu, Robert
  * @version 2.0.0
  */
 
+import '../components/styles/sphere-styles.css';
 import { ExerciseList, ExerciseSectionHeader } from '../components/ui/ExerciseComponents.jsx';
+import { LevelProgressBar } from '../components/ui/ExpBarComponents.jsx';
 import { ExerciseDetailModal, ExerciseModal, WorkoutModal } from '../components/ui/ModalComponents.jsx';
 import { Screen } from '../components/ui/UIComponents.jsx';
 import { UserHeader } from '../components/ui/UserComponents.jsx';
-import { LevelProgressBar } from '../components/ui/ExpBarComponents.jsx';
 import { WorkoutActions, WorkoutSelector, WorkoutStats } from '../components/ui/WorkoutComponents.jsx';
 import { useHomePage } from '../hooks/useHomePage.jsx';
-import '../components/styles/sphere-styles.css';
 
 /**
  * Main HomePage component with user dashboard and workout management.

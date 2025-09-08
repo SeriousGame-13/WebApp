@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
-import { AdminPageLayout, AdminCard } from '../../components/ui/AdminComponents.jsx';
+import { Dumbbell, Edit, Target, Trash2, Trophy, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import '../../components/styles/sphere-styles.css';
-import StationManager from '../../services/StationManagement.jsx';
+import { AdminCard, AdminPageLayout } from '../../components/ui/AdminComponents.jsx';
 import HighscoreManager from '../../services/HighscoreManager.jsx';
-import { Plus, Dumbbell, Edit, Trash2, X, Search, Trophy, Target } from 'lucide-react';
+import StationManager from '../../services/StationManagement.jsx';
 
 
 function EditStationForm({ station = null, onSubmit, onCancel, isProcessing, submitText }) {

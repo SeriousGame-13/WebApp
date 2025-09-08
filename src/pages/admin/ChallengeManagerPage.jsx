@@ -1,12 +1,11 @@
-import { useState, useEffect } from 'react';
-import { Timestamp } from '../../services/firebase/FirebaseHelper.jsx';
-import BaseModel from '../../services/interfaces/Base.jsx';
+import { Target, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import '../../components/styles/sphere-styles.css';
+import { AdminCard, AdminPageLayout } from '../../components/ui/AdminComponents.jsx';
 import ChallengeManagement from '../../services/ChallengeManagement.jsx';
+import { Timestamp } from '../../services/firebase/FirebaseHelper.jsx';
 import GroupManagement from '../../services/GroupManagementSystem.jsx';
 import { CHALLENGE_TYPE, CHALLENGE_VISIBILITY } from '../../services/interfaces/Constants.jsx';
-import { AdminPageLayout, AdminCard } from '../../components/ui/AdminComponents.jsx';
-import '../../components/styles/sphere-styles.css';
-import { Plus, Target, Trophy, Calendar, X, Search, Edit, Trash2 } from 'lucide-react';
 
 function CreateChallengePopup({ onCreateChallenge, onCancel, isCreating }) {
     const [challengeName, setChallengeName] = useState('');

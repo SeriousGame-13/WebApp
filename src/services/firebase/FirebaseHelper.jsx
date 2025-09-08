@@ -46,16 +46,20 @@ export const buildConditions = (rawConditions, mappingData) => {
                 let t = x.split(':');
                 cond[t[0]] = t[1];
             });
-            if (cond['value'].includes('{')) {
-                const tt = cond['value'].replaceAll('{', '').replaceAll('}', '').split('.');
-                let curData = mappingData;
-                for (let n of tt) {
-                    curData = curData[n];
+            
+            // Process all fields that contain curly braces, not just 'value'
+            Object.keys(cond).forEach(key => {
+                if (cond[key] && cond[key].includes('{')) {
+                    const tt = cond[key].replaceAll('{', '').replaceAll('}', '').split('.');
+                    let curData = mappingData;
+                    for (let n of tt) {
+                        curData = curData[n];
+                    }
+                    cond[key] = curData;
                 }
-                cond['value'] = curData;
-            }
+            });
+            
             conditions.push(cond);
-
         }
     });
 

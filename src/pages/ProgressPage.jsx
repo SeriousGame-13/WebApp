@@ -8,7 +8,7 @@ import FirestoreManager from '../services/firebase/FirestoreManager.jsx';
 import { localDateTimeStringToTimestamp, localTime, toGermanDateLongFormat } from '../utils/DateUtils.jsx';
 import { CHALLENGE_STYLE } from '../services/interfaces/Constants.jsx';
 
-import { CheckCircle, Clock, Plus, Target, Trophy, X } from 'lucide-react';
+import { Plus, Target, Trophy, X } from 'lucide-react';
 import '../components/styles/sphere-styles.css';
 
 function Modal({ open, onClose, children, title, size = "md" }) {

@@ -19,8 +19,6 @@ import { UserHeader } from '../components/ui/UserComponents.jsx';
 import { LevelProgressBar } from '../components/ui/ExpBarComponents.jsx';
 import { WorkoutActions, WorkoutSelector, WorkoutStats } from '../components/ui/WorkoutComponents.jsx';
 import { useHomePage } from '../hooks/useHomePage.jsx';
-import ProfileAvatar from '../components/ui/ProfileAvatar.jsx';
-
 import '../components/styles/sphere-styles.css';
 
 /**
@@ -58,7 +56,7 @@ function HomePage({ userData }) {
   } = useHomePage(userData);
 
   // Destructuring for cleaner code
-  const { lastWorkout, allWorkouts, selectedWorkoutId, stations, selectedExercise } = dataState;
+  const { lastWorkout, allWorkouts, selectedWorkoutId, stations, games, selectedExercise } = dataState;
   const { isLoadingLastWorkout } = loadingState;
   const { workoutOpen, addExerciseOpen, showExerciseModal, isEditing } = modalState;
 
@@ -70,11 +68,10 @@ function HomePage({ userData }) {
 
       {/* Workout Selection Section */}
       <div className="mt-4">
-        <WorkoutSelector 
+  <WorkoutSelector 
           workouts={allWorkouts}
           selectedWorkoutId={selectedWorkoutId}
           onWorkoutSelect={handleWorkoutSelection}
-          helpers={helpers}
           isLoading={isLoadingLastWorkout}
         />
       </div>
@@ -120,6 +117,7 @@ function HomePage({ userData }) {
         onClose={() => setModalState(prev => ({ ...prev, addExerciseOpen: false, isEditing: false }))}
         isEditing={isEditing}
         stations={stations}
+        games={games}
         formData={exerciseForm}
         onChange={setExerciseForm}
         onSave={saveExercise}

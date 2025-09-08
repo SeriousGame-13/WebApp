@@ -280,8 +280,14 @@ const update = async (workout) => {
  */
 const addExercise = async (userId, workoutId, exerciseData) => {
     try {
-        const exercise = new Exercise({ ...exerciseData, userId });
-        await FirestoreManager.createDocument(
+        // Firestore does not accept `undefined` values; drop gameId if it's undefined
+        const sanitizedData = { ...exerciseData };
+        if (sanitizedData.gameId === undefined) {
+            delete sanitizedData.gameId;
+        }
+
+    const exercise = new Exercise({ ...sanitizedData, userId });
+    await FirestoreManager.createDocument(
             `${createPath(userId)}/${workoutId}/${EXERCISE_COLLECTION}`,
             exercise,
             exercise.uid
@@ -311,6 +317,10 @@ const updateExercise = async (userId, workoutId, exerciseData) => {
     try {
         const exercisePath = `${createPath(userId)}/${workoutId}/${EXERCISE_COLLECTION}`;
         const dataToUpdate = { ...exerciseData };
+        // Firestore does not accept `undefined` values; drop gameId if it's undefined
+        if (dataToUpdate.gameId === undefined) {
+            delete dataToUpdate.gameId;
+        }
         const oldExer = await FirestoreManager.readDocument(exercisePath, exerciseData.uid);
 
         if (dataToUpdate.points)

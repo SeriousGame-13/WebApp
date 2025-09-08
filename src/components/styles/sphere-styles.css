@@ -173,6 +173,56 @@ html {
   background-color: rgba(255, 255, 255, 0.1);
 }
 
+/* Exercise card tidy layout */
+.exercise-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.exercise-card-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.exercise-title {
+  font-size: 0.95rem;
+  color: #94a3b8; /* slate-400/500 mix */
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap; /* keep title on one line */
+}
+
+.exercise-meta {
+  text-align: right;
+  color: #94a3b8;
+  max-width: 55%;
+}
+
+.exercise-meta-primary {
+  font-size: 0.85rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.exercise-meta-secondary {
+  font-size: 0.7rem;
+  color: #64748b; /* slate-500/600 */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Prevent ugly word wrapping inside cards */
+.card, .card-button, .exercise-card, .exercise-card * {
+  word-break: keep-all;
+  overflow-wrap: anywhere; /* break long tokens if needed */
+}
+
 /* Buttons */
 .btn-primary {
   border-radius: 1rem;

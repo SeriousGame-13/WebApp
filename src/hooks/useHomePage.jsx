@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import WorkoutManager from '../services/WorkoutManagement.jsx';
 import StationManagement from '../services/StationManagement.jsx';
+import GameManager from '../services/GameManager.jsx';
 
 /**
  * Custom hook for managing HomePage state and business logic.
@@ -22,7 +23,8 @@ export function useHomePage(userData) {
   // Data loading state
   const [loadingState, setLoadingState] = useState({
     isLoadingLastWorkout: true,
-    isLoadingStations: true
+    isLoadingStations: true,
+    isLoadingGames: true
   });
   
   // Core data state
@@ -31,6 +33,7 @@ export function useHomePage(userData) {
     allWorkouts: [],
     selectedWorkoutId: null,
     stations: [],
+    games: [],
     selectedExercise: null
   });
   
@@ -43,6 +46,7 @@ export function useHomePage(userData) {
   // Form state for exercise
   const [exerciseForm, setExerciseForm] = useState({
     selectedStation: '',
+    gameId: '',
     exerciseName: '',
     exerciseStartTime: new Date(),
     exerciseEndTime: new Date(),
@@ -72,6 +76,10 @@ export function useHomePage(userData) {
     getStationNameById: (stationId) => {
       const station = dataState.stations.find(s => s.uid === stationId);
       return station ? station.name : 'Unknown Station';
+    },
+    getGameNameById: (gameId) => {
+      const game = dataState.games.find(g => g.uid === gameId);
+      return game ? game.name : '';
     }
   };
 
@@ -133,6 +141,18 @@ export function useHomePage(userData) {
     }
   }, []);
 
+  const loadGames = useCallback(async () => {
+    try {
+      setLoadingState(prev => ({ ...prev, isLoadingGames: true }));
+      const games = await GameManager.loadAll();
+      setDataState(prev => ({ ...prev, games }));
+    } catch (error) {
+      console.error('Error loading games:', error);
+    } finally {
+      setLoadingState(prev => ({ ...prev, isLoadingGames: false }));
+    }
+  }, []);
+
   // Load last workout on mount and when dependencies change
   useEffect(() => {
     loadLastWorkout();
@@ -142,6 +162,11 @@ export function useHomePage(userData) {
   useEffect(() => {
     loadStations();
   }, [loadStations]);
+
+  // Load games on mount
+  useEffect(() => {
+    loadGames();
+  }, [loadGames]);
 
   const handleExerciseClick = (exercise) => {
     setDataState(prev => ({ ...prev, selectedExercise: exercise }));
@@ -195,6 +220,7 @@ export function useHomePage(userData) {
   const handleEditExercise = (exercise) => {
     setExerciseForm({
       selectedStation: exercise.stationId || '',
+      gameId: exercise.gameId || '',
       exerciseName: exercise.name || '',
       exerciseStartTime: helpers.getDateFromTimestamp(exercise.startTime),
       exerciseEndTime: helpers.getDateFromTimestamp(exercise.endTime),
@@ -257,6 +283,7 @@ export function useHomePage(userData) {
       const exerciseData = {
         name: exerciseForm.exerciseName,
         stationId: exerciseForm.selectedStation,
+        gameId: exerciseForm.gameId,
         startTime: exerciseForm.exerciseStartTime,
         endTime: exerciseForm.exerciseEndTime,
         heartRateAvg: parseInt(exerciseForm.exerciseHR) || 0,

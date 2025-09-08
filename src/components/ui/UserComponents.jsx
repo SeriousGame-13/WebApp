@@ -21,14 +21,10 @@ export function UserHeader({ userData}) {
           <h1 className="screen-title">{userData.displayName?.split(' ')[0] || 'User'}</h1>
         </div>
       </div>
-      <div className="flex items-center gap-3">
-        <div className="user-stats text-right">
-          <div className="user-stats text-right">
-            <div>
-              <div className="stat-label">Level</div>
-                <div className="stat-value">{userData.level}</div>
-            </div>
-        </div>
+      <div className="flex items-center">
+        <div className="pill pill-active ring-1 flex items-center gap-2">
+          <span className="text-xs font-semibold opacity-90">Level</span>
+          <span className="text-2xl font-bold">{userData.level ?? 0}</span>
         </div>
       </div>
     </div>

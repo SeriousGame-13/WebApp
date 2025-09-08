@@ -1,5 +1,5 @@
-# WebApp
-WebApp Demo für Serious Game Projektseminar Gruppe 13 Spielerische Gesundheitsförderung
+# WebApp-Gesundheitforderung
+WebApp-Gesundheitforderung Demo für Serious Game Projektseminar Gruppe 13 Spielerische Gesundheitsförderung
 
 ## Available Scripts
 

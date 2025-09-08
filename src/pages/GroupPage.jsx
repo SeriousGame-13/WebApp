@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import UserManagement from '../services/UserManagementSystem';
 import GroupManagement from '../services/GroupManagementSystem';
 import ChallengeManagement from '../services/ChallengeManagement';
@@ -39,7 +39,7 @@ function Page({ groups, setGroups, joinedIds, setJoinedIds }) {
         [groups, search]
     );
 
-    const loadUserGroups = async () => {
+    const loadUserGroups = useCallback(async () => {
         try {
             const user = await UserManagement.getCurrentUser();
             setCurrentUser(user);
@@ -66,11 +66,11 @@ function Page({ groups, setGroups, joinedIds, setJoinedIds }) {
             console.error('Failed to load group list:', error);
             setGroups([]);
         }
-    };
+    }, [setGroups]);
 
     useEffect(() => {
         loadUserGroups();
-    }, []);
+    }, [loadUserGroups]);
 
     const current = opened ? groups.find(g => g.id === opened) : null;
 
@@ -239,8 +239,8 @@ function Page({ groups, setGroups, joinedIds, setJoinedIds }) {
                         {filtered.map(g => (
                             <Card key={g.id}>
                                 <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-full bg-white/10 flex-shrink-0">
-                                        <img src={g.image} alt={g.name} className="w-full h-full rounded-full object-cover" />
+                                    <div className="flex-shrink-0">
+                                        <Avatar name={g.name} image={g.image || undefined} size={40} seed={g.id} />
                                     </div>
                                     <div className="flex-1">
                                         <p className="text-lg font-semibold">{g.name}</p>

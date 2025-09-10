@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react';
+import { Trophy } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import '../../components/styles/sphere-styles.css';
+import { AdminCard, AdminPageLayout } from '../../components/ui/AdminComponents.jsx';
 import TournamentManagement from '../../services/TournamentManagement.jsx';
 import UserManagement from '../../services/UserManagementSystem.jsx';
-import { CHALLENGE_VISIBILITY } from '../../services/interfaces/Constants.jsx';
 import BaseModel from '../../services/interfaces/Base.jsx';
+import { CHALLENGE_VISIBILITY } from '../../services/interfaces/Constants.jsx';
 import { localDateTimeStringToTimestamp, localTime } from '../../utils/DateUtils.jsx';
-import { AdminPageLayout, AdminCard } from '../../components/ui/AdminComponents.jsx';
-import { Plus, Trophy, Calendar, Users, Target, X, Search, Edit, Trash2 } from 'lucide-react';
-import '../../components/styles/sphere-styles.css';
 
 
 function FormBase({

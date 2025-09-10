@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
-import UserManagementSystem from '../../services/UserManagementSystem.jsx';
-import { AdminPageLayout, AdminCard } from '../../components/ui/AdminComponents.jsx';
+import { Crown, Edit, Mail, Trash2, UserCheck, Users, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import '../../components/styles/sphere-styles.css';
-import { Users, Edit, Trash2, X, Search, Shield, UserCheck, Mail, Calendar, Crown } from 'lucide-react';
+import { AdminCard, AdminPageLayout } from '../../components/ui/AdminComponents.jsx';
+import UserManagementSystem from '../../services/UserManagementSystem.jsx';
 
 // User Edit Form Component
 function EditUserForm({ user = null, onSubmit, onCancel, isProcessing, submitText }) {

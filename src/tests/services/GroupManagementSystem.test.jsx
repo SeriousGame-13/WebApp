@@ -8,17 +8,17 @@
  * @author Igor, Alexander, Hyunu, Robert
  * @version 1.0.0
  */
-import { GROUP_ROLE } from '../services/interfaces/Constants.jsx';
-import { GROUPS_COLLECTION, GROUP_MEMBERS_COLLECTION, USERS_COLLECTION } from '../services/firebase/Collections.jsx';
-import { serverTimestamp } from '../services/firebase/FirebaseHelper.jsx';
+import { GROUP_ROLE } from '../../services/interfaces/Constants.jsx';
+import { GROUPS_COLLECTION, GROUP_MEMBERS_COLLECTION, USERS_COLLECTION } from '../../services/firebase/Collections.jsx';
+import { serverTimestamp } from '../../services/firebase/FirebaseHelper.jsx';
 
 // Mock Firebase configuration
-vi.mock('../services/firebase/FirebaseAppConfiguration', () => ({
+vi.mock('../../services/firebase/FirebaseAppConfiguration', () => ({
     firebaseApp: {}
 }));
 
 // Mock FirebaseAuthenticationManager
-vi.mock('../services/firebase/FirebaseAuthenticationManager', () => {
+vi.mock('../../services/firebase/FirebaseAuthenticationManager', () => {
     const mockUser = {
         uid: 'test-user-id',
         email: 'test@example.com',
@@ -58,7 +58,7 @@ const mockedDocuments = {
 
 let documentIdCounter = 1;
 
-vi.mock('../services/firebase/FirestoreManager', () => ({
+vi.mock('../../services/firebase/FirestoreManager', () => ({
     default: {
         createDocument: vi.fn((collection, data, id, overwrite = false) => {
             if (!mockedDocuments[collection]) {
@@ -142,7 +142,7 @@ vi.mock('../services/firebase/FirestoreManager', () => ({
 }));
 
 // Import the system under test
-import GroupManagementSystem from '../services/GroupManagementSystem.jsx';
+import GroupManagementSystem from '../../services/GroupManagementSystem.jsx';
 
 describe('GroupManagementSystem', () => {
     beforeEach(() => {
@@ -194,7 +194,7 @@ describe('GroupManagementSystem', () => {
             const description = 'Test Description';
             
             // Mock getCurrentUser to return null (not authenticated)
-            const FireAuthManager = await import('../services/firebase/FirebaseAuthenticationManager.jsx');
+            const FireAuthManager = await import('../../services/firebase/FirebaseAuthenticationManager.jsx');
             const originalGetCurrentUser = FireAuthManager.default.getCurrentUser;
             FireAuthManager.default.getCurrentUser = vi.fn(() => null);
             

@@ -1,12 +1,11 @@
-import { useState, useEffect } from 'react';
-import WorkoutManager from '../../services/WorkoutManagement.jsx';
-import StationManager from '../../services/StationManagement.jsx';
-import { Workout } from '../../services/interfaces/Workout.jsx';
-import { Timestamp } from '../../services/firebase/FirebaseHelper.jsx';
-import BaseModel from '../../services/interfaces/Base.jsx';
-import { AdminPageLayout, AdminCard } from '../../components/ui/AdminComponents.jsx';
+import { Activity, Dumbbell, Edit, Plus, Trash2, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import '../../components/styles/sphere-styles.css';
-import { Plus, Dumbbell, Edit, Trash2, X, Search, Clock, Activity, Target } from 'lucide-react';
+import { AdminCard, AdminPageLayout } from '../../components/ui/AdminComponents.jsx';
+import StationManager from '../../services/StationManagement.jsx';
+import WorkoutManager from '../../services/WorkoutManagement.jsx';
+import { Timestamp } from '../../services/firebase/FirebaseHelper.jsx';
+import { Workout } from '../../services/interfaces/Workout.jsx';
 
 function localDateTimeStringToTimestamp(value) {
     const [date, time] = value.split('T');

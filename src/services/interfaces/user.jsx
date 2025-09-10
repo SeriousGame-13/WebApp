@@ -12,7 +12,6 @@ export default class User extends BaseModel {
       longestStreak: 0,
       workouts: [],
       badges: [],
-      challenges: [],
       ...data
     });
   }

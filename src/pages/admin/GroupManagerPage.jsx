@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { Edit, Search, Trash2, UserPlus, Users, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import '../../components/styles/sphere-styles.css';
+import { AdminCard, AdminPageLayout } from '../../components/ui/AdminComponents.jsx';
+import ChallengeManagement from '../../services/ChallengeManagement.jsx';
+import GroupManagement from '../../services/GroupManagementSystem.jsx';
 import BaseModel from '../../services/interfaces/Base.jsx';
 import UserManagement from '../../services/UserManagementSystem.jsx';
-import GroupManagement from '../../services/GroupManagementSystem.jsx';
-import { AdminPageLayout, AdminCard } from '../../components/ui/AdminComponents.jsx';
-import '../../components/styles/sphere-styles.css';
-import ChallengeManagement from '../../services/ChallengeManagement.jsx';
-import { Users, Edit, Trash2, Plus, UserPlus, X, Search } from 'lucide-react';
 
 function AdminGroupDetailPopup({ group, onClose, onGroupUpdated }) {
     const [isProcessing, setIsProcessing] = useState(false);

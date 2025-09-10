@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import UserManagement from '../../services/UserManagementSystem.jsx';
 import ProfileAvatar from '../../components/ui/ProfileAvatar.jsx';
 import '../../components/styles/sphere-styles.css';

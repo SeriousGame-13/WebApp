@@ -1,14 +1,13 @@
-import { useState, useEffect, useCallback } from 'react';
-import BadgeManagement from '../../services/BadgeManagement.jsx';
-import UserManagement from '../../services/UserManagementSystem.jsx';
-import { BADGE_RARITY } from '../../services/interfaces/Constants.jsx';
-import BadgeImageElements from '../../components/ui/BadgeImageManager.jsx';
-import { AdminPageLayout, AdminCard } from '../../components/ui/AdminComponents.jsx';
+import { Award, Check, Download, Edit, Layers, Trash2, Upload, X } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 import '../../components/styles/sphere-styles.css';
-import { Badge } from '../../services/interfaces/Badge.jsx';
+import { AdminCard, AdminPageLayout } from '../../components/ui/AdminComponents.jsx';
+import BadgeImageElements from '../../components/ui/BadgeImageManager.jsx';
+import BadgeManagement from '../../services/BadgeManagement.jsx';
 import RewardSystem from '../../services/RewardSystem.jsx';
-import BaseModel from '../../services/interfaces/Base.jsx';
-import { Plus, Edit, Trash2, Award, X, Users, Check, Download, Upload, Layers } from 'lucide-react';
+import UserManagement from '../../services/UserManagementSystem.jsx';
+import { Badge } from '../../services/interfaces/Badge.jsx';
+import { BADGE_RARITY } from '../../services/interfaces/Constants.jsx';
 
 // Shared Badge Form Component
 function BadgeForm({ badge = null, onSubmit, onCancel, isProcessing, submitText }) {

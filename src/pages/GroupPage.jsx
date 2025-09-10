@@ -1,17 +1,14 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import IconElements from '../components/ui/IconElements';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import UserManagement from '../services/UserManagementSystem';
 import GroupManagement from '../services/GroupManagementSystem';
 import ChallengeManagement from '../services/ChallengeManagement';
 
 import { Search, Users, Plus, Trophy } from 'lucide-react';
 import { Card, Modal, Pill, Screen, Avatar } from '../components/ui/UIComponents';
-import { CHALLENGE_TYPE, CHALLENGE_VISIBILITY } from '../services/interfaces/constants';
+import { CHALLENGE_TYPE, CHALLENGE_VISIBILITY } from '../services/interfaces/Constants';
 import { Timestamp } from 'firebase/firestore';
 
-import '../components/styles/sphere-styles.css'
-
-function GroupPage({ groups, setGroups, joinedIds, setJoinedIds }) {
+function Page({ groups, setGroups, joinedIds, setJoinedIds }) {
     const [search, setSearch] = useState("");
     const [opened, setOpened] = useState(null);
     const [createOpen, setCreateOpen] = useState(false);
@@ -42,7 +39,7 @@ function GroupPage({ groups, setGroups, joinedIds, setJoinedIds }) {
         [groups, search]
     );
 
-    const loadUserGroups = async () => {
+    const loadUserGroups = useCallback(async () => {
         try {
             const user = await UserManagement.getCurrentUser();
             setCurrentUser(user);
@@ -69,11 +66,11 @@ function GroupPage({ groups, setGroups, joinedIds, setJoinedIds }) {
             console.error('Failed to load group list:', error);
             setGroups([]);
         }
-    };
+    }, [setGroups]);
 
     useEffect(() => {
         loadUserGroups();
-    }, []);
+    }, [loadUserGroups]);
 
     const current = opened ? groups.find(g => g.id === opened) : null;
 
@@ -242,8 +239,8 @@ function GroupPage({ groups, setGroups, joinedIds, setJoinedIds }) {
                         {filtered.map(g => (
                             <Card key={g.id}>
                                 <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-full bg-white/10 flex-shrink-0">
-                                        <img src={g.image} alt={g.name} className="w-full h-full rounded-full object-cover" />
+                                    <div className="flex-shrink-0">
+                                        <Avatar name={g.name} image={g.image || undefined} size={40} seed={g.id} />
                                     </div>
                                     <div className="flex-1">
                                         <p className="text-lg font-semibold">{g.name}</p>
@@ -686,4 +683,8 @@ function CreateGroupChallengePopup({ group, onClose, onCreate }) {
     );
 }
 
-export default GroupPage;
+const GroupPageElements = {
+    Page,
+};
+
+export default GroupPageElements;

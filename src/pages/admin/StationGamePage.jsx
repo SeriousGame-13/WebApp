@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
-import { AdminPageLayout, AdminCard } from '../../components/ui/AdminComponents.jsx';
+import { Edit, Gamepad2, Trash2, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import '../../components/styles/sphere-styles.css';
+import { AdminCard, AdminPageLayout } from '../../components/ui/AdminComponents.jsx';
 import StationGameManager from '../../services/GameManager.jsx';
 import StationManager from '../../services/StationManagement.jsx';
-import { Plus, Gamepad2, Edit, Trash2, X, Search } from 'lucide-react';
 
 function EditForm({ object = null, onSubmit, onCancel, isProcessing, submitText, stations }) {
     const inputFields = [

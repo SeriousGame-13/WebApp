@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 
 import GroupPage from '../pages/GroupPage.jsx';
 import HomePage from '../pages/HomePage.jsx';
-import LoginPage from '../pages/LoginPage.jsx';
 import ProgressPage from '../pages/ProgressPage.jsx';
 import RankingPage from '../pages/RankingPage.jsx';
 import UserPage from '../pages/UserPage.jsx';
@@ -98,7 +97,7 @@ function AppLayout() {
             case 'groups':
                 return (
                     <div className='app-container'>
-                        <GroupPage groups={groups} setGroups={setGroups} joinedIds={joinedIds} setJoinedIds={setJoinedIds} />
+                        <GroupPage.Page groups={groups} setGroups={setGroups} joinedIds={joinedIds} setJoinedIds={setJoinedIds} />
                         <div className='border-t border-white/10' />
                         <MainFooter.Footer tab={currentPage} setTab={setCurrentPage} />
                     </div>)
@@ -113,7 +112,7 @@ function AppLayout() {
             default:
                 return (
                     <div className='app-container'>
-                        <HomePage data={userData} />
+                        <HomePage userData={userData} />
                         <div className='border-t border-white/10' />
                         <MainFooter.Footer tab={currentPage} setTab={setCurrentPage} />
                     </div>)
@@ -131,8 +130,16 @@ function AppLayout() {
         )
     }
 
+    // Not authenticated: show a lightweight placeholder (login is handled at app level)
     if (!userData) {
-        return <LoginPage.AppLogin />;
+        return (
+            <div className='modal-overlay'>
+                <div className='modal-backdrop'></div>
+                <div className='modal-content'>
+                    <h2 className='modal-title'>Bitte einloggen…</h2>
+                </div>
+            </div>
+        );
     }
 
     return (

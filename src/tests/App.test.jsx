@@ -3,9 +3,7 @@ import '@testing-library/jest-dom';
 import App from '../App';
 
 vi.mock('../pages/LoginPage', () => ({
-  default: {
-    AppLogin: () => <div data-testid="mock-login">Login Page Mock</div>
-  }
+  default: () => <div data-testid="mock-login">Login Page Mock</div>
 }));
 
 vi.mock('../services/firebase/FirebaseAuthenticationManager.jsx', () => ({
